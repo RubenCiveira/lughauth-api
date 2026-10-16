@@ -24,11 +24,11 @@ class TrustedClientRegistrationAccessAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegistrationAccess('one');
+        $result = $holder->withRegistrationAccess('cyphered://cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getRegistrationAccess());
+        $this->assertEquals('****er', $result->getRegistrationAccess());
     }
     /**
      * Asserts that withregistrationAccess has access to the value object
@@ -40,19 +40,19 @@ class TrustedClientRegistrationAccessAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegistrationAccess('one');
+        $result = $holder->withRegistrationAccess('cyphered://cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->registrationAccess()->value());
+        $this->assertEquals('****er', $result->registrationAccess()->value());
     }
     public function testChangedRegistrationAccess(): void
     {
         // Arrange
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
-        $original = $holder->withRegistrationAccess('one');
-        $same = $holder->withRegistrationAccess('one');
-        $modified = $holder->withRegistrationAccess('other');
+        $original = $holder->withRegistrationAccess('cyphered://cypher');
+        $same = $holder->withRegistrationAccess('cyphered://cypher');
+        $modified = $holder->withRegistrationAccess('cyphered://ocyphered');
 
         // Act
         $unchanged = $holder->isRegistrationAccessChanged();

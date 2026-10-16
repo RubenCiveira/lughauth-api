@@ -75,6 +75,9 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "privateKey", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "certificate", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "metadata", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "oidcScopes", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "oidcClaimMapping", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "accountLinkPolicy", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "oidcDiscoveryUrl", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpMetadataUrl", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpEntityId", "MANAGE");

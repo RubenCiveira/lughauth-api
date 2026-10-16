@@ -20,15 +20,27 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesItem;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesListRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIdTokenSignedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelTokenDeliveryModeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSubjectTypeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesAudienceVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVersionVO;
 
 class TrustedClientPdoConnector
 {
@@ -144,27 +156,47 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "is_resource_server", "require_pkce", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "allowed_scopes_m_2m", "m_2m_token_ttl_seconds", "request_object_signing_alg", "jwks_uri", "jwks_json", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :isResourceServer, :requirePkce, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :allowedScopesM2m, :m2mTokenTtlSeconds, :requestObjectSigningAlg, :jwksUri, :jwksJson, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "tenant", "allow_all_scopes", "public_allow", "token_endpoint_auth_method", "token_endpoint_auth_signing_alg", "dpop_bound_access_tokens", "id_token_signed_response_alg", "tls_client_auth_subject_dn", "tls_client_certificate_bound_access_tokens", "authorization_signed_response_alg", "backchannel_token_delivery_mode", "backchannel_client_notification_endpoint", "subject_type", "id_token_encrypted_response_alg", "id_token_encrypted_response_enc", "userinfo_encrypted_response_alg", "userinfo_encrypted_response_enc", "authorization_details_types", "userinfo_signed_response_alg", "secret_oauth", "registration_access", "default_acr_values", "default_max_age", "sector_identifier_uri", "grant_types_json", "is_resource_server", "require_pushed_authorization_requests", "require_pkce", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "response_types_json", "dynamically_registered", "registered_at", "allowed_scopes_m_2m", "m_2m_token_ttl_seconds", "request_object_signing_alg", "jwks_uri", "jwks_json", "version") VALUES ( :uid, :code, :tenant, :allowAllScopes, :publicAllow, :tokenEndpointAuthMethod, :tokenEndpointAuthSigningAlg, :dpopBoundAccessTokens, :idTokenSignedResponseAlg, :tlsClientAuthSubjectDn, :tlsClientCertificateBoundAccessTokens, :authorizationSignedResponseAlg, :backchannelTokenDeliveryMode, :backchannelClientNotificationEndpoint, :subjectType, :idTokenEncryptedResponseAlg, :idTokenEncryptedResponseEnc, :userinfoEncryptedResponseAlg, :userinfoEncryptedResponseEnc, :authorizationDetailsTypes, :userinfoSignedResponseAlg, :secretOauth, :registrationAccess, :defaultAcrValues, :defaultMaxAge, :sectorIdentifierUri, :grantTypesJson, :isResourceServer, :requirePushedAuthorizationRequests, :requirePkce, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :allowedScopesM2m, :m2mTokenTtlSeconds, :requestObjectSigningAlg, :jwksUri, :jwksJson, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $entity->isPublicAllow(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $entity->getTokenEndpointAuthMethod()->value, type: SqlParam::STR),
+                     new SqlParam(name: 'tokenEndpointAuthSigningAlg', value: $entity->getTokenEndpointAuthSigningAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'dpopBoundAccessTokens', value: $entity->isDpopBoundAccessTokens(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'idTokenSignedResponseAlg', value: $entity->getIdTokenSignedResponseAlg()?->value, type: SqlParam::STR),
+                     new SqlParam(name: 'tlsClientAuthSubjectDn', value: $entity->getTlsClientAuthSubjectDn(), type: SqlParam::STR),
+                     new SqlParam(name: 'tlsClientCertificateBoundAccessTokens', value: $entity->isTlsClientCertificateBoundAccessTokens(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'authorizationSignedResponseAlg', value: $entity->getAuthorizationSignedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'backchannelTokenDeliveryMode', value: $entity->getBackchannelTokenDeliveryMode()?->value, type: SqlParam::STR),
+                     new SqlParam(name: 'backchannelClientNotificationEndpoint', value: $entity->getBackchannelClientNotificationEndpoint(), type: SqlParam::STR),
+                     new SqlParam(name: 'subjectType', value: $entity->getSubjectType()->value, type: SqlParam::STR),
+                     new SqlParam(name: 'idTokenEncryptedResponseAlg', value: $entity->getIdTokenEncryptedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'idTokenEncryptedResponseEnc', value: $entity->getIdTokenEncryptedResponseEnc(), type: SqlParam::STR),
+                     new SqlParam(name: 'userinfoEncryptedResponseAlg', value: $entity->getUserinfoEncryptedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'userinfoEncryptedResponseEnc', value: $entity->getUserinfoEncryptedResponseEnc(), type: SqlParam::STR),
+                     new SqlParam(name: 'authorizationDetailsTypes', value: $entity->getAuthorizationDetailsTypes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'userinfoSignedResponseAlg', value: $entity->getUserinfoSignedResponseAlg(), type: SqlParam::STR),
                      new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'registrationAccess', value: $entity->getCypheredRegistrationAccess($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'defaultAcrValues', value: $entity->getDefaultAcrValues(), type: SqlParam::STR),
+                     new SqlParam(name: 'defaultMaxAge', value: $entity->getDefaultMaxAge(), type: SqlParam::INT),
+                     new SqlParam(name: 'sectorIdentifierUri', value: $entity->getSectorIdentifierUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'grantTypesJson', value: $entity->getGrantTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'isResourceServer', value: $entity->isIsResourceServer(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePushedAuthorizationRequests', value: $entity->isRequirePushedAuthorizationRequests(), type: SqlParam::BOOL),
                      new SqlParam(name: 'requirePkce', value: $entity->isRequirePkce(), type: SqlParam::BOOL),
                      new SqlParam(name: 'backChannelLogoutUri', value: $entity->getBackChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'backChannelLogoutSessionRequired', value: $entity->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'frontChannelLogoutUri', value: $entity->getFrontChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $entity->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'registrationAccess', value: $entity->getRegistrationAccess(), type: SqlParam::STR),
                      new SqlParam(name: 'clientName', value: $entity->getClientName(), type: SqlParam::STR),
                      new SqlParam(name: 'logoUri', value: $entity->getLogoUri(), type: SqlParam::STR),
                      new SqlParam(name: 'clientUri', value: $entity->getClientUri(), type: SqlParam::STR),
                      new SqlParam(name: 'policyUri', value: $entity->getPolicyUri(), type: SqlParam::STR),
                      new SqlParam(name: 'tosUri', value: $entity->getTosUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $entity->getTokenEndpointAuthMethod(), type: SqlParam::STR),
-                     new SqlParam(name: 'grantTypesJson', value: $entity->getGrantTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'responseTypesJson', value: $entity->getResponseTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'dynamicallyRegistered', value: $entity->isDynamicallyRegistered(), type: SqlParam::BOOL),
                      new SqlParam(name: 'registeredAt', value: $entity->getRegisteredAt(), type: SqlParam::STR),
@@ -201,27 +233,47 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "is_resource_server" = :isResourceServer , "require_pkce" = :requirePkce , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "allowed_scopes_m_2m" = :allowedScopesM2m , "m_2m_token_ttl_seconds" = :m2mTokenTtlSeconds , "request_object_signing_alg" = :requestObjectSigningAlg , "jwks_uri" = :jwksUri , "jwks_json" = :jwksJson , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "tenant" = :tenant , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "token_endpoint_auth_signing_alg" = :tokenEndpointAuthSigningAlg , "dpop_bound_access_tokens" = :dpopBoundAccessTokens , "id_token_signed_response_alg" = :idTokenSignedResponseAlg , "tls_client_auth_subject_dn" = :tlsClientAuthSubjectDn , "tls_client_certificate_bound_access_tokens" = :tlsClientCertificateBoundAccessTokens , "authorization_signed_response_alg" = :authorizationSignedResponseAlg , "backchannel_token_delivery_mode" = :backchannelTokenDeliveryMode , "backchannel_client_notification_endpoint" = :backchannelClientNotificationEndpoint , "subject_type" = :subjectType , "id_token_encrypted_response_alg" = :idTokenEncryptedResponseAlg , "id_token_encrypted_response_enc" = :idTokenEncryptedResponseEnc , "userinfo_encrypted_response_alg" = :userinfoEncryptedResponseAlg , "userinfo_encrypted_response_enc" = :userinfoEncryptedResponseEnc , "authorization_details_types" = :authorizationDetailsTypes , "userinfo_signed_response_alg" = :userinfoSignedResponseAlg , "secret_oauth" = :secretOauth , "registration_access" = :registrationAccess , "default_acr_values" = :defaultAcrValues , "default_max_age" = :defaultMaxAge , "sector_identifier_uri" = :sectorIdentifierUri , "grant_types_json" = :grantTypesJson , "is_resource_server" = :isResourceServer , "require_pushed_authorization_requests" = :requirePushedAuthorizationRequests , "require_pkce" = :requirePkce , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "allowed_scopes_m_2m" = :allowedScopesM2m , "m_2m_token_ttl_seconds" = :m2mTokenTtlSeconds , "request_object_signing_alg" = :requestObjectSigningAlg , "jwks_uri" = :jwksUri , "jwks_json" = :jwksJson , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $update->getTokenEndpointAuthMethod()->value, type: SqlParam::STR),
+                     new SqlParam(name: 'tokenEndpointAuthSigningAlg', value: $update->getTokenEndpointAuthSigningAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'dpopBoundAccessTokens', value: $update->isDpopBoundAccessTokens(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'idTokenSignedResponseAlg', value: $update->getIdTokenSignedResponseAlg()?->value, type: SqlParam::STR),
+                     new SqlParam(name: 'tlsClientAuthSubjectDn', value: $update->getTlsClientAuthSubjectDn(), type: SqlParam::STR),
+                     new SqlParam(name: 'tlsClientCertificateBoundAccessTokens', value: $update->isTlsClientCertificateBoundAccessTokens(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'authorizationSignedResponseAlg', value: $update->getAuthorizationSignedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'backchannelTokenDeliveryMode', value: $update->getBackchannelTokenDeliveryMode()?->value, type: SqlParam::STR),
+                     new SqlParam(name: 'backchannelClientNotificationEndpoint', value: $update->getBackchannelClientNotificationEndpoint(), type: SqlParam::STR),
+                     new SqlParam(name: 'subjectType', value: $update->getSubjectType()->value, type: SqlParam::STR),
+                     new SqlParam(name: 'idTokenEncryptedResponseAlg', value: $update->getIdTokenEncryptedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'idTokenEncryptedResponseEnc', value: $update->getIdTokenEncryptedResponseEnc(), type: SqlParam::STR),
+                     new SqlParam(name: 'userinfoEncryptedResponseAlg', value: $update->getUserinfoEncryptedResponseAlg(), type: SqlParam::STR),
+                     new SqlParam(name: 'userinfoEncryptedResponseEnc', value: $update->getUserinfoEncryptedResponseEnc(), type: SqlParam::STR),
+                     new SqlParam(name: 'authorizationDetailsTypes', value: $update->getAuthorizationDetailsTypes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'userinfoSignedResponseAlg', value: $update->getUserinfoSignedResponseAlg(), type: SqlParam::STR),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'registrationAccess', value: $update->getCypheredRegistrationAccess($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'defaultAcrValues', value: $update->getDefaultAcrValues(), type: SqlParam::STR),
+                     new SqlParam(name: 'defaultMaxAge', value: $update->getDefaultMaxAge(), type: SqlParam::INT),
+                     new SqlParam(name: 'sectorIdentifierUri', value: $update->getSectorIdentifierUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'grantTypesJson', value: $update->getGrantTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'isResourceServer', value: $update->isIsResourceServer(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePushedAuthorizationRequests', value: $update->isRequirePushedAuthorizationRequests(), type: SqlParam::BOOL),
                      new SqlParam(name: 'requirePkce', value: $update->isRequirePkce(), type: SqlParam::BOOL),
                      new SqlParam(name: 'backChannelLogoutUri', value: $update->getBackChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'backChannelLogoutSessionRequired', value: $update->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'frontChannelLogoutUri', value: $update->getFrontChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $update->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'registrationAccess', value: $update->getRegistrationAccess(), type: SqlParam::STR),
                      new SqlParam(name: 'clientName', value: $update->getClientName(), type: SqlParam::STR),
                      new SqlParam(name: 'logoUri', value: $update->getLogoUri(), type: SqlParam::STR),
                      new SqlParam(name: 'clientUri', value: $update->getClientUri(), type: SqlParam::STR),
                      new SqlParam(name: 'policyUri', value: $update->getPolicyUri(), type: SqlParam::STR),
                      new SqlParam(name: 'tosUri', value: $update->getTosUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $update->getTokenEndpointAuthMethod(), type: SqlParam::STR),
-                     new SqlParam(name: 'grantTypesJson', value: $update->getGrantTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'responseTypesJson', value: $update->getResponseTypesJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'dynamicallyRegistered', value: $update->isDynamicallyRegistered(), type: SqlParam::BOOL),
                      new SqlParam(name: 'registeredAt', value: $update->getRegisteredAt(), type: SqlParam::STR),
@@ -258,6 +310,7 @@ class TrustedClientPdoConnector
         try {
             try {
                 $this->db->execute('DELETE FROM "access_trusted_client_allowed_redirect" where "client" = :parent', [new SqlParam(name:'parent', value:$ref->uid(), type:SqlParam::STR) ]);
+                $this->db->execute('DELETE FROM "access_trusted_client_allowed_audience" where "client" = :parent', [new SqlParam(name:'parent', value:$ref->uid(), type:SqlParam::STR) ]);
                 return $this->db->execute('DELETE FROM "access_trusted_client" where "uid" = :uid', [new SqlParam(name: 'uid', value: $ref->uid(), type:SqlParam::STR)]);
             } catch (NotEmptyChildsException $ex) {
                 throw ConstraintException::ofError('not-empty', ['uid'], [$ref->uid()]);
@@ -334,9 +387,9 @@ class TrustedClientPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_trusted_client" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['code' => $entity->getCode(), 'uid' => $entity->uid()];
-            if ($this->db->exists('SELECT  "code" from "access_trusted_client" where "code" = :code and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['code'], [$entity->getCode()]);
+            $values = ['tenant' => $entity->getTenant()?->uid(), 'code' => $entity->getCode(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "tenant", "code" from "access_trusted_client" where "tenant" = :tenant and "code" = :code and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['tenant', 'code'], [$entity->getTenant()?->uid(), $entity->getCode()]);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -369,10 +422,17 @@ class TrustedClientPdoConnector
                     $query .= ' and ( "access_trusted_client"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                if ($filter->isCodeAssigned()) {
-                    $filterCode = $filter->code();
-                    $query .= ' and "access_trusted_client"."code" = :code';
-                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
+                if ($filter->isTenantAndCodeAssigned()) {
+                    $filterTenantAndCode = $filter->tenantAndCode();
+                    $tenantAndCodeParts = [];
+                    if (null === $filterTenantAndCode['tenant']) {
+                        $tenantAndCodeParts[] = ' "access_trusted_client"."tenant" is null';
+                    } else {
+                        $tenantAndCodeParts[] = ' "access_trusted_client"."tenant" = :tenantCodeTenant';
+                        $params[] = new SqlParam(name: 'tenantCodeTenant', value: $filterTenantAndCode['tenant']->uid(), type: SqlParam::STR);
+                    }          $tenantAndCodeParts[] = ' "access_trusted_client"."code" = :tenantCodeCode';
+                    $params[] = new SqlParam(name: 'tenantCodeCode', value: $filterTenantAndCode['code'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $tenantAndCodeParts) . ')';
                 }
                 $filterWithBackChannelUrl = $filter->withBackChannelUrl();
                 if (null !== $filterWithBackChannelUrl) {
@@ -381,6 +441,27 @@ class TrustedClientPdoConnector
                 $filterWithFrontChannelUrl = $filter->withFrontChannelUrl();
                 if (null !== $filterWithFrontChannelUrl) {
                     $query .= ' and "front_channel_logout_uri" is null ';
+                }
+                $filterCode = $filter->code();
+                if (null !== $filterCode) {
+                    $query .= ' and "access_trusted_client"."code" = :code ';
+                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
+                }
+                $filterTenant = $filter->tenant();
+                if (null !== $filterTenant) {
+                    $query .= ' and "access_trusted_client"."tenant" = :tenant ';
+                    $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
+                }
+                $filterTenants = $filter->tenants();
+                if (null !== $filterTenants) {
+                    $query .= ' and "access_trusted_client"."tenant" in (:tenants)  ';
+                    $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
+                }
+                $filterTenantAccessible = $filter->tenantAccessible();
+                if (null !== $filterTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccessibleTenant" ON "tenantAccessibleTenant"."uid" = "access_trusted_client"."tenant"';
+                    $query .= ' and "tenantAccessibleTenant"."uid" = :tenantAccessible';
+                    $params[] = new SqlParam(name: 'tenantAccessible', value: $filterTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -457,6 +538,32 @@ class TrustedClientPdoConnector
                     $parent = $parent->withAllowedRedirects(TrustedClientAllowedRedirectsListRef::fromArray($saved));
                 }
             }
+            $parentId = $parent->uid();
+            if (null !== $parentId) {
+                $allowedAudiences = $parent->getAllowedAudiences();
+                if ($allowedAudiences) {
+                    $uids = [];
+                    $saved = [];
+                    foreach ($allowedAudiences as $child) {
+                        if (null !== $child) {
+                            if (!$this->existsAllowedAudiences($parentId, $child->uid() ?? 'no-id')) {
+                                $insertedChild = $this->insertAllowedAudiences($parentId, $child);
+                                $saved[] = $insertedChild;
+                                $uids[] = $insertedChild->uid();
+                            } else {
+                                $updatedChild = $this->updateAllowedAudiences($parentId, $child);
+                                $saved[] = $updatedChild;
+                                $uids[] = $updatedChild->uid();
+                            }
+                        }
+                    }
+                    $this->db->execute('DELETE FROM "access_trusted_client_allowed_audience" WHERE "client" = :parent and  "uid" NOT IN (:uids)', [
+                      new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
+                      new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
+                    ]);
+                    $parent = $parent->withAllowedAudiences(TrustedClientAllowedAudiencesListRef::fromArray($saved));
+                }
+            }
             return $parent;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -526,6 +633,67 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
+    private function insertAllowedAudiences(string $entity, TrustedClientAllowedAudiencesItem $child): TrustedClientAllowedAudiencesItem
+    {
+        $this->logDebug("Execute insert AllowedAudiences childs sql query for Trusted client");
+        $span = $this->startSpan("Execute insert AllowedAudiences childs sql query for Trusted client");
+        try {
+            $uid = $child->uid() ?? Random::comb();
+            if (!$this->db->execute('insert into "access_trusted_client_allowed_audience" ("uid", "client", "audience", "version") VALUES(:uid, :client, :audience, :version) ', [
+                new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
+                new SqlParam(name: 'client', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'audience', value: $child->getAudience(), type: SqlParam::STR),
+                new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
+            ])) {
+                throw new OptimistLockException("Insert child TrustedClientAllowedAudiencesItem for TrustedClient", $uid);
+            }
+            return $child->withVersion(0);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function updateAllowedAudiences(string $entity, TrustedClientAllowedAudiencesItem $child): TrustedClientAllowedAudiencesItem
+    {
+        $this->logDebug("Execute insert AllowedAudiences childs sql query for Trusted client");
+        $span = $this->startSpan("Execute insert AllowedAudiences childs sql query for Trusted client");
+        try {
+            $uid = $child->uid();
+            if (!$this->db->execute('update "access_trusted_client_allowed_audience" set "audience" = :audience, "version" = :nextVersion where "uid" = :uid and "client" = :client and "version" = :version ', [
+                new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
+                new SqlParam(name: 'client', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'audience', value: $child->getAudience(), type: SqlParam::STR),
+                new SqlParam(name: 'nextVersion', value: ($child->getVersion() ?? 0) + 1, type: SqlParam::INT),
+                new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
+            ])) {
+                throw new OptimistLockException("Update child TrustedClientAllowedAudiencesItem for TrustedClient", $uid ?? 'no-id');
+            }
+            return $child->withVersion(($child->getVersion() ?? 0) + 1);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function existsAllowedAudiences(string $entity, string $reference): bool
+    {
+        $this->logDebug("Execute exsits AllowedAudiences childs sql query for Trusted client");
+        $span = $this->startSpan("Execute exists AllowedAudiences childs sql query for Trusted client");
+        try {
+            return $this->db->exists('select * from "access_trusted_client_allowed_audience" where "client" = :entity and "uid" = :uid', [
+                new SqlParam(name: 'entity', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'uid', value: $reference, type: SqlParam::STR),
+            ]);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     private function mapper(array $row): TrustedClient
     {
         $this->logDebug("Mapping from sql to entity for Trusted client");
@@ -539,16 +707,51 @@ class TrustedClientPdoConnector
             if (null === $code) {
                 throw ConstraintException::ofError('not-null', ['code'], [null]);
             }
+            $tenant = isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null;
             $allowAllScopes = isset($row['allow_all_scopes']) ? !! $row['allow_all_scopes'] : null;
             $publicAllow = isset($row['public_allow']) ? !! $row['public_allow'] : null;
             if (null === $publicAllow) {
                 throw ConstraintException::ofError('not-null', ['publicAllow'], [null]);
             }
-            $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
+            // throws validation exception if is null.
+            $tokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::fromString($row['token_endpoint_auth_method'] ?? '');
+            $tokenEndpointAuthSigningAlg = $row['token_endpoint_auth_signing_alg'] ?? null;
+            $dpopBoundAccessTokens = isset($row['dpop_bound_access_tokens']) ? !! $row['dpop_bound_access_tokens'] : null;
+            if (null === $dpopBoundAccessTokens) {
+                throw ConstraintException::ofError('not-null', ['dpopBoundAccessTokens'], [null]);
+            }
+            $idTokenSignedResponseAlg = isset($row['id_token_signed_response_alg']) && $row['id_token_signed_response_alg'] ? TrustedClientIdTokenSignedResponseAlgVO::fromString($row['id_token_signed_response_alg']) : TrustedClientIdTokenSignedResponseAlgVO::empty();
+            $tlsClientAuthSubjectDn = $row['tls_client_auth_subject_dn'] ?? null;
+            $tlsClientCertificateBoundAccessTokens = isset($row['tls_client_certificate_bound_access_tokens']) ? !! $row['tls_client_certificate_bound_access_tokens'] : null;
+            if (null === $tlsClientCertificateBoundAccessTokens) {
+                throw ConstraintException::ofError('not-null', ['tlsClientCertificateBoundAccessTokens'], [null]);
+            }
+            $authorizationSignedResponseAlg = $row['authorization_signed_response_alg'] ?? null;
+            $backchannelTokenDeliveryMode = isset($row['backchannel_token_delivery_mode']) && $row['backchannel_token_delivery_mode'] ? TrustedClientBackchannelTokenDeliveryModeVO::fromString($row['backchannel_token_delivery_mode']) : TrustedClientBackchannelTokenDeliveryModeVO::empty();
+            $backchannelClientNotificationEndpoint = $row['backchannel_client_notification_endpoint'] ?? null;
+            // throws validation exception if is null.
+            $subjectType = TrustedClientSubjectTypeVO::fromString($row['subject_type'] ?? '');
+            $idTokenEncryptedResponseAlg = $row['id_token_encrypted_response_alg'] ?? null;
+            $idTokenEncryptedResponseEnc = $row['id_token_encrypted_response_enc'] ?? null;
+            $userinfoEncryptedResponseAlg = $row['userinfo_encrypted_response_alg'] ?? null;
+            $userinfoEncryptedResponseEnc = $row['userinfo_encrypted_response_enc'] ?? null;
+            $authorizationDetailsTypes = $row['authorization_details_types'] ?? null;
+            $userinfoSignedResponseAlg = $row['userinfo_signed_response_alg'] ?? null;
             $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
+            $registrationAccess = isset($row['registration_access']) && $row['registration_access'] ? TrustedClientRegistrationAccessVO::fromCypheredText($this->cypher, $row['registration_access']) : TrustedClientRegistrationAccessVO::empty();
+            $defaultAcrValues = $row['default_acr_values'] ?? null;
+            $defaultMaxAge = $row['default_max_age'] ?? null;
+            $sectorIdentifierUri = $row['sector_identifier_uri'] ?? null;
+            $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
+            $allowedAudiences = TrustedClientAllowedAudiencesVO::from(TrustedClientAllowedAudiencesListRef::fromArray($row['allowed_audiences'] ?? []));
+            $grantTypesJson = $row['grant_types_json'] ?? null;
             $isResourceServer = isset($row['is_resource_server']) ? !! $row['is_resource_server'] : null;
             if (null === $isResourceServer) {
                 throw ConstraintException::ofError('not-null', ['isResourceServer'], [null]);
+            }
+            $requirePushedAuthorizationRequests = isset($row['require_pushed_authorization_requests']) ? !! $row['require_pushed_authorization_requests'] : null;
+            if (null === $requirePushedAuthorizationRequests) {
+                throw ConstraintException::ofError('not-null', ['requirePushedAuthorizationRequests'], [null]);
             }
             $requirePkce = isset($row['require_pkce']) ? !! $row['require_pkce'] : null;
             if (null === $requirePkce) {
@@ -562,17 +765,11 @@ class TrustedClientPdoConnector
             if (null === $enabled) {
                 throw ConstraintException::ofError('not-null', ['enabled'], [null]);
             }
-            $registrationAccess = $row['registration_access'] ?? null;
             $clientName = $row['client_name'] ?? null;
             $logoUri = $row['logo_uri'] ?? null;
             $clientUri = $row['client_uri'] ?? null;
             $policyUri = $row['policy_uri'] ?? null;
             $tosUri = $row['tos_uri'] ?? null;
-            $tokenEndpointAuthMethod = $row['token_endpoint_auth_method'] ?? null;
-            if (null === $tokenEndpointAuthMethod) {
-                throw ConstraintException::ofError('not-null', ['tokenEndpointAuthMethod'], [null]);
-            }
-            $grantTypesJson = $row['grant_types_json'] ?? null;
             $responseTypesJson = $row['response_types_json'] ?? null;
             $dynamicallyRegistered = isset($row['dynamically_registered']) ? !! $row['dynamically_registered'] : null;
             $registeredAt = $row['registered_at'] ? new \DateTimeImmutable($row['registered_at']) : null;
@@ -588,25 +785,46 @@ class TrustedClientPdoConnector
             return new TrustedClient(
                 uid: $uid,
                 code: $code,
+                tenant: $tenant,
                 allowAllScopes: $allowAllScopes,
                 publicAllow: $publicAllow,
-                allowedRedirects: $allowedRedirects,
+                tokenEndpointAuthMethod: $tokenEndpointAuthMethod,
+                tokenEndpointAuthSigningAlg: $tokenEndpointAuthSigningAlg,
+                dpopBoundAccessTokens: $dpopBoundAccessTokens,
+                idTokenSignedResponseAlg: $idTokenSignedResponseAlg,
+                tlsClientAuthSubjectDn: $tlsClientAuthSubjectDn,
+                tlsClientCertificateBoundAccessTokens: $tlsClientCertificateBoundAccessTokens,
+                authorizationSignedResponseAlg: $authorizationSignedResponseAlg,
+                backchannelTokenDeliveryMode: $backchannelTokenDeliveryMode,
+                backchannelClientNotificationEndpoint: $backchannelClientNotificationEndpoint,
+                subjectType: $subjectType,
+                idTokenEncryptedResponseAlg: $idTokenEncryptedResponseAlg,
+                idTokenEncryptedResponseEnc: $idTokenEncryptedResponseEnc,
+                userinfoEncryptedResponseAlg: $userinfoEncryptedResponseAlg,
+                userinfoEncryptedResponseEnc: $userinfoEncryptedResponseEnc,
+                authorizationDetailsTypes: $authorizationDetailsTypes,
+                userinfoSignedResponseAlg: $userinfoSignedResponseAlg,
                 secretOauth: $secretOauth,
+                registrationAccess: $registrationAccess,
+                defaultAcrValues: $defaultAcrValues,
+                defaultMaxAge: $defaultMaxAge,
+                sectorIdentifierUri: $sectorIdentifierUri,
+                allowedRedirects: $allowedRedirects,
+                allowedAudiences: $allowedAudiences,
+                grantTypesJson: $grantTypesJson,
                 isResourceServer: $isResourceServer,
+                requirePushedAuthorizationRequests: $requirePushedAuthorizationRequests,
                 requirePkce: $requirePkce,
                 backChannelLogoutUri: $backChannelLogoutUri,
                 backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
                 frontChannelLogoutUri: $frontChannelLogoutUri,
                 frontChannelLogoutSessionRequired: $frontChannelLogoutSessionRequired,
                 enabled: $enabled,
-                registrationAccess: $registrationAccess,
                 clientName: $clientName,
                 logoUri: $logoUri,
                 clientUri: $clientUri,
                 policyUri: $policyUri,
                 tosUri: $tosUri,
-                tokenEndpointAuthMethod: $tokenEndpointAuthMethod,
-                grantTypesJson: $grantTypesJson,
                 responseTypesJson: $responseTypesJson,
                 dynamicallyRegistered: $dynamicallyRegistered,
                 registeredAt: $registeredAt,
@@ -632,6 +850,7 @@ class TrustedClientPdoConnector
         foreach ($values as $value) {
             $ids[] = $value['uid'];
             $value['allowed_redirects'] = [];
+            $value['allowed_audiences'] = [];
             $mapped[$value['uid']] = $value;
         }
         $childsAllowedRedirects = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" in (:parents)', [
@@ -647,12 +866,26 @@ class TrustedClientPdoConnector
                 version: TrustedClientAllowedRedirectsVersionVO::from($childAllowedRedirects['version']),
             );
         }
+        $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
+          new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
+        ]) : $this->db->query('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
+          new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
+        ]);
+        foreach ($childsAllowedAudiences as $childAllowedAudiences) {
+            $parent = $childAllowedAudiences['client'];
+            $mapped[$parent]['allowed_audiences'][] = new TrustedClientAllowedAudiencesItem(
+                uid: TrustedClientAllowedAudiencesUidVO::from($childAllowedAudiences['uid']),
+                audience: TrustedClientAllowedAudiencesAudienceVO::from($childAllowedAudiences['audience']),
+                version: TrustedClientAllowedAudiencesVersionVO::from($childAllowedAudiences['version']),
+            );
+        }
         return array_values(array_map(fn ($row) => $this->mapper($row), $mapped));
     }
     private function findOneWithChilds(bool $forUpdate, string $query, ?array $params = []): ?TrustedClient
     {
         if ($value = $forUpdate ? $this->db->findOne($query, $params ?? [], fn (array $row): array => $row) : $this->db->findOne($query, $params ?? [], fn (array $row): array => $row)) {
             $value['allowed_redirects'] = [];
+            $value['allowed_audiences'] = [];
             $childsAllowedRedirects = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
             ]) : $this->db->query('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
@@ -663,6 +896,18 @@ class TrustedClientPdoConnector
                     uid: TrustedClientAllowedRedirectsUidVO::from($childAllowedRedirects['uid']),
                     url: TrustedClientAllowedRedirectsUrlVO::from($childAllowedRedirects['url']),
                     version: TrustedClientAllowedRedirectsVersionVO::from($childAllowedRedirects['version']),
+                );
+            }
+            $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
+              new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
+            ]) : $this->db->query('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
+              new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
+            ]);
+            foreach ($childsAllowedAudiences as $childAllowedAudiences) {
+                $value['allowed_audiences'][] = new TrustedClientAllowedAudiencesItem(
+                    uid: TrustedClientAllowedAudiencesUidVO::from($childAllowedAudiences['uid']),
+                    audience: TrustedClientAllowedAudiencesAudienceVO::from($childAllowedAudiences['audience']),
+                    version: TrustedClientAllowedAudiencesVersionVO::from($childAllowedAudiences['version']),
                 );
             }
             return $this->mapper($value);

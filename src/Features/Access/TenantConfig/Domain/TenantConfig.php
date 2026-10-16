@@ -30,6 +30,18 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigSe
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigSessionSsoTtlSecondsAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRefreshTokenTtlSecondsAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenMaxLifetimeSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRefreshTokenMaxLifetimeSecondsAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDcrAllowedGrantTypesVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigDcrAllowedGrantTypesAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDcrAllowedAuthMethodsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigDcrAllowedAuthMethodsAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowPasswordGrantVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAllowPasswordGrantAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRequirePushedAuthorizationRequestsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRequirePushedAuthorizationRequestsAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAcrValuesSupportedVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAcrValuesSupportedAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWebauthnEnabledAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
@@ -69,6 +81,12 @@ class TenantConfig extends TenantConfigRef
     use TenantConfigMagicLinkExpiryMinutesAccessor;
     use TenantConfigSessionSsoTtlSecondsAccessor;
     use TenantConfigRefreshTokenTtlSecondsAccessor;
+    use TenantConfigRefreshTokenMaxLifetimeSecondsAccessor;
+    use TenantConfigDcrAllowedGrantTypesAccessor;
+    use TenantConfigDcrAllowedAuthMethodsAccessor;
+    use TenantConfigAllowPasswordGrantAccessor;
+    use TenantConfigRequirePushedAuthorizationRequestsAccessor;
+    use TenantConfigAcrValuesSupportedAccessor;
     use TenantConfigWebauthnEnabledAccessor;
     use TenantConfigWebauthnRpIdAccessor;
     use TenantConfigWebauthnRpNameAccessor;
@@ -90,11 +108,17 @@ class TenantConfig extends TenantConfigRef
         TenantConfigMagicLinkExpiryMinutesVO|int $magicLinkExpiryMinutes,
         TenantConfigSessionSsoTtlSecondsVO|int $sessionSsoTtlSeconds,
         TenantConfigRefreshTokenTtlSecondsVO|int $refreshTokenTtlSeconds,
+        TenantConfigRefreshTokenMaxLifetimeSecondsVO|int $refreshTokenMaxLifetimeSeconds,
+        TenantConfigAllowPasswordGrantVO|bool $allowPasswordGrant,
+        TenantConfigRequirePushedAuthorizationRequestsVO|bool $requirePushedAuthorizationRequests,
         TenantConfigInnerLabelVO|string|null $innerLabel = null,
         TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null,
         TenantConfigAllowRegisterVO|bool|null $allowRegister = null,
         TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null,
         TenantConfigMagicLinkEnabledVO|bool|null $magicLinkEnabled = null,
+        TenantConfigDcrAllowedGrantTypesVO|string|null $dcrAllowedGrantTypes = null,
+        TenantConfigDcrAllowedAuthMethodsVO|string|null $dcrAllowedAuthMethods = null,
+        TenantConfigAcrValuesSupportedVO|string|null $acrValuesSupported = null,
         TenantConfigWebauthnEnabledVO|bool|null $webauthnEnabled = null,
         TenantConfigWebauthnRpIdVO|string|null $webauthnRpId = null,
         TenantConfigWebauthnRpNameVO|string|null $webauthnRpName = null,
@@ -119,6 +143,12 @@ class TenantConfig extends TenantConfigRef
         $this->_magicLinkExpiryMinutes = TenantConfigMagicLinkExpiryMinutesVO::from($magicLinkExpiryMinutes);
         $this->_sessionSsoTtlSeconds = TenantConfigSessionSsoTtlSecondsVO::from($sessionSsoTtlSeconds);
         $this->_refreshTokenTtlSeconds = TenantConfigRefreshTokenTtlSecondsVO::from($refreshTokenTtlSeconds);
+        $this->_refreshTokenMaxLifetimeSeconds = TenantConfigRefreshTokenMaxLifetimeSecondsVO::from($refreshTokenMaxLifetimeSeconds);
+        $this->_dcrAllowedGrantTypes = null === $dcrAllowedGrantTypes ? TenantConfigDcrAllowedGrantTypesVO::empty() : TenantConfigDcrAllowedGrantTypesVO::from($dcrAllowedGrantTypes);
+        $this->_dcrAllowedAuthMethods = null === $dcrAllowedAuthMethods ? TenantConfigDcrAllowedAuthMethodsVO::empty() : TenantConfigDcrAllowedAuthMethodsVO::from($dcrAllowedAuthMethods);
+        $this->_allowPasswordGrant = TenantConfigAllowPasswordGrantVO::from($allowPasswordGrant);
+        $this->_requirePushedAuthorizationRequests = TenantConfigRequirePushedAuthorizationRequestsVO::from($requirePushedAuthorizationRequests);
+        $this->_acrValuesSupported = null === $acrValuesSupported ? TenantConfigAcrValuesSupportedVO::empty() : TenantConfigAcrValuesSupportedVO::from($acrValuesSupported);
         $this->_webauthnEnabled = null === $webauthnEnabled ? TenantConfigWebauthnEnabledVO::empty() : TenantConfigWebauthnEnabledVO::from($webauthnEnabled);
         $this->_webauthnRpId = null === $webauthnRpId ? TenantConfigWebauthnRpIdVO::empty() : TenantConfigWebauthnRpIdVO::from($webauthnRpId);
         $this->_webauthnRpName = null === $webauthnRpName ? TenantConfigWebauthnRpNameVO::empty() : TenantConfigWebauthnRpNameVO::from($webauthnRpName);
@@ -145,6 +175,12 @@ class TenantConfig extends TenantConfigRef
         $value->_magicLinkExpiryMinutes = $values->getMagicLinkExpiryMinutesOrCurrent($this->_magicLinkExpiryMinutes);
         $value->_sessionSsoTtlSeconds = $values->getSessionSsoTtlSecondsOrCurrent($this->_sessionSsoTtlSeconds);
         $value->_refreshTokenTtlSeconds = $values->getRefreshTokenTtlSecondsOrCurrent($this->_refreshTokenTtlSeconds);
+        $value->_refreshTokenMaxLifetimeSeconds = $values->getRefreshTokenMaxLifetimeSecondsOrCurrent($this->_refreshTokenMaxLifetimeSeconds);
+        $value->_dcrAllowedGrantTypes = $values->getDcrAllowedGrantTypesOrCurrent($this->_dcrAllowedGrantTypes);
+        $value->_dcrAllowedAuthMethods = $values->getDcrAllowedAuthMethodsOrCurrent($this->_dcrAllowedAuthMethods);
+        $value->_allowPasswordGrant = $values->getAllowPasswordGrantOrCurrent($this->_allowPasswordGrant);
+        $value->_requirePushedAuthorizationRequests = $values->getRequirePushedAuthorizationRequestsOrCurrent($this->_requirePushedAuthorizationRequests);
+        $value->_acrValuesSupported = $values->getAcrValuesSupportedOrCurrent($this->_acrValuesSupported);
         $value->_webauthnEnabled = $values->getWebauthnEnabledOrCurrent($this->_webauthnEnabled);
         $value->_webauthnRpId = $values->getWebauthnRpIdOrCurrent($this->_webauthnRpId);
         $value->_webauthnRpName = $values->getWebauthnRpNameOrCurrent($this->_webauthnRpName);
@@ -195,6 +231,12 @@ class TenantConfig extends TenantConfigRef
         $data['magicLinkExpiryMinutes'] = $this->getMagicLinkExpiryMinutes();
         $data['sessionSsoTtlSeconds'] = $this->getSessionSsoTtlSeconds();
         $data['refreshTokenTtlSeconds'] = $this->getRefreshTokenTtlSeconds();
+        $data['refreshTokenMaxLifetimeSeconds'] = $this->getRefreshTokenMaxLifetimeSeconds();
+        $data['dcrAllowedGrantTypes'] = $this->getDcrAllowedGrantTypes();
+        $data['dcrAllowedAuthMethods'] = $this->getDcrAllowedAuthMethods();
+        $data['allowPasswordGrant'] = $this->isAllowPasswordGrant();
+        $data['requirePushedAuthorizationRequests'] = $this->isRequirePushedAuthorizationRequests();
+        $data['acrValuesSupported'] = $this->getAcrValuesSupported();
         $data['webauthnEnabled'] = $this->isWebauthnEnabled();
         $data['webauthnRpId'] = $this->getWebauthnRpId();
         $data['webauthnRpName'] = $this->getWebauthnRpName();
@@ -223,6 +265,12 @@ class TenantConfig extends TenantConfigRef
           ->magicLinkExpiryMinutes($this->_magicLinkExpiryMinutes)
           ->sessionSsoTtlSeconds($this->_sessionSsoTtlSeconds)
           ->refreshTokenTtlSeconds($this->_refreshTokenTtlSeconds)
+          ->refreshTokenMaxLifetimeSeconds($this->_refreshTokenMaxLifetimeSeconds)
+          ->dcrAllowedGrantTypes($this->_dcrAllowedGrantTypes)
+          ->dcrAllowedAuthMethods($this->_dcrAllowedAuthMethods)
+          ->allowPasswordGrant($this->_allowPasswordGrant)
+          ->requirePushedAuthorizationRequests($this->_requirePushedAuthorizationRequests)
+          ->acrValuesSupported($this->_acrValuesSupported)
           ->webauthnEnabled($this->_webauthnEnabled)
           ->webauthnRpId($this->_webauthnRpId)
           ->webauthnRpName($this->_webauthnRpName)

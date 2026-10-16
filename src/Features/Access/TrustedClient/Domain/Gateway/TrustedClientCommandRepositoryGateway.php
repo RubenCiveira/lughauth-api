@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway;
 
 use Closure;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 
@@ -20,12 +21,12 @@ interface TrustedClientCommandRepositoryGateway
     public function existsForUpdate(TrustedClientFilter $filter): bool;
     public function countForUpdate(?TrustedClientFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?TrustedClient;
-    public function findOneForUpdateByCode(string $code): ?TrustedClient;
+    public function findOneForUpdateByTenantAndCode(?TenantRef $tenant, string $code): ?TrustedClient;
     public function resolve(TrustedClientRef $ref): ?TrustedClient;
     public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide;
     public function retrieve(TrustedClientFilter $filter): ?TrustedClient;
     public function exists(TrustedClientFilter $filter): bool;
     public function count(?TrustedClientFilter $filter = null): int;
     public function findOneByUid(string $uid): ?TrustedClient;
-    public function findOneByCode(string $code): ?TrustedClient;
+    public function findOneByTenantAndCode(?TenantRef $tenant, string $code): ?TrustedClient;
 }

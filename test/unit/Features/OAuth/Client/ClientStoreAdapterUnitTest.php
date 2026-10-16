@@ -8,6 +8,7 @@ namespace Tests\unit\Features\OAuth\Client;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\ClientStoreAdapter;
@@ -61,22 +62,43 @@ final class ClientStoreAdapterUnitTest extends TestCase
         self::assertSame($accepted, $store->publicClientData('angular-client', 'tenant1', $redirect, 'openid') !== null);
     }
 
-    private function storeWithRedirect(string $url): ClientStoreAdapter
+    /**
+     * @return iterable<string, array{TrustedClientTokenEndpointAuthMethodOptions, string}>
+     */
+    public static function authMethodNames(): iterable
     {
+        yield 'none' => [TrustedClientTokenEndpointAuthMethodOptions::NONE, 'none'];
+        yield 'basic' => [TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC, 'client_secret_basic'];
+        yield 'post' => [TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_POST, 'client_secret_post'];
+        yield 'private key jwt' => [TrustedClientTokenEndpointAuthMethodOptions::PRIVATE_KEY_JWT, 'private_key_jwt'];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('authMethodNames')]
+    public function testAuthMethodIsExposedWithItsProtocolName(TrustedClientTokenEndpointAuthMethodOptions $method, string $expected): void
+    {
+        $store = $this->storeWithRedirect('https://app.example.com/callback', $method);
+
+        self::assertSame($expected, $store->findEnabledClient('angular-client')?->tokenEndpointAuthMethod);
+    }
+
+    private function storeWithRedirect(
+        string $url,
+        TrustedClientTokenEndpointAuthMethodOptions $method = TrustedClientTokenEndpointAuthMethodOptions::NONE
+    ): ClientStoreAdapter {
         $client = TrustedClient::create((new TrustedClientAttributes())
             ->withDefaults()
             ->uid('client-uid')
             ->code('angular-client')
             ->enabled(true)
             ->publicAllow(true)
-            ->tokenEndpointAuthMethod('none')
+            ->tokenEndpointAuthMethod($method)
             ->allowedRedirects([new TrustedClientAllowedRedirectsItem(
                 null,
                 TrustedClientAllowedRedirectsUrlVO::from($url),
                 null,
             )]))->enable();
         $clients = $this->createStub(TrustedClientQueryRepositoryGateway::class);
-        $clients->method('findOneByCode')->willReturn($client);
+        $clients->method('findOneByTenantAndCode')->willReturn($client);
 
         $store = new ClientStoreAdapter($this->createStub(AesCypherService::class), $clients);
         $store->setLogger(new NullLogger());

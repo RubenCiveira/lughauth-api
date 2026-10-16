@@ -19,7 +19,7 @@ trait TrustedClientGrantTypesJsonAttributeHolder
     }
     public function grantTypesJsonTryBuildInitial(ConstraintFailList $error): ?TrustedClientGrantTypesJsonVO
     {
-        return  TrustedClientGrantTypesJsonVO::tryFrom($this->grantTypesJsonAssigned ? $this->grantTypesJson : null, $error);
+        return  TrustedClientGrantTypesJsonVO::tryFrom($this->grantTypesJsonAssigned ? $this->grantTypesJson : '["authorization_code","refresh_token"]', $error);
     }
     public function grantTypesJson(TrustedClientGrantTypesJsonVO|string|null $grantTypesJson): static
     {
@@ -55,6 +55,9 @@ trait TrustedClientGrantTypesJsonAttributeHolder
     }
     protected function withDefaultGrantTypesJson(): void
     {
+        if ($this->grantTypesJson === null) {
+            $this->grantTypesJson = '["authorization_code","refresh_token"]';
+        }
     }
     protected function withAssertedGrantTypesJsonRules(self $value, ConstraintFailList $errorsList): void
     {

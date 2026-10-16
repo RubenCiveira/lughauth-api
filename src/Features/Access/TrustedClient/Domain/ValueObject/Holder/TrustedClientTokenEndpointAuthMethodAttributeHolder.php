@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 
 trait TrustedClientTokenEndpointAuthMethodAttributeHolder
 {
-    protected TrustedClientTokenEndpointAuthMethodVO|string|null $tokenEndpointAuthMethod = null;
+    protected TrustedClientTokenEndpointAuthMethodVO|TrustedClientTokenEndpointAuthMethodOptions|null $tokenEndpointAuthMethod = null;
     protected bool $tokenEndpointAuthMethodAssigned = false;
 
     public function getTokenEndpointAuthMethodOrCurrent(TrustedClientTokenEndpointAuthMethodVO $tokenEndpointAuthMethod): TrustedClientTokenEndpointAuthMethodVO
@@ -24,15 +25,15 @@ trait TrustedClientTokenEndpointAuthMethodAttributeHolder
     }
     public function tokenEndpointAuthMethodTryBuildInitial(ConstraintFailList $error): ?TrustedClientTokenEndpointAuthMethodVO
     {
-        return  TrustedClientTokenEndpointAuthMethodVO::tryFrom($this->tokenEndpointAuthMethodAssigned ? $this->tokenEndpointAuthMethod : 'client_secret_basic', $error);
+        return  TrustedClientTokenEndpointAuthMethodVO::tryFrom($this->tokenEndpointAuthMethodAssigned ? $this->tokenEndpointAuthMethod : TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC, $error);
     }
-    public function tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod): static
+    public function tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO|TrustedClientTokenEndpointAuthMethodOptions $tokenEndpointAuthMethod): static
     {
         $this->tokenEndpointAuthMethod = $tokenEndpointAuthMethod;
         $this->tokenEndpointAuthMethodAssigned = true;
         return $this;
     }
-    public function getTokenEndpointAuthMethod(): ?string
+    public function getTokenEndpointAuthMethod(): ?TrustedClientTokenEndpointAuthMethodOptions
     {
         return $this->tokenEndpointAuthMethod instanceof TrustedClientTokenEndpointAuthMethodVO ? $this->tokenEndpointAuthMethod->value() : $this->tokenEndpointAuthMethod;
     }
@@ -63,7 +64,7 @@ trait TrustedClientTokenEndpointAuthMethodAttributeHolder
     protected function withDefaultTokenEndpointAuthMethod(): void
     {
         if ($this->tokenEndpointAuthMethod === null) {
-            $this->tokenEndpointAuthMethod = 'client_secret_basic';
+            $this->tokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC;
         }
     }
     protected function withAssertedTokenEndpointAuthMethodRules(self $value, ConstraintFailList $errorsList): void

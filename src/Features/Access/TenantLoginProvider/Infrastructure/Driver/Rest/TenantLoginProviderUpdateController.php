@@ -26,6 +26,9 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcScopesVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcClaimMappingVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderAccountLinkPolicyVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcDiscoveryUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpMetadataUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpEntityIdVO;
@@ -128,6 +131,12 @@ class TenantLoginProviderUpdateController
             if (null !== $metadata && strpos($metadata, $preffixMetadata) === 0) {
                 $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
             }
+            $value->oidcScopes(TenantLoginProviderOidcScopesVO::tryFrom($body['oidcScopes'] ?? null, $errorsList));
+            $value->oidcClaimMapping(TenantLoginProviderOidcClaimMappingVO::tryFrom($body['oidcClaimMapping'] ?? null, $errorsList));
+            $valueAccountLinkPolicy = TenantLoginProviderAccountLinkPolicyVO::tryFrom(isset($body['accountLinkPolicy']) ? strtoupper($body['accountLinkPolicy']) : null, $errorsList);
+            if (null !== $valueAccountLinkPolicy) {
+                $value->accountLinkPolicy($valueAccountLinkPolicy);
+            }
             $value->oidcDiscoveryUrl(TenantLoginProviderOidcDiscoveryUrlVO::tryFrom($body['oidcDiscoveryUrl'] ?? null, $errorsList));
             $value->samlIdpMetadataUrl(TenantLoginProviderSamlIdpMetadataUrlVO::tryFrom($body['samlIdpMetadataUrl'] ?? null, $errorsList));
             $value->samlIdpEntityId(TenantLoginProviderSamlIdpEntityIdVO::tryFrom($body['samlIdpEntityId'] ?? null, $errorsList));
@@ -173,6 +182,9 @@ class TenantLoginProviderUpdateController
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
+            $dto->oidcScopes = $value->getOidcScopes();
+            $dto->oidcClaimMapping = $value->getOidcClaimMapping();
+            $dto->accountLinkPolicy = $value->getAccountLinkPolicy();
             $dto->oidcDiscoveryUrl = $value->getOidcDiscoveryUrl();
             $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
             $dto->samlIdpEntityId = $value->getSamlIdpEntityId();

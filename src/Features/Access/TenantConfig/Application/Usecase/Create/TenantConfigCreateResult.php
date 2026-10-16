@@ -18,6 +18,12 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigMagicLinkExpiryMinutesAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigSessionSsoTtlSecondsAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRefreshTokenTtlSecondsAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRefreshTokenMaxLifetimeSecondsAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDcrAllowedGrantTypesAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDcrAllowedAuthMethodsAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowPasswordGrantAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRequirePushedAuthorizationRequestsAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAcrValuesSupportedAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
@@ -45,6 +51,12 @@ class TenantConfigCreateResult
     use TenantConfigMagicLinkExpiryMinutesAttributeHolder;
     use TenantConfigSessionSsoTtlSecondsAttributeHolder;
     use TenantConfigRefreshTokenTtlSecondsAttributeHolder;
+    use TenantConfigRefreshTokenMaxLifetimeSecondsAttributeHolder;
+    use TenantConfigDcrAllowedGrantTypesAttributeHolder;
+    use TenantConfigDcrAllowedAuthMethodsAttributeHolder;
+    use TenantConfigAllowPasswordGrantAttributeHolder;
+    use TenantConfigRequirePushedAuthorizationRequestsAttributeHolder;
+    use TenantConfigAcrValuesSupportedAttributeHolder;
     use TenantConfigWebauthnEnabledAttributeHolder;
     use TenantConfigWebauthnRpIdAttributeHolder;
     use TenantConfigWebauthnRpNameAttributeHolder;
@@ -70,6 +82,12 @@ class TenantConfigCreateResult
       'magicLinkExpiryMinutes' => 'unsetMagicLinkExpiryMinutes',
       'sessionSsoTtlSeconds' => 'unsetSessionSsoTtlSeconds',
       'refreshTokenTtlSeconds' => 'unsetRefreshTokenTtlSeconds',
+      'refreshTokenMaxLifetimeSeconds' => 'unsetRefreshTokenMaxLifetimeSeconds',
+      'dcrAllowedGrantTypes' => 'unsetDcrAllowedGrantTypes',
+      'dcrAllowedAuthMethods' => 'unsetDcrAllowedAuthMethods',
+      'allowPasswordGrant' => 'unsetAllowPasswordGrant',
+      'requirePushedAuthorizationRequests' => 'unsetRequirePushedAuthorizationRequests',
+      'acrValuesSupported' => 'unsetAcrValuesSupported',
       'webauthnEnabled' => 'unsetWebauthnEnabled',
       'webauthnRpId' => 'unsetWebauthnRpId',
       'webauthnRpName' => 'unsetWebauthnRpName',
@@ -98,6 +116,12 @@ class TenantConfigCreateResult
             $this->readMagicLinkExpiryMinutesFrom($att);
             $this->readSessionSsoTtlSecondsFrom($att);
             $this->readRefreshTokenTtlSecondsFrom($att);
+            $this->readRefreshTokenMaxLifetimeSecondsFrom($att);
+            $this->readDcrAllowedGrantTypesFrom($att);
+            $this->readDcrAllowedAuthMethodsFrom($att);
+            $this->readAllowPasswordGrantFrom($att);
+            $this->readRequirePushedAuthorizationRequestsFrom($att);
+            $this->readAcrValuesSupportedFrom($att);
             $this->readWebauthnEnabledFrom($att);
             $this->readWebauthnRpIdFrom($att);
             $this->readWebauthnRpNameFrom($att);
@@ -126,6 +150,12 @@ class TenantConfigCreateResult
         $this->writeMagicLinkExpiryMinutesTo($att);
         $this->writeSessionSsoTtlSecondsTo($att);
         $this->writeRefreshTokenTtlSecondsTo($att);
+        $this->writeRefreshTokenMaxLifetimeSecondsTo($att);
+        $this->writeDcrAllowedGrantTypesTo($att);
+        $this->writeDcrAllowedAuthMethodsTo($att);
+        $this->writeAllowPasswordGrantTo($att);
+        $this->writeRequirePushedAuthorizationRequestsTo($att);
+        $this->writeAcrValuesSupportedTo($att);
         $this->writeWebauthnEnabledTo($att);
         $this->writeWebauthnRpIdTo($att);
         $this->writeWebauthnRpNameTo($att);
@@ -159,6 +189,12 @@ class TenantConfigCreateResult
         $this->withDefaultMagicLinkExpiryMinutes();
         $this->withDefaultSessionSsoTtlSeconds();
         $this->withDefaultRefreshTokenTtlSeconds();
+        $this->withDefaultRefreshTokenMaxLifetimeSeconds();
+        $this->withDefaultDcrAllowedGrantTypes();
+        $this->withDefaultDcrAllowedAuthMethods();
+        $this->withDefaultAllowPasswordGrant();
+        $this->withDefaultRequirePushedAuthorizationRequests();
+        $this->withDefaultAcrValuesSupported();
         $this->withDefaultWebauthnEnabled();
         $this->withDefaultWebauthnRpId();
         $this->withDefaultWebauthnRpName();

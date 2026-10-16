@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
@@ -76,7 +77,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
             ->clientUri($request->clientUri)
             ->policyUri($request->policyUri)
             ->tosUri($request->tosUri)
-            ->tokenEndpointAuthMethod($request->tokenEndpointAuthMethod)
+            ->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO::fromString($request->tokenEndpointAuthMethod))
             ->grantTypesJson(json_encode($request->grantTypes))
             ->responseTypesJson(json_encode($request->responseTypes))
             ->dynamicallyRegistered(true)
@@ -141,7 +142,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
             ->clientUri($request->clientUri)
             ->policyUri($request->policyUri)
             ->tosUri($request->tosUri)
-            ->tokenEndpointAuthMethod($request->tokenEndpointAuthMethod)
+            ->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO::fromString($request->tokenEndpointAuthMethod))
             ->grantTypesJson(json_encode($request->grantTypes))
             ->responseTypesJson(json_encode($request->responseTypes))
             ->allowedRedirects($this->buildRedirectsListRef($request->redirectUris))
@@ -246,7 +247,8 @@ final class DynamicClientAdapter implements DynamicClientGateway
             grantTypes: $grantTypes,
             responseTypes: $responseTypes,
             scope: null,
-            tokenEndpointAuthMethod: $client->getTokenEndpointAuthMethod() ?? 'client_secret_basic',
+            // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
+            tokenEndpointAuthMethod: str_replace('-', '_', $client->getTokenEndpointAuthMethod()->value),
             clientName: $client->getClientName(),
             logoUri: $client->getLogoUri(),
             clientUri: $client->getClientUri(),

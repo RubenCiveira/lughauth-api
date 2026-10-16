@@ -136,7 +136,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant config");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "dynamic_registration_policy", "allow_register", "enable_register_users", "magic_link_enabled", "require_email_verification", "invitation_expiry_days", "magic_link_expiry_minutes", "session_sso_ttl_seconds", "refresh_token_ttl_seconds", "webauthn_enabled", "webauthn_rp_id", "webauthn_rp_name", "welcome_email", "registered_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :dynamicRegistrationPolicy, :allowRegister, :enableRegisterUsers, :magicLinkEnabled, :requireEmailVerification, :invitationExpiryDays, :magicLinkExpiryMinutes, :sessionSsoTtlSeconds, :refreshTokenTtlSeconds, :webauthnEnabled, :webauthnRpId, :webauthnRpName, :welcomeEmail, :registeredEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "dynamic_registration_policy", "allow_register", "enable_register_users", "magic_link_enabled", "require_email_verification", "invitation_expiry_days", "magic_link_expiry_minutes", "session_sso_ttl_seconds", "refresh_token_ttl_seconds", "refresh_token_max_lifetime_seconds", "dcr_allowed_grant_types", "dcr_allowed_auth_methods", "allow_password_grant", "require_pushed_authorization_requests", "acr_values_supported", "webauthn_enabled", "webauthn_rp_id", "webauthn_rp_name", "welcome_email", "registered_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :dynamicRegistrationPolicy, :allowRegister, :enableRegisterUsers, :magicLinkEnabled, :requireEmailVerification, :invitationExpiryDays, :magicLinkExpiryMinutes, :sessionSsoTtlSeconds, :refreshTokenTtlSeconds, :refreshTokenMaxLifetimeSeconds, :dcrAllowedGrantTypes, :dcrAllowedAuthMethods, :allowPasswordGrant, :requirePushedAuthorizationRequests, :acrValuesSupported, :webauthnEnabled, :webauthnRpId, :webauthnRpName, :welcomeEmail, :registeredEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
@@ -150,6 +150,12 @@ class TenantConfigPdoConnector
                      new SqlParam(name: 'magicLinkExpiryMinutes', value: $entity->getMagicLinkExpiryMinutes(), type: SqlParam::INT),
                      new SqlParam(name: 'sessionSsoTtlSeconds', value: $entity->getSessionSsoTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'refreshTokenTtlSeconds', value: $entity->getRefreshTokenTtlSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'refreshTokenMaxLifetimeSeconds', value: $entity->getRefreshTokenMaxLifetimeSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'dcrAllowedGrantTypes', value: $entity->getDcrAllowedGrantTypes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'dcrAllowedAuthMethods', value: $entity->getDcrAllowedAuthMethods(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'allowPasswordGrant', value: $entity->isAllowPasswordGrant(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePushedAuthorizationRequests', value: $entity->isRequirePushedAuthorizationRequests(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'acrValuesSupported', value: $entity->getAcrValuesSupported(), type: SqlParam::TEXT),
                      new SqlParam(name: 'webauthnEnabled', value: $entity->isWebauthnEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'webauthnRpId', value: $entity->getWebauthnRpId(), type: SqlParam::STR),
                      new SqlParam(name: 'webauthnRpName', value: $entity->getWebauthnRpName(), type: SqlParam::STR),
@@ -186,7 +192,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant config");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "dynamic_registration_policy" = :dynamicRegistrationPolicy , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "magic_link_enabled" = :magicLinkEnabled , "require_email_verification" = :requireEmailVerification , "invitation_expiry_days" = :invitationExpiryDays , "magic_link_expiry_minutes" = :magicLinkExpiryMinutes , "session_sso_ttl_seconds" = :sessionSsoTtlSeconds , "refresh_token_ttl_seconds" = :refreshTokenTtlSeconds , "webauthn_enabled" = :webauthnEnabled , "webauthn_rp_id" = :webauthnRpId , "webauthn_rp_name" = :webauthnRpName , "welcome_email" = :welcomeEmail , "registered_email" = :registeredEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "dynamic_registration_policy" = :dynamicRegistrationPolicy , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "magic_link_enabled" = :magicLinkEnabled , "require_email_verification" = :requireEmailVerification , "invitation_expiry_days" = :invitationExpiryDays , "magic_link_expiry_minutes" = :magicLinkExpiryMinutes , "session_sso_ttl_seconds" = :sessionSsoTtlSeconds , "refresh_token_ttl_seconds" = :refreshTokenTtlSeconds , "refresh_token_max_lifetime_seconds" = :refreshTokenMaxLifetimeSeconds , "dcr_allowed_grant_types" = :dcrAllowedGrantTypes , "dcr_allowed_auth_methods" = :dcrAllowedAuthMethods , "allow_password_grant" = :allowPasswordGrant , "require_pushed_authorization_requests" = :requirePushedAuthorizationRequests , "acr_values_supported" = :acrValuesSupported , "webauthn_enabled" = :webauthnEnabled , "webauthn_rp_id" = :webauthnRpId , "webauthn_rp_name" = :webauthnRpName , "welcome_email" = :welcomeEmail , "registered_email" = :registeredEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
@@ -200,6 +206,12 @@ class TenantConfigPdoConnector
                      new SqlParam(name: 'magicLinkExpiryMinutes', value: $update->getMagicLinkExpiryMinutes(), type: SqlParam::INT),
                      new SqlParam(name: 'sessionSsoTtlSeconds', value: $update->getSessionSsoTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'refreshTokenTtlSeconds', value: $update->getRefreshTokenTtlSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'refreshTokenMaxLifetimeSeconds', value: $update->getRefreshTokenMaxLifetimeSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'dcrAllowedGrantTypes', value: $update->getDcrAllowedGrantTypes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'dcrAllowedAuthMethods', value: $update->getDcrAllowedAuthMethods(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'allowPasswordGrant', value: $update->isAllowPasswordGrant(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePushedAuthorizationRequests', value: $update->isRequirePushedAuthorizationRequests(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'acrValuesSupported', value: $update->getAcrValuesSupported(), type: SqlParam::TEXT),
                      new SqlParam(name: 'webauthnEnabled', value: $update->isWebauthnEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'webauthnRpId', value: $update->getWebauthnRpId(), type: SqlParam::STR),
                      new SqlParam(name: 'webauthnRpName', value: $update->getWebauthnRpName(), type: SqlParam::STR),
@@ -443,6 +455,21 @@ class TenantConfigPdoConnector
             if (null === $refreshTokenTtlSeconds) {
                 throw ConstraintException::ofError('not-null', ['refreshTokenTtlSeconds'], [null]);
             }
+            $refreshTokenMaxLifetimeSeconds = $row['refresh_token_max_lifetime_seconds'] ?? null;
+            if (null === $refreshTokenMaxLifetimeSeconds) {
+                throw ConstraintException::ofError('not-null', ['refreshTokenMaxLifetimeSeconds'], [null]);
+            }
+            $dcrAllowedGrantTypes = $row['dcr_allowed_grant_types'] ?? null;
+            $dcrAllowedAuthMethods = $row['dcr_allowed_auth_methods'] ?? null;
+            $allowPasswordGrant = isset($row['allow_password_grant']) ? !! $row['allow_password_grant'] : null;
+            if (null === $allowPasswordGrant) {
+                throw ConstraintException::ofError('not-null', ['allowPasswordGrant'], [null]);
+            }
+            $requirePushedAuthorizationRequests = isset($row['require_pushed_authorization_requests']) ? !! $row['require_pushed_authorization_requests'] : null;
+            if (null === $requirePushedAuthorizationRequests) {
+                throw ConstraintException::ofError('not-null', ['requirePushedAuthorizationRequests'], [null]);
+            }
+            $acrValuesSupported = $row['acr_values_supported'] ?? null;
             $webauthnEnabled = isset($row['webauthn_enabled']) ? !! $row['webauthn_enabled'] : null;
             $webauthnRpId = $row['webauthn_rp_id'] ?? null;
             $webauthnRpName = $row['webauthn_rp_name'] ?? null;
@@ -467,6 +494,12 @@ class TenantConfigPdoConnector
                 magicLinkExpiryMinutes: $magicLinkExpiryMinutes,
                 sessionSsoTtlSeconds: $sessionSsoTtlSeconds,
                 refreshTokenTtlSeconds: $refreshTokenTtlSeconds,
+                refreshTokenMaxLifetimeSeconds: $refreshTokenMaxLifetimeSeconds,
+                dcrAllowedGrantTypes: $dcrAllowedGrantTypes,
+                dcrAllowedAuthMethods: $dcrAllowedAuthMethods,
+                allowPasswordGrant: $allowPasswordGrant,
+                requirePushedAuthorizationRequests: $requirePushedAuthorizationRequests,
+                acrValuesSupported: $acrValuesSupported,
                 webauthnEnabled: $webauthnEnabled,
                 webauthnRpId: $webauthnRpId,
                 webauthnRpName: $webauthnRpName,

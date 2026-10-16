@@ -23,6 +23,7 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driver\ConsentPu
 use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driver\UserInvitationPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Infrastructure\Driver\DcrInitialAccessTokenPlugin;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Driver\UserMfaRecoveryCodePlugin;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Infrastructure\Driver\UserConsentedScopesPlugin;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Driver\UserWebauthnCredentialPlugin;
@@ -50,6 +51,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new UserInvitationPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
+          new DcrInitialAccessTokenPlugin(),
           new UserMfaRecoveryCodePlugin(),
           new UserConsentedScopesPlugin(),
           new UserWebauthnCredentialPlugin(),

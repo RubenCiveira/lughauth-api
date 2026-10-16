@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Connector\Pdo\TrustedClientPdoConnector;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientSlide;
@@ -109,12 +110,12 @@ class TrustedClientQueryRepositoryAdapter implements TrustedClientQueryRepositor
         }
     }
     #[Override]
-    public function findOneByCode(string $code): ?TrustedClient
+    public function findOneByTenantAndCode(?TenantRef $tenant, string $code): ?TrustedClient
     {
-        $this->logDebug("Find on by code for Trusted client on adapter");
-        $span = $this->startSpan("Find on by code for Trusted client on adapter");
+        $this->logDebug("Find on by tenant code for Trusted client on adapter");
+        $span = $this->startSpan("Find on by tenant code for Trusted client on adapter");
         try {
-            return $this->conn->retrieve(new TrustedClientFilter(code: $code));
+            return $this->conn->retrieve(new TrustedClientFilter(tenantAndCode: TrustedClientFilter::tenantAndCodeFilter(tenant: $tenant, code: $code)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

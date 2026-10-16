@@ -114,6 +114,12 @@ class TenantConfigListController
             $dto->magicLinkExpiryMinutes = $value->getMagicLinkExpiryMinutes();
             $dto->sessionSsoTtlSeconds = $value->getSessionSsoTtlSeconds();
             $dto->refreshTokenTtlSeconds = $value->getRefreshTokenTtlSeconds();
+            $dto->refreshTokenMaxLifetimeSeconds = $value->getRefreshTokenMaxLifetimeSeconds();
+            $dto->dcrAllowedGrantTypes = $value->getDcrAllowedGrantTypes();
+            $dto->dcrAllowedAuthMethods = $value->getDcrAllowedAuthMethods();
+            $dto->allowPasswordGrant = $value->isAllowPasswordGrant();
+            $dto->requirePushedAuthorizationRequests = $value->isRequirePushedAuthorizationRequests();
+            $dto->acrValuesSupported = $value->getAcrValuesSupported();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

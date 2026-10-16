@@ -144,6 +144,9 @@ class TenantLoginProviderListController
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
+            $dto->oidcScopes = $value->getOidcScopes();
+            $dto->oidcClaimMapping = $value->getOidcClaimMapping();
+            $dto->accountLinkPolicy = $value->getAccountLinkPolicy();
             $dto->oidcDiscoveryUrl = $value->getOidcDiscoveryUrl();
             $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
             $dto->samlIdpEntityId = $value->getSamlIdpEntityId();

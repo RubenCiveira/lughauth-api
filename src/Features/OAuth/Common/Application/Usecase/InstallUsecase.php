@@ -44,7 +44,11 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesItem;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesAudienceVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVersionVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigAttributes;
@@ -112,21 +116,27 @@ class InstallUsecase
         $created = $this->createReling->create(RelyingParty::create($party));
         $this->createReling->update($created, $created->enable());
 
-        $localhost = new TrustedClientAllowedRedirectsItem(
-            uid: TrustedClientAllowedRedirectsUidVO::from(Random::comb()),
-            url: TrustedClientAllowedRedirectsUrlVO::from('http://localhost:4200/*'),
-            version: TrustedClientAllowedRedirectsVersionVO::from(0)
-        );
-
+        // Angular admin SPA: a global public client (no secret) that can only use
+        // code + PKCE and refresh, and only request tokens for the lughauth-api relying party.
         $trust = new TrustedClientAttributes();
         $trust->uid(Random::comb());
         $trust->code('lughauth-ui');
+        $trust->clientName('LughAuth Admin UI');
         $trust->allowAllScopes(true);
-        $trust->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->cypher, '123456'));
         $trust->publicAllow(true);
-        $trust->tokenEndpointAuthMethod('none');
-        $trust->grantTypesJson('["password","authorization_code","refresh_token"]');
-        $trust->allowedRedirects([$localhost]);
+        $trust->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodOptions::NONE);
+        $trust->grantTypesJson('["authorization_code","refresh_token"]');
+        $trust->responseTypesJson('["code"]');
+        $trust->requirePkce(true);
+        $trust->requirePushedAuthorizationRequests(false);
+        $trust->allowedRedirects($this->uiRedirects());
+        $trust->allowedAudiences([
+            new TrustedClientAllowedAudiencesItem(
+                uid: TrustedClientAllowedAudiencesUidVO::from(Random::comb()),
+                audience: TrustedClientAllowedAudiencesAudienceVO::from('lughauth-api'),
+                version: TrustedClientAllowedAudiencesVersionVO::from(0)
+            ),
+        ]);
         $trust->enabled(true);
         $created = $this->createTruted->create(TrustedClient::create($trust));
         $this->createTruted->update($created, $created->enable());
@@ -234,5 +244,22 @@ class InstallUsecase
         $this->invitationTemplate->install();
         $this->termsOfUse->install($createdTenant);
         $this->gdprPolicy->install($createdTenant);
+    }
+
+    /**
+     * Redirects of the admin UI: the exact URIs listed in LUGHAUTH_UI_REDIRECT_URIS
+     * (comma separated) or, when none is configured, the local development pattern.
+     *
+     * @return list<TrustedClientAllowedRedirectsItem>
+     */
+    private function uiRedirects(): array
+    {
+        $configured = array_filter(array_map('trim', explode(',', (string) ($_ENV['LUGHAUTH_UI_REDIRECT_URIS'] ?? ''))));
+        $urls = $configured !== [] ? array_values($configured) : ['http://localhost:4200/*'];
+        return array_map(static fn (string $url): TrustedClientAllowedRedirectsItem => new TrustedClientAllowedRedirectsItem(
+            uid: TrustedClientAllowedRedirectsUidVO::from(Random::comb()),
+            url: TrustedClientAllowedRedirectsUrlVO::from($url),
+            version: TrustedClientAllowedRedirectsVersionVO::from(0)
+        ), $urls);
     }
 }

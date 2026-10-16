@@ -5,12 +5,34 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class TrustedClientRegistrationAccessVO
 {
+    public static function fromCypheredText(AesCypherService $cypher, string $value): TrustedClientRegistrationAccessVO
+    {
+        return self::from('cyphered://' . $value);
+    }
+    public static function fromPlainText(AesCypherService $cypher, string $value): TrustedClientRegistrationAccessVO
+    {
+        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+    }
+    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientRegistrationAccessVO
+    {
+        return self::tryFrom('cyphered://' . $value, $list);
+    }
+    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientRegistrationAccessVO
+    {
+        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
+    }
+    private static function isCyphered(string $value): bool
+    {
+        return strpos($value, 'cyphered://') === 0;
+    }
     public static function empty(): TrustedClientRegistrationAccessVO
     {
         return new TrustedClientRegistrationAccessVO(null);
@@ -69,13 +91,37 @@ class TrustedClientRegistrationAccessVO
     private function __construct(
         private readonly ?string $registrationAccess
     ) {
-    }
-    public function value(): ?string
-    {
-        return $this->registrationAccess;
+        $this->validateCyphered($this->registrationAccess);
     }
     public function equals(?TrustedClientRegistrationAccessVO $other): bool
     {
         return $this->value() == $other?->value();
+    }
+    private function validateCyphered(?string $key): void
+    {
+        if (null !== $key &&  strpos($key, 'cyphered://') !== 0) {
+            throw new InvalidArgumentException($key . ' is not a valid cypered text');
+        }
+    }
+    public function value(): ?string
+    {
+        return null !== $this->registrationAccess ? "****" . substr($this->registrationAccess, -2) : null;
+    }
+    public function cypheredValueWith(AesCypherService $cypher): ?string
+    {
+        return null === $this->registrationAccess ? null : substr($this->registrationAccess, 11);
+    }
+    public function plainValueWith(AesCypherService $cypher): ?string
+    {
+        return null === $this->registrationAccess ? null : $this->decrypt($cypher, $this->registrationAccess);
+    }
+    public function decrypt(AesCypherService $cypher, string $str): string
+    {
+        $desc = $cypher->decryptForAll(substr($str, 11));
+        if (null == $desc) {
+            throw new InvalidArgumentException('Wrong cypher');
+        } else {
+            return $desc;
+        }
     }
 }

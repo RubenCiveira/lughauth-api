@@ -16,8 +16,32 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateUsecase;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTenantVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthSigningAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDpopBoundAccessTokensVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIdTokenSignedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTlsClientAuthSubjectDnVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTlsClientCertificateBoundAccessTokensVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAuthorizationSignedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelTokenDeliveryModeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelClientNotificationEndpointVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSubjectTypeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIdTokenEncryptedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIdTokenEncryptedResponseEncVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUserinfoEncryptedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUserinfoEncryptedResponseEncVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAuthorizationDetailsTypesVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUserinfoSignedResponseAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDefaultAcrValuesVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDefaultMaxAgeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSectorIdentifierUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -25,22 +49,25 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesAudienceVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVersionVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesItem;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesListRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIsResourceServerVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequirePushedAuthorizationRequestsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequirePkceVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientNameVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientLogoUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPolicyUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTosUriVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
@@ -115,11 +142,53 @@ class TrustedClientCreateController
             if (null !== $valueCode) {
                 $value->code($valueCode);
             }
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(TrustedClientTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
+            }
             $value->allowAllScopes(TrustedClientAllowAllScopesVO::tryFrom($body['allowAllScopes'] ?? null, $errorsList));
             $valuePublicAllow = TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList);
             if (null !== $valuePublicAllow) {
                 $value->publicAllow($valuePublicAllow);
             }
+            $valueTokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::tryFrom(isset($body['tokenEndpointAuthMethod']) ? strtoupper($body['tokenEndpointAuthMethod']) : null, $errorsList);
+            if (null !== $valueTokenEndpointAuthMethod) {
+                $value->tokenEndpointAuthMethod($valueTokenEndpointAuthMethod);
+            }
+            $value->tokenEndpointAuthSigningAlg(TrustedClientTokenEndpointAuthSigningAlgVO::tryFrom($body['tokenEndpointAuthSigningAlg'] ?? null, $errorsList));
+            $valueDpopBoundAccessTokens = TrustedClientDpopBoundAccessTokensVO::tryFrom($body['dpopBoundAccessTokens'] ?? null, $errorsList);
+            if (null !== $valueDpopBoundAccessTokens) {
+                $value->dpopBoundAccessTokens($valueDpopBoundAccessTokens);
+            }
+            $value->idTokenSignedResponseAlg(TrustedClientIdTokenSignedResponseAlgVO::tryFrom(isset($body['idTokenSignedResponseAlg']) ? strtoupper($body['idTokenSignedResponseAlg']) : null, $errorsList));
+            $value->tlsClientAuthSubjectDn(TrustedClientTlsClientAuthSubjectDnVO::tryFrom($body['tlsClientAuthSubjectDn'] ?? null, $errorsList));
+            $valueTlsClientCertificateBoundAccessTokens = TrustedClientTlsClientCertificateBoundAccessTokensVO::tryFrom($body['tlsClientCertificateBoundAccessTokens'] ?? null, $errorsList);
+            if (null !== $valueTlsClientCertificateBoundAccessTokens) {
+                $value->tlsClientCertificateBoundAccessTokens($valueTlsClientCertificateBoundAccessTokens);
+            }
+            $value->authorizationSignedResponseAlg(TrustedClientAuthorizationSignedResponseAlgVO::tryFrom($body['authorizationSignedResponseAlg'] ?? null, $errorsList));
+            $value->backchannelTokenDeliveryMode(TrustedClientBackchannelTokenDeliveryModeVO::tryFrom(isset($body['backchannelTokenDeliveryMode']) ? strtoupper($body['backchannelTokenDeliveryMode']) : null, $errorsList));
+            $value->backchannelClientNotificationEndpoint(TrustedClientBackchannelClientNotificationEndpointVO::tryFrom($body['backchannelClientNotificationEndpoint'] ?? null, $errorsList));
+            $valueSubjectType = TrustedClientSubjectTypeVO::tryFrom(isset($body['subjectType']) ? strtoupper($body['subjectType']) : null, $errorsList);
+            if (null !== $valueSubjectType) {
+                $value->subjectType($valueSubjectType);
+            }
+            $value->idTokenEncryptedResponseAlg(TrustedClientIdTokenEncryptedResponseAlgVO::tryFrom($body['idTokenEncryptedResponseAlg'] ?? null, $errorsList));
+            $value->idTokenEncryptedResponseEnc(TrustedClientIdTokenEncryptedResponseEncVO::tryFrom($body['idTokenEncryptedResponseEnc'] ?? null, $errorsList));
+            $value->userinfoEncryptedResponseAlg(TrustedClientUserinfoEncryptedResponseAlgVO::tryFrom($body['userinfoEncryptedResponseAlg'] ?? null, $errorsList));
+            $value->userinfoEncryptedResponseEnc(TrustedClientUserinfoEncryptedResponseEncVO::tryFrom($body['userinfoEncryptedResponseEnc'] ?? null, $errorsList));
+            $value->authorizationDetailsTypes(TrustedClientAuthorizationDetailsTypesVO::tryFrom($body['authorizationDetailsTypes'] ?? null, $errorsList));
+            $value->userinfoSignedResponseAlg(TrustedClientUserinfoSignedResponseAlgVO::tryFrom($body['userinfoSignedResponseAlg'] ?? null, $errorsList));
+            $readSecretOauth = $body['secretOauth'] ?? '******';
+            if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
+                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
+            }
+            $readRegistrationAccess = $body['registrationAccess'] ?? '******';
+            if (null !== $readRegistrationAccess && '******' !== $readRegistrationAccess) {
+                $value->registrationAccess(TrustedClientRegistrationAccessVO::tryFromPlainText($this->cypherService, $readRegistrationAccess, $errorsList));
+            }
+            $value->defaultAcrValues(TrustedClientDefaultAcrValuesVO::tryFrom($body['defaultAcrValues'] ?? null, $errorsList));
+            $value->defaultMaxAge(TrustedClientDefaultMaxAgeVO::tryFrom($body['defaultMaxAge'] ?? null, $errorsList));
+            $value->sectorIdentifierUri(TrustedClientSectorIdentifierUriVO::tryFrom($body['sectorIdentifierUri'] ?? null, $errorsList));
             $allowedRedirectsList = [];
             if (in_array('allowedRedirects', array_keys($body))) {
                 $allowedRedirects = $body['allowedRedirects'] ?? null;
@@ -144,13 +213,38 @@ class TrustedClientCreateController
                 }
             }
             $value->allowedRedirects(TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList)));
-            $readSecretOauth = $body['secretOauth'] ?? '******';
-            if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
-                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
+            $allowedAudiencesList = [];
+            if (in_array('allowedAudiences', array_keys($body))) {
+                $allowedAudiences = $body['allowedAudiences'] ?? null;
+                if (is_array($allowedAudiences)) {
+                    foreach ($allowedAudiences as $item) {
+                        $innerErrorsList = new ConstraintFailList();
+                        $innerUid = TrustedClientAllowedAudiencesUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerAudience = TrustedClientAllowedAudiencesAudienceVO::tryFrom($item['audience'] ? ''.$item['audience'] : null, $innerErrorsList);
+                        $innerVersion = TrustedClientAllowedAudiencesVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        if (!$innerErrorsList->hasErrors()) {
+                            $allowedAudiencesList[] = new TrustedClientAllowedAudiencesItem(
+                                uid: $innerUid,
+                                audience: $innerAudience,
+                                version: $innerVersion,
+                            );
+                        } else {
+                            $errorsList->add($innerErrorsList);
+                        }
+                    }
+                } else {
+                    $errorsList->add(new ConstraintFail('not-array', ['allowedAudiences'], $allowedAudiences ?? [], ['array']));
+                }
             }
+            $value->allowedAudiences(TrustedClientAllowedAudiencesVO::from(TrustedClientAllowedAudiencesListRef::fromArray($allowedAudiencesList)));
+            $value->grantTypesJson(TrustedClientGrantTypesJsonVO::tryFrom($body['grantTypesJson'] ?? null, $errorsList));
             $valueIsResourceServer = TrustedClientIsResourceServerVO::tryFrom($body['isResourceServer'] ?? null, $errorsList);
             if (null !== $valueIsResourceServer) {
                 $value->isResourceServer($valueIsResourceServer);
+            }
+            $valueRequirePushedAuthorizationRequests = TrustedClientRequirePushedAuthorizationRequestsVO::tryFrom($body['requirePushedAuthorizationRequests'] ?? null, $errorsList);
+            if (null !== $valueRequirePushedAuthorizationRequests) {
+                $value->requirePushedAuthorizationRequests($valueRequirePushedAuthorizationRequests);
             }
             $valueRequirePkce = TrustedClientRequirePkceVO::tryFrom($body['requirePkce'] ?? null, $errorsList);
             if (null !== $valueRequirePkce) {
@@ -160,17 +254,11 @@ class TrustedClientCreateController
             $value->backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($body['backChannelLogoutSessionRequired'] ?? null, $errorsList));
             $value->frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO::tryFrom($body['frontChannelLogoutUri'] ?? null, $errorsList));
             $value->frontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($body['frontChannelLogoutSessionRequired'] ?? null, $errorsList));
-            $value->registrationAccess(TrustedClientRegistrationAccessVO::tryFrom($body['registrationAccess'] ?? null, $errorsList));
             $value->clientName(TrustedClientClientNameVO::tryFrom($body['clientName'] ?? null, $errorsList));
             $value->logoUri(TrustedClientLogoUriVO::tryFrom($body['logoUri'] ?? null, $errorsList));
             $value->clientUri(TrustedClientClientUriVO::tryFrom($body['clientUri'] ?? null, $errorsList));
             $value->policyUri(TrustedClientPolicyUriVO::tryFrom($body['policyUri'] ?? null, $errorsList));
             $value->tosUri(TrustedClientTosUriVO::tryFrom($body['tosUri'] ?? null, $errorsList));
-            $valueTokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::tryFrom($body['tokenEndpointAuthMethod'] ?? null, $errorsList);
-            if (null !== $valueTokenEndpointAuthMethod) {
-                $value->tokenEndpointAuthMethod($valueTokenEndpointAuthMethod);
-            }
-            $value->grantTypesJson(TrustedClientGrantTypesJsonVO::tryFrom($body['grantTypesJson'] ?? null, $errorsList));
             $value->responseTypesJson(TrustedClientResponseTypesJsonVO::tryFrom($body['responseTypesJson'] ?? null, $errorsList));
             $value->dynamicallyRegistered(TrustedClientDynamicallyRegisteredVO::tryFrom($body['dynamicallyRegistered'] ?? null, $errorsList));
             $value->registeredAt(TrustedClientRegisteredAtVO::tryFrom($body['registeredAt'] ?? null, $errorsList));
@@ -199,11 +287,34 @@ class TrustedClientCreateController
         $this->logDebug("Map entity to output dto for Trusted client");
         $span = $this->startSpan("Map entity to output dto for Trusted client");
         try {
+            $tenant = $value->getTenant();
             $dto = new TrustedClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
+            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
+            $dto->tokenEndpointAuthSigningAlg = $value->getTokenEndpointAuthSigningAlg();
+            $dto->dpopBoundAccessTokens = $value->isDpopBoundAccessTokens();
+            $dto->idTokenSignedResponseAlg = $value->getIdTokenSignedResponseAlg();
+            $dto->tlsClientAuthSubjectDn = $value->getTlsClientAuthSubjectDn();
+            $dto->tlsClientCertificateBoundAccessTokens = $value->isTlsClientCertificateBoundAccessTokens();
+            $dto->authorizationSignedResponseAlg = $value->getAuthorizationSignedResponseAlg();
+            $dto->backchannelTokenDeliveryMode = $value->getBackchannelTokenDeliveryMode();
+            $dto->backchannelClientNotificationEndpoint = $value->getBackchannelClientNotificationEndpoint();
+            $dto->subjectType = $value->getSubjectType();
+            $dto->idTokenEncryptedResponseAlg = $value->getIdTokenEncryptedResponseAlg();
+            $dto->idTokenEncryptedResponseEnc = $value->getIdTokenEncryptedResponseEnc();
+            $dto->userinfoEncryptedResponseAlg = $value->getUserinfoEncryptedResponseAlg();
+            $dto->userinfoEncryptedResponseEnc = $value->getUserinfoEncryptedResponseEnc();
+            $dto->authorizationDetailsTypes = $value->getAuthorizationDetailsTypes();
+            $dto->userinfoSignedResponseAlg = $value->getUserinfoSignedResponseAlg();
+            $dto->secretOauth = '******';
+            $dto->registrationAccess = '******';
+            $dto->defaultAcrValues = $value->getDefaultAcrValues();
+            $dto->defaultMaxAge = $value->getDefaultMaxAge();
+            $dto->sectorIdentifierUri = $value->getSectorIdentifierUri();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();
             if (null !== $existentsAllowedRedirects) {
@@ -216,22 +327,32 @@ class TrustedClientCreateController
                 }
             }
             $dto->allowedRedirects = $allowedRedirects;
-            $dto->secretOauth = '******';
+            $allowedAudiences = [];
+            $existentsAllowedAudiences = $value->getAllowedAudiences();
+            if (null !== $existentsAllowedAudiences) {
+                foreach ($allowedAudiences as $item) {
+                    $allowedAudiences[] = [
+                    'uid' => $item->uid(),
+                    'audience' => $item->getAudience(),
+                    'version' => $item->getVersion(),
+                    ];
+                }
+            }
+            $dto->allowedAudiences = $allowedAudiences;
+            $dto->grantTypesJson = $value->getGrantTypesJson();
             $dto->isResourceServer = $value->isIsResourceServer();
+            $dto->requirePushedAuthorizationRequests = $value->isRequirePushedAuthorizationRequests();
             $dto->requirePkce = $value->isRequirePkce();
             $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
             $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
             $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
             $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
-            $dto->registrationAccess = $value->getRegistrationAccess();
             $dto->clientName = $value->getClientName();
             $dto->logoUri = $value->getLogoUri();
             $dto->clientUri = $value->getClientUri();
             $dto->policyUri = $value->getPolicyUri();
             $dto->tosUri = $value->getTosUri();
-            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
-            $dto->grantTypesJson = $value->getGrantTypesJson();
             $dto->responseTypesJson = $value->getResponseTypesJson();
             $dto->dynamicallyRegistered = $value->isDynamicallyRegistered();
             $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);

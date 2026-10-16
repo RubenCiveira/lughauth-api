@@ -15,6 +15,9 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderOidcScopesAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderOidcClaimMappingAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderAccountLinkPolicyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
@@ -36,6 +39,9 @@ class TenantLoginProviderAttributes
     use TenantLoginProviderPrivateKeyAttributeHolder;
     use TenantLoginProviderCertificateAttributeHolder;
     use TenantLoginProviderMetadataAttributeHolder;
+    use TenantLoginProviderOidcScopesAttributeHolder;
+    use TenantLoginProviderOidcClaimMappingAttributeHolder;
+    use TenantLoginProviderAccountLinkPolicyAttributeHolder;
     use TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
     use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
     use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
@@ -55,6 +61,9 @@ class TenantLoginProviderAttributes
       'privateKey' => 'unsetPrivateKey',
       'certificate' => 'unsetCertificate',
       'metadata' => 'unsetMetadata',
+      'oidcScopes' => 'unsetOidcScopes',
+      'oidcClaimMapping' => 'unsetOidcClaimMapping',
+      'accountLinkPolicy' => 'unsetAccountLinkPolicy',
       'oidcDiscoveryUrl' => 'unsetOidcDiscoveryUrl',
       'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
       'samlIdpEntityId' => 'unsetSamlIdpEntityId',
@@ -77,6 +86,9 @@ class TenantLoginProviderAttributes
         $privateKey = $this->privateKeyTryBuildInitial($errors);
         $certificate = $this->certificateTryBuildInitial($errors);
         $metadata = $this->metadataTryBuildInitial($errors);
+        $oidcScopes = $this->oidcScopesTryBuildInitial($errors);
+        $oidcClaimMapping = $this->oidcClaimMappingTryBuildInitial($errors);
+        $accountLinkPolicy = $this->accountLinkPolicyTryBuildInitial($errors);
         $oidcDiscoveryUrl = $this->oidcDiscoveryUrlTryBuildInitial($errors);
         $samlIdpMetadataUrl = $this->samlIdpMetadataUrlTryBuildInitial($errors);
         $samlIdpEntityId = $this->samlIdpEntityIdTryBuildInitial($errors);
@@ -91,6 +103,7 @@ class TenantLoginProviderAttributes
         \assert($tenant !== null);
         \assert($name !== null);
         \assert($source !== null);
+        \assert($accountLinkPolicy !== null);
         \assert($usersEnabledByDefault !== null);
         return new TenantLoginProvider(
             uid: $uid,
@@ -103,6 +116,9 @@ class TenantLoginProviderAttributes
             privateKey: $privateKey,
             certificate: $certificate,
             metadata: $metadata,
+            oidcScopes: $oidcScopes,
+            oidcClaimMapping: $oidcClaimMapping,
+            accountLinkPolicy: $accountLinkPolicy,
             oidcDiscoveryUrl: $oidcDiscoveryUrl,
             samlIdpMetadataUrl: $samlIdpMetadataUrl,
             samlIdpEntityId: $samlIdpEntityId,
@@ -126,6 +142,9 @@ class TenantLoginProviderAttributes
         $this->withAssertedPrivateKeyRules($value, $errorsList);
         $this->withAssertedCertificateRules($value, $errorsList);
         $this->withAssertedMetadataRules($value, $errorsList);
+        $this->withAssertedOidcScopesRules($value, $errorsList);
+        $this->withAssertedOidcClaimMappingRules($value, $errorsList);
+        $this->withAssertedAccountLinkPolicyRules($value, $errorsList);
         $this->withAssertedOidcDiscoveryUrlRules($value, $errorsList);
         $this->withAssertedSamlIdpMetadataUrlRules($value, $errorsList);
         $this->withAssertedSamlIdpEntityIdRules($value, $errorsList);
@@ -156,6 +175,9 @@ class TenantLoginProviderAttributes
         $this->withDefaultPrivateKey();
         $this->withDefaultCertificate();
         $this->withDefaultMetadata();
+        $this->withDefaultOidcScopes();
+        $this->withDefaultOidcClaimMapping();
+        $this->withDefaultAccountLinkPolicy();
         $this->withDefaultOidcDiscoveryUrl();
         $this->withDefaultSamlIdpMetadataUrl();
         $this->withDefaultSamlIdpEntityId();

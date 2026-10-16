@@ -308,7 +308,7 @@ class LoginAdapter implements LoginGateway
                     continue;
                 }
                 $roles[$audience] = $forAll;
-                if ($from = $this->clients->findOneByCode($audience)) {
+                if ($from = $this->clients->findOneByTenantAndCode(null, $audience)) {
                     $this->rolesFromAssignment(new UserRoleAssignmentFilter(
                         user: $user,
                         trustedClient: $from
@@ -372,7 +372,7 @@ class LoginAdapter implements LoginGateway
                     continue;
                 }
                 $audienceGroups = $forAll;
-                if ($from = $this->clients->findOneByCode($audience)) {
+                if ($from = $this->clients->findOneByTenantAndCode(null, $audience)) {
                     $this->groupsFromMembership(new UserGroupMembershipFilter(
                         user: $user,
                         trustedClient: $from

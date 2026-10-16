@@ -7,25 +7,46 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientUidAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientCodeAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTenantAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowAllScopesAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTokenEndpointAuthMethodAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTokenEndpointAuthSigningAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDpopBoundAccessTokensAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientIdTokenSignedResponseAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTlsClientAuthSubjectDnAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTlsClientCertificateBoundAccessTokensAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAuthorizationSignedResponseAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelTokenDeliveryModeAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelClientNotificationEndpointAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSubjectTypeAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientIdTokenEncryptedResponseAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientIdTokenEncryptedResponseEncAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientUserinfoEncryptedResponseAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientUserinfoEncryptedResponseEncAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAuthorizationDetailsTypesAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientUserinfoSignedResponseAlgAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegistrationAccessAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDefaultAcrValuesAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDefaultMaxAgeAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSectorIdentifierUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedAudiencesAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientGrantTypesJsonAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientIsResourceServerAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRequirePushedAuthorizationRequestsAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRequirePkceAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegistrationAccessAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientNameAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientLogoUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPolicyUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTosUriAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTokenEndpointAuthMethodAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientGrantTypesJsonAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientResponseTypesJsonAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDynamicallyRegisteredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
@@ -41,25 +62,46 @@ class TrustedClientCreateParams
 {
     use TrustedClientUidAttributeHolder;
     use TrustedClientCodeAttributeHolder;
+    use TrustedClientTenantAttributeHolder;
     use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
-    use TrustedClientAllowedRedirectsAttributeHolder;
+    use TrustedClientTokenEndpointAuthMethodAttributeHolder;
+    use TrustedClientTokenEndpointAuthSigningAlgAttributeHolder;
+    use TrustedClientDpopBoundAccessTokensAttributeHolder;
+    use TrustedClientIdTokenSignedResponseAlgAttributeHolder;
+    use TrustedClientTlsClientAuthSubjectDnAttributeHolder;
+    use TrustedClientTlsClientCertificateBoundAccessTokensAttributeHolder;
+    use TrustedClientAuthorizationSignedResponseAlgAttributeHolder;
+    use TrustedClientBackchannelTokenDeliveryModeAttributeHolder;
+    use TrustedClientBackchannelClientNotificationEndpointAttributeHolder;
+    use TrustedClientSubjectTypeAttributeHolder;
+    use TrustedClientIdTokenEncryptedResponseAlgAttributeHolder;
+    use TrustedClientIdTokenEncryptedResponseEncAttributeHolder;
+    use TrustedClientUserinfoEncryptedResponseAlgAttributeHolder;
+    use TrustedClientUserinfoEncryptedResponseEncAttributeHolder;
+    use TrustedClientAuthorizationDetailsTypesAttributeHolder;
+    use TrustedClientUserinfoSignedResponseAlgAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
+    use TrustedClientRegistrationAccessAttributeHolder;
+    use TrustedClientDefaultAcrValuesAttributeHolder;
+    use TrustedClientDefaultMaxAgeAttributeHolder;
+    use TrustedClientSectorIdentifierUriAttributeHolder;
+    use TrustedClientAllowedRedirectsAttributeHolder;
+    use TrustedClientAllowedAudiencesAttributeHolder;
+    use TrustedClientGrantTypesJsonAttributeHolder;
     use TrustedClientIsResourceServerAttributeHolder;
+    use TrustedClientRequirePushedAuthorizationRequestsAttributeHolder;
     use TrustedClientRequirePkceAttributeHolder;
     use TrustedClientBackChannelLogoutUriAttributeHolder;
     use TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientFrontChannelLogoutUriAttributeHolder;
     use TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
-    use TrustedClientRegistrationAccessAttributeHolder;
     use TrustedClientClientNameAttributeHolder;
     use TrustedClientLogoUriAttributeHolder;
     use TrustedClientClientUriAttributeHolder;
     use TrustedClientPolicyUriAttributeHolder;
     use TrustedClientTosUriAttributeHolder;
-    use TrustedClientTokenEndpointAuthMethodAttributeHolder;
-    use TrustedClientGrantTypesJsonAttributeHolder;
     use TrustedClientResponseTypesJsonAttributeHolder;
     use TrustedClientDynamicallyRegisteredAttributeHolder;
     use TrustedClientRegisteredAtAttributeHolder;
@@ -73,25 +115,46 @@ class TrustedClientCreateParams
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
+      'tenant' => 'unsetTenant',
       'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
-      'allowedRedirects' => 'unsetAllowedRedirects',
+      'tokenEndpointAuthMethod' => 'unsetTokenEndpointAuthMethod',
+      'tokenEndpointAuthSigningAlg' => 'unsetTokenEndpointAuthSigningAlg',
+      'dpopBoundAccessTokens' => 'unsetDpopBoundAccessTokens',
+      'idTokenSignedResponseAlg' => 'unsetIdTokenSignedResponseAlg',
+      'tlsClientAuthSubjectDn' => 'unsetTlsClientAuthSubjectDn',
+      'tlsClientCertificateBoundAccessTokens' => 'unsetTlsClientCertificateBoundAccessTokens',
+      'authorizationSignedResponseAlg' => 'unsetAuthorizationSignedResponseAlg',
+      'backchannelTokenDeliveryMode' => 'unsetBackchannelTokenDeliveryMode',
+      'backchannelClientNotificationEndpoint' => 'unsetBackchannelClientNotificationEndpoint',
+      'subjectType' => 'unsetSubjectType',
+      'idTokenEncryptedResponseAlg' => 'unsetIdTokenEncryptedResponseAlg',
+      'idTokenEncryptedResponseEnc' => 'unsetIdTokenEncryptedResponseEnc',
+      'userinfoEncryptedResponseAlg' => 'unsetUserinfoEncryptedResponseAlg',
+      'userinfoEncryptedResponseEnc' => 'unsetUserinfoEncryptedResponseEnc',
+      'authorizationDetailsTypes' => 'unsetAuthorizationDetailsTypes',
+      'userinfoSignedResponseAlg' => 'unsetUserinfoSignedResponseAlg',
       'secretOauth' => 'unsetSecretOauth',
+      'registrationAccess' => 'unsetRegistrationAccess',
+      'defaultAcrValues' => 'unsetDefaultAcrValues',
+      'defaultMaxAge' => 'unsetDefaultMaxAge',
+      'sectorIdentifierUri' => 'unsetSectorIdentifierUri',
+      'allowedRedirects' => 'unsetAllowedRedirects',
+      'allowedAudiences' => 'unsetAllowedAudiences',
+      'grantTypesJson' => 'unsetGrantTypesJson',
       'isResourceServer' => 'unsetIsResourceServer',
+      'requirePushedAuthorizationRequests' => 'unsetRequirePushedAuthorizationRequests',
       'requirePkce' => 'unsetRequirePkce',
       'backChannelLogoutUri' => 'unsetBackChannelLogoutUri',
       'backChannelLogoutSessionRequired' => 'unsetBackChannelLogoutSessionRequired',
       'frontChannelLogoutUri' => 'unsetFrontChannelLogoutUri',
       'frontChannelLogoutSessionRequired' => 'unsetFrontChannelLogoutSessionRequired',
       'enabled' => 'unsetEnabled',
-      'registrationAccess' => 'unsetRegistrationAccess',
       'clientName' => 'unsetClientName',
       'logoUri' => 'unsetLogoUri',
       'clientUri' => 'unsetClientUri',
       'policyUri' => 'unsetPolicyUri',
       'tosUri' => 'unsetTosUri',
-      'tokenEndpointAuthMethod' => 'unsetTokenEndpointAuthMethod',
-      'grantTypesJson' => 'unsetGrantTypesJson',
       'responseTypesJson' => 'unsetResponseTypesJson',
       'dynamicallyRegistered' => 'unsetDynamicallyRegistered',
       'registeredAt' => 'unsetRegisteredAt',
@@ -108,25 +171,46 @@ class TrustedClientCreateParams
         if ($att) {
             $this->readUidFrom($att);
             $this->readCodeFrom($att);
+            $this->readTenantFrom($att);
             $this->readAllowAllScopesFrom($att);
             $this->readPublicAllowFrom($att);
-            $this->readAllowedRedirectsFrom($att);
+            $this->readTokenEndpointAuthMethodFrom($att);
+            $this->readTokenEndpointAuthSigningAlgFrom($att);
+            $this->readDpopBoundAccessTokensFrom($att);
+            $this->readIdTokenSignedResponseAlgFrom($att);
+            $this->readTlsClientAuthSubjectDnFrom($att);
+            $this->readTlsClientCertificateBoundAccessTokensFrom($att);
+            $this->readAuthorizationSignedResponseAlgFrom($att);
+            $this->readBackchannelTokenDeliveryModeFrom($att);
+            $this->readBackchannelClientNotificationEndpointFrom($att);
+            $this->readSubjectTypeFrom($att);
+            $this->readIdTokenEncryptedResponseAlgFrom($att);
+            $this->readIdTokenEncryptedResponseEncFrom($att);
+            $this->readUserinfoEncryptedResponseAlgFrom($att);
+            $this->readUserinfoEncryptedResponseEncFrom($att);
+            $this->readAuthorizationDetailsTypesFrom($att);
+            $this->readUserinfoSignedResponseAlgFrom($att);
             $this->readSecretOauthFrom($att);
+            $this->readRegistrationAccessFrom($att);
+            $this->readDefaultAcrValuesFrom($att);
+            $this->readDefaultMaxAgeFrom($att);
+            $this->readSectorIdentifierUriFrom($att);
+            $this->readAllowedRedirectsFrom($att);
+            $this->readAllowedAudiencesFrom($att);
+            $this->readGrantTypesJsonFrom($att);
             $this->readIsResourceServerFrom($att);
+            $this->readRequirePushedAuthorizationRequestsFrom($att);
             $this->readRequirePkceFrom($att);
             $this->readBackChannelLogoutUriFrom($att);
             $this->readBackChannelLogoutSessionRequiredFrom($att);
             $this->readFrontChannelLogoutUriFrom($att);
             $this->readFrontChannelLogoutSessionRequiredFrom($att);
             $this->readEnabledFrom($att);
-            $this->readRegistrationAccessFrom($att);
             $this->readClientNameFrom($att);
             $this->readLogoUriFrom($att);
             $this->readClientUriFrom($att);
             $this->readPolicyUriFrom($att);
             $this->readTosUriFrom($att);
-            $this->readTokenEndpointAuthMethodFrom($att);
-            $this->readGrantTypesJsonFrom($att);
             $this->readResponseTypesJsonFrom($att);
             $this->readDynamicallyRegisteredFrom($att);
             $this->readRegisteredAtFrom($att);
@@ -143,25 +227,46 @@ class TrustedClientCreateParams
         $att = new TrustedClientAttributes();
         $this->writeUidTo($att);
         $this->writeCodeTo($att);
+        $this->writeTenantTo($att);
         $this->writeAllowAllScopesTo($att);
         $this->writePublicAllowTo($att);
-        $this->writeAllowedRedirectsTo($att);
+        $this->writeTokenEndpointAuthMethodTo($att);
+        $this->writeTokenEndpointAuthSigningAlgTo($att);
+        $this->writeDpopBoundAccessTokensTo($att);
+        $this->writeIdTokenSignedResponseAlgTo($att);
+        $this->writeTlsClientAuthSubjectDnTo($att);
+        $this->writeTlsClientCertificateBoundAccessTokensTo($att);
+        $this->writeAuthorizationSignedResponseAlgTo($att);
+        $this->writeBackchannelTokenDeliveryModeTo($att);
+        $this->writeBackchannelClientNotificationEndpointTo($att);
+        $this->writeSubjectTypeTo($att);
+        $this->writeIdTokenEncryptedResponseAlgTo($att);
+        $this->writeIdTokenEncryptedResponseEncTo($att);
+        $this->writeUserinfoEncryptedResponseAlgTo($att);
+        $this->writeUserinfoEncryptedResponseEncTo($att);
+        $this->writeAuthorizationDetailsTypesTo($att);
+        $this->writeUserinfoSignedResponseAlgTo($att);
         $this->writeSecretOauthTo($att);
+        $this->writeRegistrationAccessTo($att);
+        $this->writeDefaultAcrValuesTo($att);
+        $this->writeDefaultMaxAgeTo($att);
+        $this->writeSectorIdentifierUriTo($att);
+        $this->writeAllowedRedirectsTo($att);
+        $this->writeAllowedAudiencesTo($att);
+        $this->writeGrantTypesJsonTo($att);
         $this->writeIsResourceServerTo($att);
+        $this->writeRequirePushedAuthorizationRequestsTo($att);
         $this->writeRequirePkceTo($att);
         $this->writeBackChannelLogoutUriTo($att);
         $this->writeBackChannelLogoutSessionRequiredTo($att);
         $this->writeFrontChannelLogoutUriTo($att);
         $this->writeFrontChannelLogoutSessionRequiredTo($att);
         $this->writeEnabledTo($att);
-        $this->writeRegistrationAccessTo($att);
         $this->writeClientNameTo($att);
         $this->writeLogoUriTo($att);
         $this->writeClientUriTo($att);
         $this->writePolicyUriTo($att);
         $this->writeTosUriTo($att);
-        $this->writeTokenEndpointAuthMethodTo($att);
-        $this->writeGrantTypesJsonTo($att);
         $this->writeResponseTypesJsonTo($att);
         $this->writeDynamicallyRegisteredTo($att);
         $this->writeRegisteredAtTo($att);
@@ -183,25 +288,46 @@ class TrustedClientCreateParams
     {
         $this->withDefaultUid();
         $this->withDefaultCode();
+        $this->withDefaultTenant();
         $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
-        $this->withDefaultAllowedRedirects();
+        $this->withDefaultTokenEndpointAuthMethod();
+        $this->withDefaultTokenEndpointAuthSigningAlg();
+        $this->withDefaultDpopBoundAccessTokens();
+        $this->withDefaultIdTokenSignedResponseAlg();
+        $this->withDefaultTlsClientAuthSubjectDn();
+        $this->withDefaultTlsClientCertificateBoundAccessTokens();
+        $this->withDefaultAuthorizationSignedResponseAlg();
+        $this->withDefaultBackchannelTokenDeliveryMode();
+        $this->withDefaultBackchannelClientNotificationEndpoint();
+        $this->withDefaultSubjectType();
+        $this->withDefaultIdTokenEncryptedResponseAlg();
+        $this->withDefaultIdTokenEncryptedResponseEnc();
+        $this->withDefaultUserinfoEncryptedResponseAlg();
+        $this->withDefaultUserinfoEncryptedResponseEnc();
+        $this->withDefaultAuthorizationDetailsTypes();
+        $this->withDefaultUserinfoSignedResponseAlg();
         $this->withDefaultSecretOauth();
+        $this->withDefaultRegistrationAccess();
+        $this->withDefaultDefaultAcrValues();
+        $this->withDefaultDefaultMaxAge();
+        $this->withDefaultSectorIdentifierUri();
+        $this->withDefaultAllowedRedirects();
+        $this->withDefaultAllowedAudiences();
+        $this->withDefaultGrantTypesJson();
         $this->withDefaultIsResourceServer();
+        $this->withDefaultRequirePushedAuthorizationRequests();
         $this->withDefaultRequirePkce();
         $this->withDefaultBackChannelLogoutUri();
         $this->withDefaultBackChannelLogoutSessionRequired();
         $this->withDefaultFrontChannelLogoutUri();
         $this->withDefaultFrontChannelLogoutSessionRequired();
         $this->withDefaultEnabled();
-        $this->withDefaultRegistrationAccess();
         $this->withDefaultClientName();
         $this->withDefaultLogoUri();
         $this->withDefaultClientUri();
         $this->withDefaultPolicyUri();
         $this->withDefaultTosUri();
-        $this->withDefaultTokenEndpointAuthMethod();
-        $this->withDefaultGrantTypesJson();
         $this->withDefaultResponseTypesJson();
         $this->withDefaultDynamicallyRegistered();
         $this->withDefaultRegisteredAt();

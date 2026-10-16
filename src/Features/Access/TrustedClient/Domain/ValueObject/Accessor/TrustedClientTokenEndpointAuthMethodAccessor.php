@@ -6,11 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 
 trait TrustedClientTokenEndpointAuthMethodAccessor
 {
     private TrustedClientTokenEndpointAuthMethodVO $_tokenEndpointAuthMethod;
-    public function getTokenEndpointAuthMethod(): string
+    public function getTokenEndpointAuthMethod(): TrustedClientTokenEndpointAuthMethodOptions
     {
         return $this->_tokenEndpointAuthMethod->value();
     }
@@ -22,7 +23,7 @@ trait TrustedClientTokenEndpointAuthMethodAccessor
     {
         return !$this->_tokenEndpointAuthMethod->equals($original?->_tokenEndpointAuthMethod);
     }
-    public function withTokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod): self
+    public function withTokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO|TrustedClientTokenEndpointAuthMethodOptions $tokenEndpointAuthMethod): self
     {
         $copy = clone $this;
         $copy->_tokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethod);

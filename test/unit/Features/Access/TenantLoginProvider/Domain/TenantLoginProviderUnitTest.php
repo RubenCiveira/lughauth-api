@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAccountLinkPolicyOptions;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
@@ -24,6 +25,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -56,6 +60,12 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcScopes(), $other->getOidcScopes());
+        $this->assertTrue($one->isOidcScopesChanged());
+        $this->assertEquals($one->getOidcClaimMapping(), $other->getOidcClaimMapping());
+        $this->assertTrue($one->isOidcClaimMappingChanged());
+        $this->assertEquals($one->getAccountLinkPolicy(), $other->getAccountLinkPolicy());
+        $this->assertTrue($one->isAccountLinkPolicyChanged());
         $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
         $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
@@ -85,6 +95,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -104,6 +117,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'other',
             certificate: 'other',
             metadata: 'store://obin',
+            oidcScopes: 'other',
+            oidcClaimMapping: 'other',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::VERIFIED_EMAIL,
             oidcDiscoveryUrl: 'other',
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
@@ -134,6 +150,12 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
+        $this->assertEquals($one->getOidcScopes(), $other->getOidcScopes());
+        $this->assertTrue($one->isOidcScopesChanged($base));
+        $this->assertEquals($one->getOidcClaimMapping(), $other->getOidcClaimMapping());
+        $this->assertTrue($one->isOidcClaimMappingChanged($base));
+        $this->assertEquals($one->getAccountLinkPolicy(), $other->getAccountLinkPolicy());
+        $this->assertTrue($one->isAccountLinkPolicyChanged($base));
         $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
         $this->assertTrue($one->isOidcDiscoveryUrlChanged($base));
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
@@ -163,6 +185,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -184,6 +209,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertEquals(true, $json['directAccess']);
         $this->assertEquals('one', $json['publicKey']);
         $this->assertEquals('one', $json['privateKey']);
+        $this->assertEquals('one', $json['oidcScopes']);
+        $this->assertEquals(TenantLoginProviderAccountLinkPolicyOptions::NONE, $json['accountLinkPolicy']);
         $this->assertEquals('one', $json['oidcDiscoveryUrl']);
         $this->assertEquals('one', $json['samlIdpMetadataUrl']);
         $this->assertEquals('one', $json['samlIdpEntityId']);
@@ -205,6 +232,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -235,6 +265,12 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcScopes(), $other->getOidcScopes());
+        $this->assertTrue($one->isOidcScopesChanged());
+        $this->assertEquals($one->getOidcClaimMapping(), $other->getOidcClaimMapping());
+        $this->assertTrue($one->isOidcClaimMappingChanged());
+        $this->assertEquals($one->getAccountLinkPolicy(), $other->getAccountLinkPolicy());
+        $this->assertTrue($one->isAccountLinkPolicyChanged());
         $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
         $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
@@ -265,6 +301,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -284,6 +323,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'other',
             certificate: 'other',
             metadata: 'store://obin',
+            oidcScopes: 'other',
+            oidcClaimMapping: 'other',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::VERIFIED_EMAIL,
             oidcDiscoveryUrl: 'other',
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
@@ -314,6 +356,12 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
+        $this->assertEquals($one->getOidcScopes(), $other->getOidcScopes());
+        $this->assertTrue($one->isOidcScopesChanged($base));
+        $this->assertEquals($one->getOidcClaimMapping(), $other->getOidcClaimMapping());
+        $this->assertTrue($one->isOidcClaimMappingChanged($base));
+        $this->assertEquals($one->getAccountLinkPolicy(), $other->getAccountLinkPolicy());
+        $this->assertTrue($one->isAccountLinkPolicyChanged($base));
         $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
         $this->assertTrue($one->isOidcDiscoveryUrlChanged($base));
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
@@ -345,6 +393,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -375,6 +426,12 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcScopes(), $other->getOidcScopes());
+        $this->assertTrue($one->isOidcScopesChanged());
+        $this->assertEquals($one->getOidcClaimMapping(), $other->getOidcClaimMapping());
+        $this->assertTrue($one->isOidcClaimMappingChanged());
+        $this->assertEquals($one->getAccountLinkPolicy(), $other->getAccountLinkPolicy());
+        $this->assertTrue($one->isAccountLinkPolicyChanged());
         $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
         $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
@@ -404,6 +461,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
@@ -438,6 +498,9 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcScopes: 'one',
+            oidcClaimMapping: 'one',
+            accountLinkPolicy: TenantLoginProviderAccountLinkPolicyOptions::NONE,
             oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',

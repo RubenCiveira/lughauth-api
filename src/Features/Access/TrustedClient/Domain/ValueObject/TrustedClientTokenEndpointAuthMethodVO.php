@@ -7,11 +7,21 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
-use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 
 class TrustedClientTokenEndpointAuthMethodVO
 {
-    public static function from(TrustedClientTokenEndpointAuthMethodVO|string $value): TrustedClientTokenEndpointAuthMethodVO
+    public static function fromString(string $value): TrustedClientTokenEndpointAuthMethodVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFrom($value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof TrustedClientTokenEndpointAuthMethodVO);
+        return $candidate;
+    }
+    public static function from(TrustedClientTokenEndpointAuthMethodVO|TrustedClientTokenEndpointAuthMethodOptions $value): TrustedClientTokenEndpointAuthMethodVO
     {
         return self::fromUnsafe($value);
     }
@@ -21,25 +31,34 @@ class TrustedClientTokenEndpointAuthMethodVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('tokenEndpointAuthMethod', $fail));
-                    $valid = false;
-                }
+            if ($typed = self::readFromString($value)) {
+                return self::tryFrom($typed, $list);
+            } else {
+                $list->add(new ConstraintFail('wrong_format', ['tokenEndpointAuthMethod'], [$value], ['TrustedClientTokenEndpointAuthMethodOptions']));
+                return null;
             }
-            return $valid ? new TrustedClientTokenEndpointAuthMethodVO($value) : null;
+        } elseif (is_a($value, TrustedClientTokenEndpointAuthMethodOptions::class)) {
+            return new TrustedClientTokenEndpointAuthMethodVO($value);
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['tokenEndpointAuthMethod'], [$value], ['string']));
+            $list->add(new ConstraintFail('wrong_type', ['tokenEndpointAuthMethod'], [$value], ['TrustedClientTokenEndpointAuthMethodOptions']));
             return null;
         }
     }
-    public static function rules(): array
+    private static function readFromString(string $enumString): ?TrustedClientTokenEndpointAuthMethodOptions
     {
-        return [
-          new Length(min: null, max: 250),
-        ];
+        if (in_array($enumString, ['CLIENT_SECRET_BASIC', 'CLIENTSECRETBASIC', 'client-secret-basic', 'client_secret_basic', 'cLIENTSECRETBASIC'])) {
+            return TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC;
+        }
+        if (in_array($enumString, ['client_secret_post', 'cLIENTSECRETPOST', 'CLIENTSECRETPOST', 'client-secret-post', 'CLIENT_SECRET_POST'])) {
+            return TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_POST;
+        }
+        if (in_array($enumString, ['private_key_jwt', 'pRIVATEKEYJWT', 'PRIVATEKEYJWT', 'private-key-jwt', 'PRIVATE_KEY_JWT'])) {
+            return TrustedClientTokenEndpointAuthMethodOptions::PRIVATE_KEY_JWT;
+        }
+        if (in_array($enumString, ['none', 'nONE', 'NONE'])) {
+            return TrustedClientTokenEndpointAuthMethodOptions::NONE;
+        }
+        return null;
     }
     private static function fromUnsafe(mixed $value): TrustedClientTokenEndpointAuthMethodVO
     {
@@ -61,10 +80,10 @@ class TrustedClientTokenEndpointAuthMethodVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly string $tokenEndpointAuthMethod
+        private readonly TrustedClientTokenEndpointAuthMethodOptions $tokenEndpointAuthMethod
     ) {
     }
-    public function value(): string
+    public function value(): TrustedClientTokenEndpointAuthMethodOptions
     {
         return $this->tokenEndpointAuthMethod;
     }

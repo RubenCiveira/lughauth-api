@@ -7,14 +7,15 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 
 final class TrustedClientTokenEndpointAuthMethodVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'one';
+        $value = TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC;
         $ref = TrustedClientTokenEndpointAuthMethodVO::from($value);
-        $this->assertEquals('one', $ref->value());
+        $this->assertEquals(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC, $ref->value());
         $other = TrustedClientTokenEndpointAuthMethodVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TrustedClientTokenEndpointAuthMethodVO::from($ref);
@@ -23,7 +24,7 @@ final class TrustedClientTokenEndpointAuthMethodVOUnitTest extends TestCase
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TrustedClientTokenEndpointAuthMethodVO::tryFrom(1, $errors);
+        $other = TrustedClientTokenEndpointAuthMethodVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
@@ -35,9 +36,9 @@ final class TrustedClientTokenEndpointAuthMethodVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = TrustedClientTokenEndpointAuthMethodVO::from('one');
-        $same = TrustedClientTokenEndpointAuthMethodVO::from('one');
-        $other = TrustedClientTokenEndpointAuthMethodVO::from('other');
+        $one = TrustedClientTokenEndpointAuthMethodVO::from(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC);
+        $same = TrustedClientTokenEndpointAuthMethodVO::from(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC);
+        $other = TrustedClientTokenEndpointAuthMethodVO::from(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_POST);
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -45,10 +46,5 @@ final class TrustedClientTokenEndpointAuthMethodVOUnitTest extends TestCase
         $this->assertFalse($withEmpty);
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
-    }
-    public function test_exception_on_wrong_value_1(): void
-    {
-        $this->expectException(ConstraintException::class);
-        TrustedClientTokenEndpointAuthMethodVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

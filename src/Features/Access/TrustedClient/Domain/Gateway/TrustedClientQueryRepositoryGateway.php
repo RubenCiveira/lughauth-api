@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 
@@ -16,5 +17,5 @@ interface TrustedClientQueryRepositoryGateway
     public function exists(TrustedClientFilter $filter): bool;
     public function count(?TrustedClientFilter $filter = null): int;
     public function findOneByUid(string $uid): ?TrustedClient;
-    public function findOneByCode(string $code): ?TrustedClient;
+    public function findOneByTenantAndCode(?TenantRef $tenant, string $code): ?TrustedClient;
 }

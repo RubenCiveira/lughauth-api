@@ -27,6 +27,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -70,6 +76,18 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
         $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
         $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenMaxLifetimeSeconds(), $other->getRefreshTokenMaxLifetimeSeconds());
+        $this->assertTrue($one->isRefreshTokenMaxLifetimeSecondsChanged());
+        $this->assertEquals($one->getDcrAllowedGrantTypes(), $other->getDcrAllowedGrantTypes());
+        $this->assertTrue($one->isDcrAllowedGrantTypesChanged());
+        $this->assertEquals($one->getDcrAllowedAuthMethods(), $other->getDcrAllowedAuthMethods());
+        $this->assertTrue($one->isDcrAllowedAuthMethodsChanged());
+        $this->assertEquals($one->isAllowPasswordGrant(), $other->isAllowPasswordGrant());
+        $this->assertTrue($one->isAllowPasswordGrantChanged());
+        $this->assertEquals($one->isRequirePushedAuthorizationRequests(), $other->isRequirePushedAuthorizationRequests());
+        $this->assertTrue($one->isRequirePushedAuthorizationRequestsChanged());
+        $this->assertEquals($one->getAcrValuesSupported(), $other->getAcrValuesSupported());
+        $this->assertTrue($one->isAcrValuesSupportedChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -108,6 +126,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -133,6 +157,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 2,
             sessionSsoTtlSeconds: 2,
             refreshTokenTtlSeconds: 2,
+            refreshTokenMaxLifetimeSeconds: 2,
+            dcrAllowedGrantTypes: 'other',
+            dcrAllowedAuthMethods: 'other',
+            allowPasswordGrant: false,
+            requirePushedAuthorizationRequests: false,
+            acrValuesSupported: 'other',
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -174,6 +204,18 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isSessionSsoTtlSecondsChanged($base));
         $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
         $this->assertTrue($one->isRefreshTokenTtlSecondsChanged($base));
+        $this->assertEquals($one->getRefreshTokenMaxLifetimeSeconds(), $other->getRefreshTokenMaxLifetimeSeconds());
+        $this->assertTrue($one->isRefreshTokenMaxLifetimeSecondsChanged($base));
+        $this->assertEquals($one->getDcrAllowedGrantTypes(), $other->getDcrAllowedGrantTypes());
+        $this->assertTrue($one->isDcrAllowedGrantTypesChanged($base));
+        $this->assertEquals($one->getDcrAllowedAuthMethods(), $other->getDcrAllowedAuthMethods());
+        $this->assertTrue($one->isDcrAllowedAuthMethodsChanged($base));
+        $this->assertEquals($one->isAllowPasswordGrant(), $other->isAllowPasswordGrant());
+        $this->assertTrue($one->isAllowPasswordGrantChanged($base));
+        $this->assertEquals($one->isRequirePushedAuthorizationRequests(), $other->isRequirePushedAuthorizationRequests());
+        $this->assertTrue($one->isRequirePushedAuthorizationRequestsChanged($base));
+        $this->assertEquals($one->getAcrValuesSupported(), $other->getAcrValuesSupported());
+        $this->assertTrue($one->isAcrValuesSupportedChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -212,6 +254,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -241,6 +289,9 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals(1, $json['magicLinkExpiryMinutes']);
         $this->assertEquals(1, $json['sessionSsoTtlSeconds']);
         $this->assertEquals(1, $json['refreshTokenTtlSeconds']);
+        $this->assertEquals(1, $json['refreshTokenMaxLifetimeSeconds']);
+        $this->assertEquals(true, $json['allowPasswordGrant']);
+        $this->assertEquals(true, $json['requirePushedAuthorizationRequests']);
         $this->assertEquals(true, $json['webauthnEnabled']);
         $this->assertEquals('one', $json['webauthnRpId']);
         $this->assertEquals('one', $json['webauthnRpName']);
@@ -264,6 +315,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -305,6 +362,18 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
         $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
         $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenMaxLifetimeSeconds(), $other->getRefreshTokenMaxLifetimeSeconds());
+        $this->assertTrue($one->isRefreshTokenMaxLifetimeSecondsChanged());
+        $this->assertEquals($one->getDcrAllowedGrantTypes(), $other->getDcrAllowedGrantTypes());
+        $this->assertTrue($one->isDcrAllowedGrantTypesChanged());
+        $this->assertEquals($one->getDcrAllowedAuthMethods(), $other->getDcrAllowedAuthMethods());
+        $this->assertTrue($one->isDcrAllowedAuthMethodsChanged());
+        $this->assertEquals($one->isAllowPasswordGrant(), $other->isAllowPasswordGrant());
+        $this->assertTrue($one->isAllowPasswordGrantChanged());
+        $this->assertEquals($one->isRequirePushedAuthorizationRequests(), $other->isRequirePushedAuthorizationRequests());
+        $this->assertTrue($one->isRequirePushedAuthorizationRequestsChanged());
+        $this->assertEquals($one->getAcrValuesSupported(), $other->getAcrValuesSupported());
+        $this->assertTrue($one->isAcrValuesSupportedChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -344,6 +413,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -369,6 +444,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 2,
             sessionSsoTtlSeconds: 2,
             refreshTokenTtlSeconds: 2,
+            refreshTokenMaxLifetimeSeconds: 2,
+            dcrAllowedGrantTypes: 'other',
+            dcrAllowedAuthMethods: 'other',
+            allowPasswordGrant: false,
+            requirePushedAuthorizationRequests: false,
+            acrValuesSupported: 'other',
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -410,6 +491,18 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isSessionSsoTtlSecondsChanged($base));
         $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
         $this->assertTrue($one->isRefreshTokenTtlSecondsChanged($base));
+        $this->assertEquals($one->getRefreshTokenMaxLifetimeSeconds(), $other->getRefreshTokenMaxLifetimeSeconds());
+        $this->assertTrue($one->isRefreshTokenMaxLifetimeSecondsChanged($base));
+        $this->assertEquals($one->getDcrAllowedGrantTypes(), $other->getDcrAllowedGrantTypes());
+        $this->assertTrue($one->isDcrAllowedGrantTypesChanged($base));
+        $this->assertEquals($one->getDcrAllowedAuthMethods(), $other->getDcrAllowedAuthMethods());
+        $this->assertTrue($one->isDcrAllowedAuthMethodsChanged($base));
+        $this->assertEquals($one->isAllowPasswordGrant(), $other->isAllowPasswordGrant());
+        $this->assertTrue($one->isAllowPasswordGrantChanged($base));
+        $this->assertEquals($one->isRequirePushedAuthorizationRequests(), $other->isRequirePushedAuthorizationRequests());
+        $this->assertTrue($one->isRequirePushedAuthorizationRequestsChanged($base));
+        $this->assertEquals($one->getAcrValuesSupported(), $other->getAcrValuesSupported());
+        $this->assertTrue($one->isAcrValuesSupportedChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -450,6 +543,12 @@ final class TenantConfigUnitTest extends TestCase
             magicLinkExpiryMinutes: 1,
             sessionSsoTtlSeconds: 1,
             refreshTokenTtlSeconds: 1,
+            refreshTokenMaxLifetimeSeconds: 1,
+            dcrAllowedGrantTypes: 'one',
+            dcrAllowedAuthMethods: 'one',
+            allowPasswordGrant: true,
+            requirePushedAuthorizationRequests: true,
+            acrValuesSupported: 'one',
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -491,6 +590,18 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
         $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
         $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenMaxLifetimeSeconds(), $other->getRefreshTokenMaxLifetimeSeconds());
+        $this->assertTrue($one->isRefreshTokenMaxLifetimeSecondsChanged());
+        $this->assertEquals($one->getDcrAllowedGrantTypes(), $other->getDcrAllowedGrantTypes());
+        $this->assertTrue($one->isDcrAllowedGrantTypesChanged());
+        $this->assertEquals($one->getDcrAllowedAuthMethods(), $other->getDcrAllowedAuthMethods());
+        $this->assertTrue($one->isDcrAllowedAuthMethodsChanged());
+        $this->assertEquals($one->isAllowPasswordGrant(), $other->isAllowPasswordGrant());
+        $this->assertTrue($one->isAllowPasswordGrantChanged());
+        $this->assertEquals($one->isRequirePushedAuthorizationRequests(), $other->isRequirePushedAuthorizationRequests());
+        $this->assertTrue($one->isRequirePushedAuthorizationRequestsChanged());
+        $this->assertEquals($one->getAcrValuesSupported(), $other->getAcrValuesSupported());
+        $this->assertTrue($one->isAcrValuesSupportedChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());

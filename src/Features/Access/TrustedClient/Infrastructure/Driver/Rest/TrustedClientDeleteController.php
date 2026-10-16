@@ -18,6 +18,7 @@ use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskKey;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteUsecase;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Batch\TrustedClientTaskDelete;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 class TrustedClientDeleteController
 {
@@ -75,9 +76,11 @@ class TrustedClientDeleteController
             $filter = new TrustedClientFilter(
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
-                code: $params['code'] ?? null,
                 withBackChannelUrl: isset($params['with-back-channel-url']) ? filter_var($params['with-back-channel-url'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
                 withFrontChannelUrl: isset($params['with-front-channel-url']) ? filter_var($params['with-front-channel-url'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+                code: $params['code'] ?? null,
+                tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
+                tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
             $res = $this->runner->run(TrustedClientTaskDelete::class, ['filter' => $filter]);
             $encoded = json_encode($res);

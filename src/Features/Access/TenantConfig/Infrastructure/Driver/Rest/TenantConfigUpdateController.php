@@ -28,6 +28,12 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigIn
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkExpiryMinutesVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigSessionSsoTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenMaxLifetimeSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDcrAllowedGrantTypesVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDcrAllowedAuthMethodsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowPasswordGrantVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRequirePushedAuthorizationRequestsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAcrValuesSupportedVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
@@ -143,6 +149,21 @@ class TenantConfigUpdateController
             if (null !== $valueRefreshTokenTtlSeconds) {
                 $value->refreshTokenTtlSeconds($valueRefreshTokenTtlSeconds);
             }
+            $valueRefreshTokenMaxLifetimeSeconds = TenantConfigRefreshTokenMaxLifetimeSecondsVO::tryFrom($body['refreshTokenMaxLifetimeSeconds'] ?? null, $errorsList);
+            if (null !== $valueRefreshTokenMaxLifetimeSeconds) {
+                $value->refreshTokenMaxLifetimeSeconds($valueRefreshTokenMaxLifetimeSeconds);
+            }
+            $value->dcrAllowedGrantTypes(TenantConfigDcrAllowedGrantTypesVO::tryFrom($body['dcrAllowedGrantTypes'] ?? null, $errorsList));
+            $value->dcrAllowedAuthMethods(TenantConfigDcrAllowedAuthMethodsVO::tryFrom($body['dcrAllowedAuthMethods'] ?? null, $errorsList));
+            $valueAllowPasswordGrant = TenantConfigAllowPasswordGrantVO::tryFrom($body['allowPasswordGrant'] ?? null, $errorsList);
+            if (null !== $valueAllowPasswordGrant) {
+                $value->allowPasswordGrant($valueAllowPasswordGrant);
+            }
+            $valueRequirePushedAuthorizationRequests = TenantConfigRequirePushedAuthorizationRequestsVO::tryFrom($body['requirePushedAuthorizationRequests'] ?? null, $errorsList);
+            if (null !== $valueRequirePushedAuthorizationRequests) {
+                $value->requirePushedAuthorizationRequests($valueRequirePushedAuthorizationRequests);
+            }
+            $value->acrValuesSupported(TenantConfigAcrValuesSupportedVO::tryFrom($body['acrValuesSupported'] ?? null, $errorsList));
             $value->webauthnEnabled(TenantConfigWebauthnEnabledVO::tryFrom($body['webauthnEnabled'] ?? null, $errorsList));
             $value->webauthnRpId(TenantConfigWebauthnRpIdVO::tryFrom($body['webauthnRpId'] ?? null, $errorsList));
             $value->webauthnRpName(TenantConfigWebauthnRpNameVO::tryFrom($body['webauthnRpName'] ?? null, $errorsList));
@@ -184,6 +205,12 @@ class TenantConfigUpdateController
             $dto->magicLinkExpiryMinutes = $value->getMagicLinkExpiryMinutes();
             $dto->sessionSsoTtlSeconds = $value->getSessionSsoTtlSeconds();
             $dto->refreshTokenTtlSeconds = $value->getRefreshTokenTtlSeconds();
+            $dto->refreshTokenMaxLifetimeSeconds = $value->getRefreshTokenMaxLifetimeSeconds();
+            $dto->dcrAllowedGrantTypes = $value->getDcrAllowedGrantTypes();
+            $dto->dcrAllowedAuthMethods = $value->getDcrAllowedAuthMethods();
+            $dto->allowPasswordGrant = $value->isAllowPasswordGrant();
+            $dto->requirePushedAuthorizationRequests = $value->isRequirePushedAuthorizationRequests();
+            $dto->acrValuesSupported = $value->getAcrValuesSupported();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

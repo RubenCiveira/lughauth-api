@@ -33,6 +33,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedCli
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Fields\FixTenantExcludingRoot;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientCollectNonEditableFields;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -52,6 +56,8 @@ class TrustedClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
+        $listener->registerListener(TrustedClientRestrictFilterToVisibility::class, TenantAccessible::class);
+        $listener->registerListener(TrustedClientCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $listener->registerListener(TrustedClientCreateAllowDecision::class, OnlyForRootAllow::class, 'checkCreate');
         $listener->registerListener(TrustedClientUpdateAllowDecision::class, OnlyForRootAllow::class, 'checkUpdate');
         $listener->registerListener(TrustedClientListAllowDecision::class, OnlyForRootAllow::class, 'checkList');
@@ -74,25 +80,46 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAction("trusted-client", "disable", "WRITE");
 
             $handler->registerResourceAttribute("trusted-client", "code", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tenant", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "allowAllScopes", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "publicAllow", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tokenEndpointAuthMethod", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tokenEndpointAuthSigningAlg", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "dpopBoundAccessTokens", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "idTokenSignedResponseAlg", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tlsClientAuthSubjectDn", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tlsClientCertificateBoundAccessTokens", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "authorizationSignedResponseAlg", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "backchannelTokenDeliveryMode", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "backchannelClientNotificationEndpoint", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "subjectType", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "idTokenEncryptedResponseAlg", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "idTokenEncryptedResponseEnc", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "userinfoEncryptedResponseAlg", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "userinfoEncryptedResponseEnc", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "authorizationDetailsTypes", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "userinfoSignedResponseAlg", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "secretOauth", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "registrationAccess", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "defaultAcrValues", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "defaultMaxAge", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "sectorIdentifierUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowedAudiences", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "grantTypesJson", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "isResourceServer", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "requirePushedAuthorizationRequests", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "requirePkce", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "backChannelLogoutUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "backChannelLogoutSessionRequired", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutSessionRequired", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "registrationAccess", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "clientName", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "logoUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "clientUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "policyUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "tosUri", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "tokenEndpointAuthMethod", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "grantTypesJson", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "responseTypesJson", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "dynamicallyRegistered", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "registeredAt", "MANAGE");

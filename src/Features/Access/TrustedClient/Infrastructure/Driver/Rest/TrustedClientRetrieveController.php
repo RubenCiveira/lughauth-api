@@ -67,11 +67,34 @@ class TrustedClientRetrieveController
         $this->logDebug("Map entity to output dto for Trusted client");
         $span = $this->startSpan("Map entity to output dto for Trusted client");
         try {
+            $tenant = $value->getTenant();
             $dto = new TrustedClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
+            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
+            $dto->tokenEndpointAuthSigningAlg = $value->getTokenEndpointAuthSigningAlg();
+            $dto->dpopBoundAccessTokens = $value->isDpopBoundAccessTokens();
+            $dto->idTokenSignedResponseAlg = $value->getIdTokenSignedResponseAlg();
+            $dto->tlsClientAuthSubjectDn = $value->getTlsClientAuthSubjectDn();
+            $dto->tlsClientCertificateBoundAccessTokens = $value->isTlsClientCertificateBoundAccessTokens();
+            $dto->authorizationSignedResponseAlg = $value->getAuthorizationSignedResponseAlg();
+            $dto->backchannelTokenDeliveryMode = $value->getBackchannelTokenDeliveryMode();
+            $dto->backchannelClientNotificationEndpoint = $value->getBackchannelClientNotificationEndpoint();
+            $dto->subjectType = $value->getSubjectType();
+            $dto->idTokenEncryptedResponseAlg = $value->getIdTokenEncryptedResponseAlg();
+            $dto->idTokenEncryptedResponseEnc = $value->getIdTokenEncryptedResponseEnc();
+            $dto->userinfoEncryptedResponseAlg = $value->getUserinfoEncryptedResponseAlg();
+            $dto->userinfoEncryptedResponseEnc = $value->getUserinfoEncryptedResponseEnc();
+            $dto->authorizationDetailsTypes = $value->getAuthorizationDetailsTypes();
+            $dto->userinfoSignedResponseAlg = $value->getUserinfoSignedResponseAlg();
+            $dto->secretOauth = '******';
+            $dto->registrationAccess = '******';
+            $dto->defaultAcrValues = $value->getDefaultAcrValues();
+            $dto->defaultMaxAge = $value->getDefaultMaxAge();
+            $dto->sectorIdentifierUri = $value->getSectorIdentifierUri();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();
             if (null !== $existentsAllowedRedirects) {
@@ -84,22 +107,32 @@ class TrustedClientRetrieveController
                 }
             }
             $dto->allowedRedirects = $allowedRedirects;
-            $dto->secretOauth = '******';
+            $allowedAudiences = [];
+            $existentsAllowedAudiences = $value->getAllowedAudiences();
+            if (null !== $existentsAllowedAudiences) {
+                foreach ($allowedAudiences as $item) {
+                    $allowedAudiences[] = [
+                    'uid' => $item->uid(),
+                    'audience' => $item->getAudience(),
+                    'version' => $item->getVersion(),
+                    ];
+                }
+            }
+            $dto->allowedAudiences = $allowedAudiences;
+            $dto->grantTypesJson = $value->getGrantTypesJson();
             $dto->isResourceServer = $value->isIsResourceServer();
+            $dto->requirePushedAuthorizationRequests = $value->isRequirePushedAuthorizationRequests();
             $dto->requirePkce = $value->isRequirePkce();
             $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
             $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
             $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
             $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
-            $dto->registrationAccess = $value->getRegistrationAccess();
             $dto->clientName = $value->getClientName();
             $dto->logoUri = $value->getLogoUri();
             $dto->clientUri = $value->getClientUri();
             $dto->policyUri = $value->getPolicyUri();
             $dto->tosUri = $value->getTosUri();
-            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
-            $dto->grantTypesJson = $value->getGrantTypesJson();
             $dto->responseTypesJson = $value->getResponseTypesJson();
             $dto->dynamicallyRegistered = $value->isDynamicallyRegistered();
             $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);

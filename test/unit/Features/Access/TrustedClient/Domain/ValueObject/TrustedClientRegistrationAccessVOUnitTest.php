@@ -7,14 +7,17 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 final class TrustedClientRegistrationAccessVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'one';
+        $value = 'cyphered://cypher';
         $ref = TrustedClientRegistrationAccessVO::from($value);
-        $this->assertEquals('one', $ref->value());
+        $this->assertEquals('****er', $ref->value());
         $other = TrustedClientRegistrationAccessVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TrustedClientRegistrationAccessVO::from($ref);
@@ -35,9 +38,9 @@ final class TrustedClientRegistrationAccessVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = TrustedClientRegistrationAccessVO::from('one');
-        $same = TrustedClientRegistrationAccessVO::from('one');
-        $other = TrustedClientRegistrationAccessVO::from('other');
+        $one = TrustedClientRegistrationAccessVO::from('cyphered://cypher');
+        $same = TrustedClientRegistrationAccessVO::from('cyphered://cypher');
+        $other = TrustedClientRegistrationAccessVO::from('cyphered://ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -55,6 +58,59 @@ final class TrustedClientRegistrationAccessVOUnitTest extends TestCase
     {
         $ref = TrustedClientRegistrationAccessVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
+    }
+    public function test_cypher_builders(): void
+    {
+        $aes = $this->createMock(AesCypherService::class);
+        $aes->method('encryptForAll')->willReturn('encripted');
+        $aes->method('decryptForAll')->willReturn('decript');
+        $errors = new ConstraintFailList();
+        $value = TrustedClientRegistrationAccessVO::fromCypheredText($aes, 'gold');
+        $this->assertEquals('****ld', $value->value());
+        $this->assertEquals('gold', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $value = TrustedClientRegistrationAccessVO::tryFromCypheredText($aes, 'gold', $errors);
+        $this->assertEquals('****ld', $value->value());
+        $this->assertEquals('gold', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_plain_but_cypher_builders(): void
+    {
+        $aes = $this->createMock(AesCypherService::class);
+        $aes->method('encryptForAll')->willReturn('encripted');
+        $aes->method('decryptForAll')->willReturn('decript');
+        $errors = new ConstraintFailList();
+        $value = TrustedClientRegistrationAccessVO::fromPlainText($aes, 'cyphered://gold');
+        $this->assertEquals('****ld', $value->value());
+        $this->assertEquals('gold', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $value = TrustedClientRegistrationAccessVO::tryFromPlainText($aes, 'cyphered://gold', $errors);
+        $this->assertEquals('****ld', $value->value());
+        $this->assertEquals('gold', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_plain_builders(): void
+    {
+        $aes = $this->createMock(AesCypherService::class);
+        $aes->method('encryptForAll')->willReturn('encripted');
+        $aes->method('decryptForAll')->willReturn('decript');
+        $errors = new ConstraintFailList();
+        $value = TrustedClientRegistrationAccessVO::fromPlainText($aes, 'gold');
+        $this->assertEquals('****ed', $value->value());
+        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $value = TrustedClientRegistrationAccessVO::tryFromPlainText($aes, 'gold', $errors);
+        $this->assertEquals('****ed', $value->value());
+        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
+        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_uncypgere_build_has_error(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        TrustedClientRegistrationAccessVO::from('none');
     }
     public function test_exception_on_wrong_value_1(): void
     {

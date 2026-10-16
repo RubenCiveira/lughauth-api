@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Drive
 
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAccountLinkPolicyOptions;
 
 #[OA\Schema(title: "Tenant login provider", description: "Represents a login identity provider (e.g., Google, GitHub, SAML) configured for a tenant. Enables federated authentication integration.")]
 class TenantLoginProviderApiDTO
@@ -85,6 +86,28 @@ class TenantLoginProviderApiDTO
         type: "string"
     )]
     public ?string $metadata = null;
+    #[OA\Property(
+        property: "oidcScopes",
+        title: "oidc scopes",
+        description:"El oidc scopes de tenant login provider",
+        type: "string"
+    )]
+    public ?string $oidcScopes = null;
+    #[OA\Property(
+        property: "oidcClaimMapping",
+        title: "oidc claim mapping",
+        description:"El oidc claim mapping de tenant login provider",
+        type: "string"
+    )]
+    public ?string $oidcClaimMapping = null;
+    #[OA\Property(
+        property: "accountLinkPolicy",
+        title: "account link policy",
+        description:"El account link policy de tenant login provider",
+        type: "string",
+        enum: ["NONE","VERIFIED-EMAIL","MANUAL"]
+    )]
+    public ?TenantLoginProviderAccountLinkPolicyOptions $accountLinkPolicy = null;
     #[OA\Property(
         property: "oidcDiscoveryUrl",
         title: "oidc discovery url",

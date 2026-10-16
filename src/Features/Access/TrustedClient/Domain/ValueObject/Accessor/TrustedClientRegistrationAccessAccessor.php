@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
 
 trait TrustedClientRegistrationAccessAccessor
 {
@@ -17,6 +18,14 @@ trait TrustedClientRegistrationAccessAccessor
     public function registrationAccess(): ?TrustedClientRegistrationAccessVO
     {
         return $this->_registrationAccess;
+    }
+    public function getCypheredRegistrationAccess(AesCypherService $cypher): ?string
+    {
+        return $this->_registrationAccess?->cypheredValueWith($cypher);
+    }
+    public function getPlainRegistrationAccess(AesCypherService $cypher): ?string
+    {
+        return $this->_registrationAccess?->plainValueWith($cypher);
     }
     public function isRegistrationAccessChanged(?self $original = null): bool
     {

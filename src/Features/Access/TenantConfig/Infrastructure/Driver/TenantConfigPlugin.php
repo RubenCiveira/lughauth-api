@@ -72,6 +72,12 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "magicLinkExpiryMinutes", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "sessionSsoTtlSeconds", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "refreshTokenTtlSeconds", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "refreshTokenMaxLifetimeSeconds", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "dcrAllowedGrantTypes", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "dcrAllowedAuthMethods", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "allowPasswordGrant", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "requirePushedAuthorizationRequests", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "acrValuesSupported", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnEnabled", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpId", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpName", "MANAGE");

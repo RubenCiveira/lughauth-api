@@ -8,7 +8,10 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibi
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Iterator;
 use Throwable;
+use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesListRef;
+use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
@@ -28,7 +31,8 @@ class TrustedClientVisibilityService
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientQueryRepositoryGateway $readGateway,
-        private readonly TrustedClientCommandRepositoryGateway $writeGateway
+        private readonly TrustedClientCommandRepositoryGateway $writeGateway,
+        private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }
 
@@ -239,9 +243,17 @@ class TrustedClientVisibilityService
         $this->logDebug("Check visibility of parent references for Trusted client");
         $span = $this->startSpan("Check visibility of parent references for  Trusted client");
         try {
+            $tenant = $attributes->getTenant();
+            if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
+                throw new NotFoundException("Unknown Tenant " . ($tenant->uid() ?? 'no-id'));
+            }
             $allowedRedirects = $attributes->getAllowedRedirects();
             if (null !== $allowedRedirects) {
                 $this->checkVisibilityForAllowedRedirects($allowedRedirects);
+            }
+            $allowedAudiences = $attributes->getAllowedAudiences();
+            if (null !== $allowedAudiences) {
+                $this->checkVisibilityForAllowedAudiences($allowedAudiences);
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -266,6 +278,23 @@ class TrustedClientVisibilityService
         }
     }
     private function checkVisibilityForAllowedRedirects(TrustedClientAllowedRedirectsListRef $items): TrustedClientAllowedRedirectsListRef
+    {
+        $this->logDebug("Copy with fixed for Trusted client");
+        $span = $this->startSpan("Copy with fixed for  Trusted client");
+        try {
+            foreach ($items as $item) {
+                if (null !== $item) {
+                }
+            }
+            return $items;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function checkVisibilityForAllowedAudiences(TrustedClientAllowedAudiencesListRef $items): TrustedClientAllowedAudiencesListRef
     {
         $this->logDebug("Copy with fixed for Trusted client");
         $span = $this->startSpan("Copy with fixed for  Trusted client");

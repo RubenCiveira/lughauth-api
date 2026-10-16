@@ -6,6 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest;
 
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientIdTokenSignedResponseAlgOptions;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientBackchannelTokenDeliveryModeOptions;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientSubjectTypeOptions;
 
 #[OA\Schema(title: "Trusted client", description: "Las diferentes aplicaciones que pueden usar el sistema de acceso. Dado qua la app va en la petición de login, podemos obtener la cuenta asociado a traves del proyecto")]
 class TrustedClientApiDTO
@@ -25,6 +29,16 @@ class TrustedClientApiDTO
     )]
     public ?string $code = null;
     #[OA\Property(
+        property: "tenant",
+        title: "tenant",
+        description:"Owner tenant. Null means a global client, manageable only by root.",
+        type: "object",
+        properties: [
+          new OA\Property(property: "\$ref", type: "string")
+    ]
+    )]
+    public ?array $tenant = null;
+    #[OA\Property(
         property: "allowAllScopes",
         title: "allow all scopes",
         description:"El allow all scopes de trusted client",
@@ -38,14 +52,166 @@ class TrustedClientApiDTO
         type: "string"
     )]
     public ?bool $publicAllow = null;
-    public ?array $allowedRedirects = null;
+    #[OA\Property(
+        property: "tokenEndpointAuthMethod",
+        title: "token endpoint auth method",
+        description:"El token endpoint auth method de trusted client",
+        type: "string",
+        enum: ["CLIENT_SECRET_BASIC","CLIENT_SECRET_POST","PRIVATE_KEY_JWT","NONE"]
+    )]
+    public ?TrustedClientTokenEndpointAuthMethodOptions $tokenEndpointAuthMethod = null;
+    #[OA\Property(
+        property: "tokenEndpointAuthSigningAlg",
+        title: "token endpoint auth signing alg",
+        description:"El token endpoint auth signing alg de trusted client",
+        type: "string"
+    )]
+    public ?string $tokenEndpointAuthSigningAlg = null;
+    #[OA\Property(
+        property: "dpopBoundAccessTokens",
+        title: "dpop bound access tokens",
+        description:"El dpop bound access tokens de trusted client",
+        type: "string"
+    )]
+    public ?bool $dpopBoundAccessTokens = null;
+    #[OA\Property(
+        property: "idTokenSignedResponseAlg",
+        title: "id token signed response alg",
+        description:"El id token signed response alg de trusted client",
+        type: "string",
+        enum: ["RS256","ES256","EDDSA"]
+    )]
+    public ?TrustedClientIdTokenSignedResponseAlgOptions $idTokenSignedResponseAlg = null;
+    #[OA\Property(
+        property: "tlsClientAuthSubjectDn",
+        title: "tls client auth subject dn",
+        description:"El tls client auth subject dn de trusted client",
+        type: "string"
+    )]
+    public ?string $tlsClientAuthSubjectDn = null;
+    #[OA\Property(
+        property: "tlsClientCertificateBoundAccessTokens",
+        title: "tls client certificate bound access tokens",
+        description:"El tls client certificate bound access tokens de trusted client",
+        type: "string"
+    )]
+    public ?bool $tlsClientCertificateBoundAccessTokens = null;
+    #[OA\Property(
+        property: "authorizationSignedResponseAlg",
+        title: "authorization signed response alg",
+        description:"El authorization signed response alg de trusted client",
+        type: "string"
+    )]
+    public ?string $authorizationSignedResponseAlg = null;
+    #[OA\Property(
+        property: "backchannelTokenDeliveryMode",
+        title: "backchannel token delivery mode",
+        description:"El backchannel token delivery mode de trusted client",
+        type: "string",
+        enum: ["POLL","PING"]
+    )]
+    public ?TrustedClientBackchannelTokenDeliveryModeOptions $backchannelTokenDeliveryMode = null;
+    #[OA\Property(
+        property: "backchannelClientNotificationEndpoint",
+        title: "backchannel client notification endpoint",
+        description:"El backchannel client notification endpoint de trusted client",
+        type: "string"
+    )]
+    public ?string $backchannelClientNotificationEndpoint = null;
+    #[OA\Property(
+        property: "subjectType",
+        title: "subject type",
+        description:"El subject type de trusted client",
+        type: "string",
+        enum: ["PUBLIC","PAIRWISE"]
+    )]
+    public ?TrustedClientSubjectTypeOptions $subjectType = null;
+    #[OA\Property(
+        property: "idTokenEncryptedResponseAlg",
+        title: "id token encrypted response alg",
+        description:"El id token encrypted response alg de trusted client",
+        type: "string"
+    )]
+    public ?string $idTokenEncryptedResponseAlg = null;
+    #[OA\Property(
+        property: "idTokenEncryptedResponseEnc",
+        title: "id token encrypted response enc",
+        description:"El id token encrypted response enc de trusted client",
+        type: "string"
+    )]
+    public ?string $idTokenEncryptedResponseEnc = null;
+    #[OA\Property(
+        property: "userinfoEncryptedResponseAlg",
+        title: "userinfo encrypted response alg",
+        description:"El userinfo encrypted response alg de trusted client",
+        type: "string"
+    )]
+    public ?string $userinfoEncryptedResponseAlg = null;
+    #[OA\Property(
+        property: "userinfoEncryptedResponseEnc",
+        title: "userinfo encrypted response enc",
+        description:"El userinfo encrypted response enc de trusted client",
+        type: "string"
+    )]
+    public ?string $userinfoEncryptedResponseEnc = null;
+    #[OA\Property(
+        property: "authorizationDetailsTypes",
+        title: "authorization details types",
+        description:"El authorization details types de trusted client",
+        type: "string"
+    )]
+    public ?string $authorizationDetailsTypes = null;
+    #[OA\Property(
+        property: "userinfoSignedResponseAlg",
+        title: "userinfo signed response alg",
+        description:"El userinfo signed response alg de trusted client",
+        type: "string"
+    )]
+    public ?string $userinfoSignedResponseAlg = null;
     #[OA\Property(
         property: "secretOauth",
         title: "secret oauth",
-        description:"If the user is not delegated, the phrase to identify",
+        description:"El secret oauth de trusted client",
         type: "string"
     )]
     public ?string $secretOauth = null;
+    #[OA\Property(
+        property: "registrationAccess",
+        title: "registration access",
+        description:"El registration access de trusted client",
+        type: "string"
+    )]
+    public ?string $registrationAccess = null;
+    #[OA\Property(
+        property: "defaultAcrValues",
+        title: "default acr values",
+        description:"El default acr values de trusted client",
+        type: "string"
+    )]
+    public ?string $defaultAcrValues = null;
+    #[OA\Property(
+        property: "defaultMaxAge",
+        title: "default max age",
+        description:"El default max age de trusted client",
+        type: "string"
+    )]
+    public ?int $defaultMaxAge = null;
+    #[OA\Property(
+        property: "sectorIdentifierUri",
+        title: "sector identifier uri",
+        description:"El sector identifier uri de trusted client",
+        type: "string"
+    )]
+    public ?string $sectorIdentifierUri = null;
+    public ?array $allowedRedirects = null;
+    public ?array $allowedAudiences = null;
+    #[OA\Property(
+        property: "grantTypesJson",
+        title: "grant types json",
+        description:"El grant types json de trusted client",
+        type: "string"
+    )]
+    public ?string $grantTypesJson = null;
     #[OA\Property(
         property: "isResourceServer",
         title: "is resource server",
@@ -53,6 +219,13 @@ class TrustedClientApiDTO
         type: "string"
     )]
     public ?bool $isResourceServer = null;
+    #[OA\Property(
+        property: "requirePushedAuthorizationRequests",
+        title: "require pushed authorization requests",
+        description:"El require pushed authorization requests de trusted client",
+        type: "string"
+    )]
+    public ?bool $requirePushedAuthorizationRequests = null;
     #[OA\Property(
         property: "requirePkce",
         title: "require pkce",
@@ -96,13 +269,6 @@ class TrustedClientApiDTO
     )]
     public ?bool $enabled = null;
     #[OA\Property(
-        property: "registrationAccess",
-        title: "registration access",
-        description:"El registration access de trusted client",
-        type: "string"
-    )]
-    public ?string $registrationAccess = null;
-    #[OA\Property(
         property: "clientName",
         title: "client name",
         description:"El client name de trusted client",
@@ -137,20 +303,6 @@ class TrustedClientApiDTO
         type: "string"
     )]
     public ?string $tosUri = null;
-    #[OA\Property(
-        property: "tokenEndpointAuthMethod",
-        title: "token endpoint auth method",
-        description:"El token endpoint auth method de trusted client",
-        type: "string"
-    )]
-    public ?string $tokenEndpointAuthMethod = null;
-    #[OA\Property(
-        property: "grantTypesJson",
-        title: "grant types json",
-        description:"El grant types json de trusted client",
-        type: "string"
-    )]
-    public ?string $grantTypesJson = null;
     #[OA\Property(
         property: "responseTypesJson",
         title: "response types json",
@@ -211,7 +363,6 @@ class TrustedClientApiDTO
         property: "version",
         title: "version",
         description:"Campo con el número de version de trusted client para controlar bloqueos optimistas",
-        type: "string"
-    )]
+        type: "string")]
     public ?int $version = null;
 }

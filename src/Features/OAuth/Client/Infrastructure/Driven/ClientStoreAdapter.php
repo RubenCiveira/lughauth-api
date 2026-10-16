@@ -11,6 +11,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
 /**
  * Infrastructure adapter that implements ClientStoreGateway by reading TrustedClient entities
@@ -43,7 +44,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function clientData(string $clientId, string $clientSecret): ?ClientData
     {
-        $existent = $this->clients->findOneByCode($clientId);
+        $existent = $this->findGlobalClient($clientId);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 // Not enabled
@@ -70,7 +71,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function findEnabledClient(string $clientId): ?ClientData
     {
-        $existent = $this->clients->findOneByCode($clientId);
+        $existent = $this->findGlobalClient($clientId);
         if ($existent === null) {
             $this->inexistent($clientId);
             return null;
@@ -89,7 +90,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function preValidatedClient(string $clientId): ?ClientData
     {
-        $existent = $this->clients->findOneByCode($clientId);
+        $existent = $this->findGlobalClient($clientId);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 $this->notEnabled($clientId);
@@ -116,7 +117,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
-        $existent = $this->clients->findOneByCode($id);
+        $existent = $this->findGlobalClient($id);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 $this->notEnabled($id);
@@ -160,7 +161,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function defaultRedirectUri(string $clientId): ?string
     {
-        $client = $this->clients->findOneByCode($clientId);
+        $client = $this->findGlobalClient($clientId);
         if ($client === null || !$client->isEnabled()) {
             return null;
         }
@@ -206,6 +207,15 @@ class ClientStoreAdapter implements ClientStoreGateway
         return str_starts_with($actualPath, $expected[2] ?? '');
     }
 
+    /**
+     * Looks a client up by code among the global clients (tenant = null), which is the only
+     * kind that exists until per-tenant clients are resolved (task 022).
+     */
+    private function findGlobalClient(string $code): ?TrustedClient
+    {
+        return $this->clients->findOneByTenantAndCode(null, $code);
+    }
+
     private function mapClientData(mixed $trustedClient): ClientData
     {
         $grants = ['password'];
@@ -228,7 +238,8 @@ class ClientStoreAdapter implements ClientStoreGateway
             $trustedClient->getRequestObjectSigningAlg(),
             $trustedClient->getJwksUri(),
             $trustedClient->getJwksJson(),
-            $trustedClient->getTokenEndpointAuthMethod()
+            // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
+            str_replace('-', '_', $trustedClient->getTokenEndpointAuthMethod()->value)
         );
     }
 

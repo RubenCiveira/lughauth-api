@@ -5,14 +5,24 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+
 class TrustedClientFilter
 {
+    public static function tenantAndCodeFilter(?TenantRef $tenant, ?string $code): array
+    {
+        return ['tenant' => $tenant, 'code' => $code];
+    }
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        public readonly ?string $code = null,
+        private ?array $tenantAndCode = null,
         private ?bool $withBackChannelUrl = null,
         private ?bool $withFrontChannelUrl = null,
+        private ?string $code = null,
+        private ?TenantRef $tenant = null,
+        private ?array $tenants = null,
+        private ?string $tenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -35,22 +45,22 @@ class TrustedClientFilter
         $copy->search = $search;
         return $copy;
     }
-    public function code(): ?string
+    public function tenantAndCode(): ?array
     {
-        return $this->code;
+        return $this->tenantAndCode;
     }
-    public function isCodeAssigned(): bool
+    public function isTenantAndCodeAssigned(): bool
     {
-        return null !== $this->code;
+        return null !== $this->tenantAndCode;
     }
-    public function unsetCode(): void
+    public function unsetTenantAndCode(): void
     {
-        $this->code = null;
+        $this->tenantAndCode = null;
     }
-    public function withCode(?string $code): self
+    public function withTenantAndCode(?TenantRef $tenant, ?string $code): self
     {
         $copy = clone $this;
-        $copy->code = $code;
+        $copy->tenantAndCode = ['tenant' => $tenant, 'code' => $code];
         return $copy;
     }
     public function withBackChannelUrl(): ?bool
@@ -87,6 +97,78 @@ class TrustedClientFilter
     {
         $copy = clone $this;
         $copy->withFrontChannelUrl = $withFrontChannelUrl;
+        return $copy;
+    }
+    public function code(): ?string
+    {
+        return $this->code;
+    }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
+    }
+    public function withCode(string $code): self
+    {
+        $copy = clone $this;
+        $copy->code = $code;
+        return $copy;
+    }
+    public function tenant(): ?TenantRef
+    {
+        return $this->tenant;
+    }
+    public function isTenantAssigned(): bool
+    {
+        return null !== $this->tenant;
+    }
+    public function unsetTenant(): void
+    {
+        $this->tenant = null;
+    }
+    public function withTenant(TenantRef $tenant): self
+    {
+        $copy = clone $this;
+        $copy->tenant = $tenant;
+        return $copy;
+    }
+    public function tenants(): ?array
+    {
+        return $this->tenants;
+    }
+    public function isTenantsAssigned(): bool
+    {
+        return null !== $this->tenants;
+    }
+    public function unsetTenants(): void
+    {
+        $this->tenants = null;
+    }
+    public function withTenants(array $tenants): self
+    {
+        $copy = clone $this;
+        $copy->tenants = $tenants;
+        return $copy;
+    }
+    public function tenantAccessible(): ?string
+    {
+        return $this->tenantAccessible;
+    }
+    public function isTenantAccessibleAssigned(): bool
+    {
+        return null !== $this->tenantAccessible;
+    }
+    public function unsetTenantAccessible(): void
+    {
+        $this->tenantAccessible = null;
+    }
+    public function withTenantAccessible(string $tenantAccessible): self
+    {
+        $copy = clone $this;
+        $copy->tenantAccessible = $tenantAccessible;
         return $copy;
     }
 }

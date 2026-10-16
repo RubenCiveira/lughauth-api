@@ -24,6 +24,12 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderCertificateAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderMetadataAccessor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcScopesVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderOidcScopesAccessor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcClaimMappingVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderOidcClaimMappingAccessor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderAccountLinkPolicyVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderAccountLinkPolicyAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcDiscoveryUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderOidcDiscoveryUrlAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpMetadataUrlVO;
@@ -59,6 +65,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
     use TenantLoginProviderPrivateKeyAccessor;
     use TenantLoginProviderCertificateAccessor;
     use TenantLoginProviderMetadataAccessor;
+    use TenantLoginProviderOidcScopesAccessor;
+    use TenantLoginProviderOidcClaimMappingAccessor;
+    use TenantLoginProviderAccountLinkPolicyAccessor;
     use TenantLoginProviderOidcDiscoveryUrlAccessor;
     use TenantLoginProviderSamlIdpMetadataUrlAccessor;
     use TenantLoginProviderSamlIdpEntityIdAccessor;
@@ -73,6 +82,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         TenantLoginProviderTenantVO|TenantRef $tenant,
         TenantLoginProviderNameVO|string $name,
         TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source,
+        TenantLoginProviderAccountLinkPolicyVO|TenantLoginProviderAccountLinkPolicyOptions $accountLinkPolicy,
         TenantLoginProviderUsersEnabledByDefaultVO|bool $usersEnabledByDefault,
         TenantLoginProviderDisabledVO|bool|null $disabled = null,
         TenantLoginProviderDirectAccessVO|bool|null $directAccess = null,
@@ -80,6 +90,8 @@ class TenantLoginProvider extends TenantLoginProviderRef
         TenantLoginProviderPrivateKeyVO|string|null $privateKey = null,
         TenantLoginProviderCertificateVO|string|null $certificate = null,
         TenantLoginProviderMetadataVO|string|null $metadata = null,
+        TenantLoginProviderOidcScopesVO|string|null $oidcScopes = null,
+        TenantLoginProviderOidcClaimMappingVO|string|null $oidcClaimMapping = null,
         TenantLoginProviderOidcDiscoveryUrlVO|string|null $oidcDiscoveryUrl = null,
         TenantLoginProviderSamlIdpMetadataUrlVO|string|null $samlIdpMetadataUrl = null,
         TenantLoginProviderSamlIdpEntityIdVO|string|null $samlIdpEntityId = null,
@@ -97,6 +109,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $this->_privateKey = null === $privateKey ? TenantLoginProviderPrivateKeyVO::empty() : TenantLoginProviderPrivateKeyVO::from($privateKey);
         $this->_certificate = null === $certificate ? TenantLoginProviderCertificateVO::empty() : TenantLoginProviderCertificateVO::from($certificate);
         $this->_metadata = null === $metadata ? TenantLoginProviderMetadataVO::empty() : TenantLoginProviderMetadataVO::from($metadata);
+        $this->_oidcScopes = null === $oidcScopes ? TenantLoginProviderOidcScopesVO::empty() : TenantLoginProviderOidcScopesVO::from($oidcScopes);
+        $this->_oidcClaimMapping = null === $oidcClaimMapping ? TenantLoginProviderOidcClaimMappingVO::empty() : TenantLoginProviderOidcClaimMappingVO::from($oidcClaimMapping);
+        $this->_accountLinkPolicy = TenantLoginProviderAccountLinkPolicyVO::from($accountLinkPolicy);
         $this->_oidcDiscoveryUrl = null === $oidcDiscoveryUrl ? TenantLoginProviderOidcDiscoveryUrlVO::empty() : TenantLoginProviderOidcDiscoveryUrlVO::from($oidcDiscoveryUrl);
         $this->_samlIdpMetadataUrl = null === $samlIdpMetadataUrl ? TenantLoginProviderSamlIdpMetadataUrlVO::empty() : TenantLoginProviderSamlIdpMetadataUrlVO::from($samlIdpMetadataUrl);
         $this->_samlIdpEntityId = null === $samlIdpEntityId ? TenantLoginProviderSamlIdpEntityIdVO::empty() : TenantLoginProviderSamlIdpEntityIdVO::from($samlIdpEntityId);
@@ -117,6 +132,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $value->_privateKey = $values->getPrivateKeyOrCurrent($this->_privateKey);
         $value->_certificate = $values->getCertificateOrCurrent($this->_certificate);
         $value->_metadata = $values->getMetadataOrCurrent($this->_metadata);
+        $value->_oidcScopes = $values->getOidcScopesOrCurrent($this->_oidcScopes);
+        $value->_oidcClaimMapping = $values->getOidcClaimMappingOrCurrent($this->_oidcClaimMapping);
+        $value->_accountLinkPolicy = $values->getAccountLinkPolicyOrCurrent($this->_accountLinkPolicy);
         $value->_oidcDiscoveryUrl = $values->getOidcDiscoveryUrlOrCurrent($this->_oidcDiscoveryUrl);
         $value->_samlIdpMetadataUrl = $values->getSamlIdpMetadataUrlOrCurrent($this->_samlIdpMetadataUrl);
         $value->_samlIdpEntityId = $values->getSamlIdpEntityIdOrCurrent($this->_samlIdpEntityId);
@@ -198,6 +216,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $data['publicKey'] = $this->getPublicKey();
         $data['privateKey'] = $this->getPrivateKey();
         $data['certificate'] = $this->getCertificate();
+        $data['oidcScopes'] = $this->getOidcScopes();
+        $data['oidcClaimMapping'] = $this->getOidcClaimMapping();
+        $data['accountLinkPolicy'] = $this->getAccountLinkPolicy();
         $data['oidcDiscoveryUrl'] = $this->getOidcDiscoveryUrl();
         $data['samlIdpMetadataUrl'] = $this->getSamlIdpMetadataUrl();
         $data['samlIdpEntityId'] = $this->getSamlIdpEntityId();
@@ -219,6 +240,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
           ->privateKey($this->_privateKey)
           ->certificate($this->_certificate)
           ->metadata($this->_metadata)
+          ->oidcScopes($this->_oidcScopes)
+          ->oidcClaimMapping($this->_oidcClaimMapping)
+          ->accountLinkPolicy($this->_accountLinkPolicy)
           ->oidcDiscoveryUrl($this->_oidcDiscoveryUrl)
           ->samlIdpMetadataUrl($this->_samlIdpMetadataUrl)
           ->samlIdpEntityId($this->_samlIdpEntityId)
