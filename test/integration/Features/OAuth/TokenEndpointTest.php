@@ -358,6 +358,69 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertArrayHasKey('access_token', $this->decodeJson($valid));
     }
 
+    public function testConfidentialClientWithoutSecretOrWrongMethodIsRejected(): void
+    {
+        $client = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid', tenantName: self::TENANT, scope: 'openid'),
+            client: $client,
+            nonce: 'nonce',
+            request: new AuthenticationRequest($client, 'openid', 'https://app.example.com/callback'),
+        ));
+        $body = [
+            'grant_type' => 'authorization_code',
+            'code' => $key,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+        ];
+
+        $withoutSecret = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', $body), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(401, $withoutSecret->getStatusCode());
+        $this->assertSame('invalid_client', $this->decodeJson($withoutSecret)['error']);
+
+        $wrongSecret = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            ...$body, 'client_secret' => 'wrong-secret'
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame('invalid_client', $this->decodeJson($wrongSecret)['error']);
+
+        $basicForPostClient = $this->controller->post(
+            $this->makeRequest('POST', '/oauth/openid/tenant1/token', $body)
+                ->withHeader('Authorization', 'Basic ' . base64_encode(self::CLIENT_ID . ':' . self::CLIENT_SECRET)),
+            new Response(200),
+            ['tenant' => self::TENANT]
+        );
+        $this->assertSame('invalid_client', $this->decodeJson($basicForPostClient)['error']);
+
+        $valid = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            ...$body, 'client_secret' => self::CLIENT_SECRET
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(200, $valid->getStatusCode());
+    }
+
+    public function testPublicClientWithoutPkceIsRejected(): void
+    {
+        $client = new ClientData('spa-client', ['authorization_code'], false, tokenEndpointAuthMethod: 'none');
+        $this->clientStore->register('spa-client', '', $client);
+        $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid', tenantName: self::TENANT, scope: 'openid'),
+            client: $client,
+            nonce: 'nonce',
+            request: new AuthenticationRequest($client, 'openid', 'https://spa.example.com/callback'),
+        ));
+
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $key,
+            'client_id' => 'spa-client',
+            'redirect_uri' => 'https://spa.example.com/callback',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $body = $this->decodeJson($response);
+        $this->assertSame('invalid_grant', $body['error']);
+        $this->assertArrayNotHasKey('access_token', $body);
+    }
+
     public function testAngularPublicClientRedeemsOnlyOnceWithTenantName(): void
     {
         $client = new ClientData('lughauth-ui', ['authorization_code'], false, tokenEndpointAuthMethod: 'none');

@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
+use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Accept\InvitationAcceptParams;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Accept\InvitationAcceptUsecase;
@@ -20,6 +21,7 @@ class InvitationAcceptHtml
         private readonly DecorateHtml $decorator,
         private readonly OidcCookieManager $cookies,
         private readonly Context $context,
+        private readonly ClientStoreGateway $clients,
     ) {
     }
 
@@ -80,7 +82,7 @@ class InvitationAcceptHtml
                 $response = $response->withStatus(302)->withHeader('Location', $authorizeUrl);
                 return $this->cookies->authenticatedSessionCookie($tenant, $result->session->sessionId, $result->session->expiration)->attach($response);
             }
-            $response = $this->renderSuccess($request, $response, $tenant, $result->email, $redirectUri);
+            $response = $this->renderSuccess($request, $response, $tenant, $result->email, $clientId, $redirectUri);
             if ($result->session !== null) {
                 $response = $this->cookies->authenticatedSessionCookie($tenant, $result->session->sessionId, $result->session->expiration)->attach($response);
             }
@@ -114,12 +116,17 @@ class InvitationAcceptHtml
             HTML;
     }
 
-    private function renderSuccess(ServerRequestInterface $request, ResponseInterface $response, string $tenant, string $email, string $redirectUri): ResponseInterface
+    private function renderSuccess(ServerRequestInterface $request, ResponseInterface $response, string $tenant, string $email, string $clientId, string $redirectUri): ResponseInterface
     {
-        $parsed = parse_url($redirectUri);
-        $appUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '')
-            . (isset($parsed['port']) ? ':' . $parsed['port'] : '');
-        $appUrlEsc = htmlspecialchars($appUrl !== '://' ? $appUrl : '');
+        // Only link back to an application origin taken from a redirect registered for the client.
+        $appUrlEsc = '';
+        if ($clientId !== '' && $redirectUri !== '' && $this->clients->publicClientData($clientId, $tenant, $redirectUri, '') !== null) {
+            $parsed = parse_url($redirectUri);
+            if (is_array($parsed) && isset($parsed['scheme'], $parsed['host'])) {
+                $appUrlEsc = htmlspecialchars($parsed['scheme'] . '://' . $parsed['host']
+                    . (isset($parsed['port']) ? ':' . $parsed['port'] : ''));
+            }
+        }
 
         $buttonHtml = $appUrlEsc !== ''
             ? '<a class="primary-button" href="' . $appUrlEsc . '">Login now</a>'

@@ -134,12 +134,7 @@ class ClientStoreAdapter implements ClientStoreGateway
                         continue;
                     }
                     $url = $redirect->getUrl() ?? '';
-                    $local = str_starts_with($url, 'http://localhost:') || str_starts_with($url, 'http://localhost/');
-                    $every = str_ends_with($url, '*');
-                    if ($redirectUrl === $url) {
-                        $allowed = true;
-                        break;
-                    } elseif ($local && $every && str_starts_with($redirectUrl, substr($url, 0, -1))) {
+                    if ($redirectUrl === $url || $this->matchesLocalhostWildcard($url, $redirectUrl)) {
                         $allowed = true;
                         break;
                     }
@@ -177,6 +172,38 @@ class ClientStoreAdapter implements ClientStoreGateway
             }
         }
         return null;
+    }
+
+    /**
+     * Matches a registered "http://localhost[:port][/path]*" pattern against a redirect URI.
+     * The redirect is parsed so that userinfo tricks ("http://localhost:4200@evil.com") or
+     * look-alike hosts cannot satisfy a plain string prefix. An empty port in the pattern
+     * ("http://localhost:*") accepts any port; the wildcard otherwise only extends the path.
+     */
+    private function matchesLocalhostWildcard(string $pattern, string $redirectUrl): bool
+    {
+        if (!str_ends_with($pattern, '*')
+            || !preg_match('#^http://localhost(?::(\d*))?(/[^*]*)?$#', substr($pattern, 0, -1), $expected, PREG_UNMATCHED_AS_NULL)
+        ) {
+            return false;
+        }
+        $actual = parse_url($redirectUrl);
+        if (!is_array($actual)
+            || ($actual['scheme'] ?? null) !== 'http'
+            || strtolower($actual['host'] ?? '') !== 'localhost'
+            || isset($actual['user'])
+            || isset($actual['pass'])
+            || isset($actual['fragment'])
+        ) {
+            return false;
+        }
+        $expectedPort = $expected[1] ?? null;
+        $actualPort = $actual['port'] ?? null;
+        if ($expectedPort === null ? $actualPort !== null : ($expectedPort !== '' && (int) $expectedPort !== $actualPort)) {
+            return false;
+        }
+        $actualPath = ($actual['path'] ?? '') . (isset($actual['query']) ? '?' . $actual['query'] : '');
+        return str_starts_with($actualPath, $expected[2] ?? '');
     }
 
     private function mapClientData(mixed $trustedClient): ClientData
