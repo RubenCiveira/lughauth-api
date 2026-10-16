@@ -1,15 +1,16 @@
 # 015 — Exigir redirect registrado y origen canónico
 
-- **Estado:** pendiente. **Prioridad:** crítica.
-- **Evidencia:** [ClientStoreAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) acepta `str_starts_with(getBaseUrl(), $redirectUrl)` antes de mirar las URI registradas; [Context](../../src/Shared/Context.php) deriva la base de `HTTP_HOST`.
-- **Impacto:** `/authorize`, magic link y post-logout pueden aceptar un destino ajeno; `iss`/discovery pueden depender de Host.
-- **Por hacer:** exigir coincidencia exacta con registro; permitir solo la excepción loopback definida y delimitada por origen/puerto; configurar issuer/base pública de confianza por entorno/tenant, reutilizarla en todos los flujos.
+- **Estado:** corregida en código; requiere `APP_HTTP_PUBLIC_BASE_URL` en cada despliegue. **Prioridad:** crítica.
+- **Evidencia:** [ClientStoreAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) exige URI registrada exacta; el wildcard localhost registrado se compara parseando la URI (esquema `http`, host `localhost`, puerto, prefijo de ruta, sin userinfo ni fragmento), lo que cierra `http://localhost:4200@evil.com`; [Context](../../src/Shared/Context.php) exige URL pública configurada y construye el issuer común, independiente de `HTTP_HOST`.
+- **Impacto corregido:** un `Host` manipulado ya no cambia discovery ni el `iss` emitido; un prefijo externo no obtiene un redirect válido.
+- **Operación:** configurar `APP_HTTP_PUBLIC_BASE_URL` con el origen público **y la ruta de montaje** de la API en todos los entornos. Si falta o es inválida, se rechaza la generación de URL en vez de confiar en `Host`.
 - **Aceptación:** prefijos, dominios parecidos, Host falsificado y redirects no registrados son rechazados; URI legítimas siguen funcionando.
 - **Origen:** análisis OAuth §3.1/0.1 y `_2.md` brecha 1.
 
 ## Detalle de implementación
 
 - `src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php`: quitar la aceptación por prefijo de `getBaseUrl()` en `publicClientData`; comparar URI completa con las registradas y limitar la excepción de loopback a una regla explícita y segura.
-- `src/Shared/Context.php` y configuración en `config/`: obtener la URL pública/issuer de una configuración confiable en lugar de `HTTP_HOST`; determinar política por tenant sin cambiar el issuer entre peticiones.
-- `src/Features/OAuth/Oidc/Infrastructure/Driver/Rest/OpenIdConfigurationController.php`, `src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php` y `src/Features/OAuth/Authentication/Domain/OidcFlowContext.php`: consumir el mismo origen canónico al construir discovery, `iss` y URLs; revisar también los consumidores de `getBaseUrl()` en logout y magic link.
-- `test/integration/Features/OAuth/`: añadir casos de URI registrada, dominio prefijo, redirect externo, Host inyectado y enlace post-logout; actualizar los stubs de cliente solo si su contrato cambia.
+- `src/Shared/Context.php` y `config/application.yaml`: base pública de configuración validada; `getIssuer()` unifica `…/oauth/openid/{tenant}` para token, authorize, magic link, invitaciones, device, DCR y logout; discovery reutiliza esa misma base.
+- `test/unit/Shared/ContextUnitTest.php`, `test/unit/Features/OAuth/Client/ClientStoreAdapterUnitTest.php` y `test/integration/Features/OAuth/DiscoveryTest.php`: cubren falta de configuración, URI malformada, prefijo externo, wildcard localhost (incluidos userinfo, host parecido, puerto y esquema) y `Host` alterado.
+- `src/Features/OAuth/UserInvitation/Infrastructure/Driver/Html/InvitationAcceptHtml.php`: el botón «Login now» solo enlaza al origen de un `redirect_uri` registrado para el `client_id`.
+- **Pendiente menor:** test de integración del rechazo de `post_logout_redirect_uri` no registrada en `LogoutController` (usa la misma comprobación `publicClientData`).
