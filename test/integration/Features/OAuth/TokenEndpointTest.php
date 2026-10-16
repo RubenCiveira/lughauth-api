@@ -255,6 +255,9 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(400, $response->getStatusCode());
         $body = $this->decodeJson($response);
         $this->assertSame('invalid_request', $body['error']);
+
+        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => 'some-verifier']);
+        $this->assertSame(200, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
     }
 
     public function testAuthorizationCodeWithPkceWrongVerifierReturns400(): void
@@ -288,6 +291,10 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(400, $response->getStatusCode());
         $body = $this->decodeJson($response);
         $this->assertSame('invalid_grant', $body['error']);
+
+        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => 'correct-verifier']);
+        $this->assertSame(200, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
+        $this->assertSame(400, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
     }
 
     public function testAuthorizationCodeIsOneTimeUse(): void
@@ -311,6 +318,44 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $second = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
         $this->assertSame(400, $second->getStatusCode());
         $this->assertSame('invalid_grant', $this->decodeJson($second)['error']);
+    }
+
+    public function testWrongClientRedirectOrTenantDoesNotConsumeTheCode(): void
+    {
+        $client = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid', tenantName: self::TENANT, scope: 'openid'),
+            client: $client,
+            nonce: 'nonce',
+            request: new AuthenticationRequest($client, 'openid', 'https://app.example.com/callback'),
+        ));
+        $body = [
+            'grant_type' => 'authorization_code',
+            'code' => $key,
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'redirect_uri' => 'https://app.example.com/callback',
+        ];
+
+        $wrongRedirect = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            ...$body, 'redirect_uri' => 'https://app.example.com/callback/'
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame('invalid_grant', $this->decodeJson($wrongRedirect)['error']);
+
+        $wrongTenant = $this->controller->post($this->makeRequest('POST', '/oauth/openid/other/token', $body), new Response(200), ['tenant' => 'other']);
+        $this->assertSame('invalid_grant', $this->decodeJson($wrongTenant)['error']);
+
+        $this->clientStore->register('other-client', 'other-secret', new \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData(
+            'other-client', ['authorization_code'], false, tokenEndpointAuthMethod: 'client_secret_post'
+        ));
+        $wrongClient = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            ...$body, 'client_id' => 'other-client', 'client_secret' => 'other-secret'
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame('invalid_grant', $this->decodeJson($wrongClient)['error']);
+
+        $valid = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', $body), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(200, $valid->getStatusCode());
+        $this->assertArrayHasKey('access_token', $this->decodeJson($valid));
     }
 
     public function testAngularPublicClientRedeemsOnlyOnceWithTenantName(): void

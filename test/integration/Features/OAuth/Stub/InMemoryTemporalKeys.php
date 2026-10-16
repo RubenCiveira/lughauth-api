@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Tests\integration\Features\OAuth\Stub;
 
+use Closure;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 
@@ -63,10 +64,11 @@ class InMemoryTemporalKeys implements TemporalKeysGateway
         return $codeKey;
     }
 
-    public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
+    public function consumeTemporalAuthCode(string $code, Closure $validate): ?TemporalAuthCode
     {
         $entry = $this->codes[$code] ?? null;
         if ($entry !== null) {
+            $validate($entry);
             unset($this->codes[$code]);
         }
         return $entry;

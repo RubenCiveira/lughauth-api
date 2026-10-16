@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven;
 
 use PDO;
+use Closure;
 use Throwable;
 use Jose\Component\Core\JWK;
 use Jose\Component\Signature\Serializer\CompactSerializer;
@@ -201,7 +202,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
 
     /**
      * Serialises the TemporalAuthCode as JSON, persists it under a fresh UUID with a 3-minute TTL, and returns the UUID.
-     * The stored code is later consumed atomically by retrieveTemporalAuthCode.
+     * The stored code is later consumed atomically by consumeTemporalAuthCode.
      */
     #[\Override]
     public function registerTemporalAuthCode(TemporalAuthCode $code): string
@@ -219,11 +220,13 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     }
 
     /**
-     * Locks and consumes one unexpired code in a transaction. A concurrent redemption waits
-     * for the first one to commit and then sees no row, even under REPEATABLE READ.
+     * Locks and validates one unexpired code before deleting it in the same transaction.
+     * A rejected validation rolls back without consuming the code.
+     *
+     * @param Closure(TemporalAuthCode): void $validate
      */
     #[\Override]
-    public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
+    public function consumeTemporalAuthCode(string $code, Closure $validate): ?TemporalAuthCode
     {
         $ownsTransaction = !$this->pdo->inTransaction();
         if ($ownsTransaction) {
@@ -235,12 +238,15 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
             $stmt = $this->pdo->prepare('SELECT code_data FROM _oauth_temporal_codes WHERE code = :code AND expiration >= :now FOR UPDATE');
             $stmt->execute(['code' => $code, 'now' => $now]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $consumed = null;
 
             if (is_array($row)) {
+                $candidate = $this->hydrateTemporalAuthCode($row['code_data']);
+                $validate($candidate);
                 $delete = $this->pdo->prepare('DELETE FROM _oauth_temporal_codes WHERE code = :code AND expiration >= :now');
-                $delete->execute(['code' => $code, 'now' => $now]);
-                if ($delete->rowCount() !== 1) {
-                    $row = false;
+                $delete->execute(['code' => $code, 'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')]);
+                if ($delete->rowCount() === 1) {
+                    $consumed = $candidate;
                 }
             }
 
@@ -259,11 +265,12 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
             throw $ex;
         }
 
-        if (!is_array($row)) {
-            return null;
-        }
+        return $consumed;
+    }
 
-        $res = json_decode($row['code_data'], true);
+    private function hydrateTemporalAuthCode(string $json): TemporalAuthCode
+    {
+        $res = json_decode($json, true);
         $data = AuthenticationResult::deserialize($res['data'] ?? []);
         $client = new ClientData(
             id: $res['client']['id'] ?? '-',

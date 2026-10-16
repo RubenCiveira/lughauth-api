@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\OAuthTokenException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
@@ -130,27 +131,33 @@ class TokenController
             if (!is_string($codeValue) || $codeValue === '' || !is_string($redirectUri) || $redirectUri === '') {
                 throw OAuthTokenException::invalidRequest('code and redirect_uri are required');
             }
-            $code = $this->temporals->retrieveTemporalAuthCode($codeValue);
-            if ($code === null
-                || $code->client->id !== $client->id
-                || $code->request->client->id !== $client->id
-                || $code->request->redirect !== $redirectUri
-                || $code->data->tenantName !== $tenant
-            ) {
+            $code = $this->temporals->consumeTemporalAuthCode(
+                $codeValue,
+                function (TemporalAuthCode $code) use ($client, $redirectUri, $tenant, $params): void {
+                    if ($code->client->id !== $client->id
+                        || $code->request->client->id !== $client->id
+                        || $code->request->redirect !== $redirectUri
+                        || $code->data->tenantName !== $tenant
+                    ) {
+                        throw OAuthTokenException::invalidGrant('Invalid authorization code');
+                    }
+                    if ($client->tokenEndpointAuthMethod === 'none' && $code->codeChallenge === null) {
+                        throw OAuthTokenException::invalidGrant('PKCE is required for public clients');
+                    }
+                    if ($code->codeChallenge !== null) {
+                        $codeVerifier = $params['code_verifier'] ?? null;
+                        if (!is_string($codeVerifier) || $codeVerifier === '') {
+                            throw OAuthTokenException::invalidRequest('code_verifier is required');
+                        }
+                        $pkce = PkceChallenge::fromRequest($code->codeChallenge, $code->codeChallengeMethod);
+                        if ($pkce === null || !$pkce->verify($codeVerifier)) {
+                            throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
+                        }
+                    }
+                }
+            );
+            if ($code === null) {
                 throw OAuthTokenException::invalidGrant('Invalid authorization code');
-            }
-            if ($client->tokenEndpointAuthMethod === 'none' && $code->codeChallenge === null) {
-                throw OAuthTokenException::invalidGrant('PKCE is required for public clients');
-            }
-            if ($code->codeChallenge !== null) {
-                $codeVerifier = $params['code_verifier'] ?? null;
-                if ($codeVerifier === null || $codeVerifier === '') {
-                    throw OAuthTokenException::invalidRequest('code_verifier is required');
-                }
-                $pkce = PkceChallenge::fromRequest($code->codeChallenge, $code->codeChallengeMethod);
-                if ($pkce === null || !$pkce->verify((string) $codeVerifier)) {
-                    throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
-                }
             }
             $auth = $code->data;
             $identity = ['nonce' => $code->nonce ];

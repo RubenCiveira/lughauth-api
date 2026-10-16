@@ -5,14 +5,15 @@ declare(strict_types=1);
 
 namespace Tests\integration\Features\OAuth;
 
+use PDO;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\OAuthTokenException;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\TemporalKeysSqlAdapter;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Security\AesCypherService;
-use PDO;
 use PHPUnit\Framework\TestCase;
 
 final class TemporalAuthCodeSqlAdapterTest extends TestCase
@@ -37,7 +38,7 @@ final class TemporalAuthCodeSqlAdapterTest extends TestCase
             self::assertSame(1, $consume->rowCount());
 
             // An ordinary SELECT under REPEATABLE READ sees the stale row; FOR UPDATE must not.
-            self::assertNull($store->retrieveTemporalAuthCode($code));
+            self::assertNull($store->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {}));
         } finally {
             if ($firstPdo->inTransaction()) {
                 $firstPdo->rollBack();
@@ -53,12 +54,39 @@ final class TemporalAuthCodeSqlAdapterTest extends TestCase
         $code = $store->registerTemporalAuthCode($this->authorization());
 
         try {
-            $redeemed = $store->retrieveTemporalAuthCode($code);
+            $redeemed = $store->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {});
             self::assertNotNull($redeemed);
             self::assertSame('https://app.example.com/callback', $redeemed->request->redirect);
-            self::assertNull($store->retrieveTemporalAuthCode($code));
+            self::assertNull($store->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {}));
         } finally {
             $pdo->prepare('DELETE FROM _oauth_temporal_codes WHERE code = :code')->execute(['code' => $code]);
+        }
+    }
+
+    public function testRejectedValidationDoesNotDeleteTheCode(): void
+    {
+        $firstPdo = $this->connect();
+        $store = new TemporalKeysSqlAdapter($firstPdo, new AesCypherService());
+        $code = $store->registerTemporalAuthCode($this->authorization());
+
+        try {
+            try {
+                $store->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {
+                    throw OAuthTokenException::invalidGrant('Wrong verifier');
+                });
+                $this->fail('Invalid grant should reject the locked code');
+            } catch (OAuthTokenException $ex) {
+                self::assertSame('invalid_grant', $ex->error());
+            }
+
+            $otherStore = new TemporalKeysSqlAdapter($this->connect(), new AesCypherService());
+            $valid = $otherStore->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {
+                self::assertSame('sql-test-client', $value->client->id);
+            });
+            self::assertNotNull($valid);
+            self::assertNull($otherStore->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {}));
+        } finally {
+            $firstPdo->prepare('DELETE FROM _oauth_temporal_codes WHERE code = :code')->execute(['code' => $code]);
         }
     }
 
@@ -78,7 +106,7 @@ final class TemporalAuthCodeSqlAdapterTest extends TestCase
 
         try {
             $pdo->beginTransaction();
-            self::assertNotNull($store->retrieveTemporalAuthCode($code));
+            self::assertNotNull($store->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {}));
 
             $pid = pcntl_fork();
             if ($pid === -1) {
@@ -91,7 +119,7 @@ final class TemporalAuthCodeSqlAdapterTest extends TestCase
                     $otherPdo->exec('SET SESSION innodb_lock_wait_timeout = 5');
                     fwrite($childSocket, "ready\n");
                     $otherStore = new TemporalKeysSqlAdapter($otherPdo, new AesCypherService());
-                    $result = $otherStore->retrieveTemporalAuthCode($code);
+                    $result = $otherStore->consumeTemporalAuthCode($code, static function (TemporalAuthCode $value): void {});
                     fwrite($childSocket, $result === null ? "missing\n" : "redeemed\n");
                 } catch (\Throwable $ex) {
                     fwrite($childSocket, "error:{$ex->getMessage()}\n");

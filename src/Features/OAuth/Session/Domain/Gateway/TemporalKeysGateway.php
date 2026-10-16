@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Session\Domain\Gateway;
 
+use Closure;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 
 /**
@@ -45,13 +46,16 @@ interface TemporalKeysGateway
 
     /**
      * Stores a TemporalAuthCode under a fresh UUID with a 3-minute TTL and returns the code string.
-     * The code is consumed atomically by retrieveTemporalAuthCode, enforcing single-use semantics.
+     * The code is consumed atomically by consumeTemporalAuthCode, enforcing single-use semantics.
      */
     public function registerTemporalAuthCode(TemporalAuthCode $code): string;
 
     /**
-     * Atomically consumes and returns a single unexpired authorization code.
+     * Atomically validates and consumes one unexpired authorization code. The validator runs
+     * while the row is locked and must throw on rejection; a rejected code is not consumed.
      * Returns null if it is missing, expired, or another request already consumed it.
+     *
+     * @param Closure(TemporalAuthCode): void $validate
      */
-    public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode;
+    public function consumeTemporalAuthCode(string $code, Closure $validate): ?TemporalAuthCode;
 }

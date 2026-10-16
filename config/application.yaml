@@ -1,5 +1,7 @@
 app:
   http:
+    # Configure APP_HTTP_PUBLIC_BASE_URL per deployment (including the public mount path).
+    # OAuth issuer and discovery must never derive their host from the incoming request.
     cors:
       enabled: true
     proxy:
