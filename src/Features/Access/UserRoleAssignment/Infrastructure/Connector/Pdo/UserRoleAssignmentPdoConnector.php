@@ -23,11 +23,11 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesUidVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesItem;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesListRef;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesVO;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesUidVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesRoleVO;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesVersionVO;
@@ -449,8 +449,6 @@ class UserRoleAssignmentPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child UserRoleAssignmentRolesItem for UserRoleAssignment", $uid);
             }
-            // Keep the generated uid: the saved item must be identifiable by the caller and by the
-            // "NOT IN (:uids)" cleanup that follows in saveChilds.
             return (new UserRoleAssignmentRolesItem(UserRoleAssignmentRolesUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);

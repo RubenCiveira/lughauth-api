@@ -21,9 +21,11 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesListRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
@@ -35,10 +37,8 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesAudienceVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVersionVO;
 
@@ -586,8 +586,6 @@ class TrustedClientPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child TrustedClientAllowedRedirectsItem for TrustedClient", $uid);
             }
-            // Keep the generated uid: the saved item must be identifiable by the caller and by the
-            // "NOT IN (:uids)" cleanup that follows in saveChilds.
             return (new TrustedClientAllowedRedirectsItem(TrustedClientAllowedRedirectsUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -649,8 +647,6 @@ class TrustedClientPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child TrustedClientAllowedAudiencesItem for TrustedClient", $uid);
             }
-            // Keep the generated uid: the saved item must be identifiable by the caller and by the
-            // "NOT IN (:uids)" cleanup that follows in saveChilds.
             return (new TrustedClientAllowedAudiencesItem(TrustedClientAllowedAudiencesUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);
