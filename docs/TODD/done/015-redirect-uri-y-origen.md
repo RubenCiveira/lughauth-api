@@ -1,7 +1,7 @@
 # 015 — Exigir redirect registrado y origen canónico
 
 - **Estado:** corregida en código; requiere `APP_HTTP_PUBLIC_BASE_URL` en cada despliegue. **Prioridad:** crítica.
-- **Evidencia:** [ClientStoreAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) exige URI registrada exacta; el wildcard localhost registrado se compara parseando la URI (esquema `http`, host `localhost`, puerto, prefijo de ruta, sin userinfo ni fragmento), lo que cierra `http://localhost:4200@evil.com`; [Context](../../src/Shared/Context.php) exige URL pública configurada y construye el issuer común, independiente de `HTTP_HOST`.
+- **Evidencia:** [ClientStoreAdapter](../../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) exige URI registrada exacta; el wildcard localhost registrado se compara parseando la URI (esquema `http`, host `localhost`, puerto, prefijo de ruta, sin userinfo ni fragmento), lo que cierra `http://localhost:4200@evil.com`; [Context](../../../src/Shared/Context.php) exige URL pública configurada y construye el issuer común, independiente de `HTTP_HOST`.
 - **Impacto corregido:** un `Host` manipulado ya no cambia discovery ni el `iss` emitido; un prefijo externo no obtiene un redirect válido.
 - **Operación:** configurar `APP_HTTP_PUBLIC_BASE_URL` con el origen público **y la ruta de montaje** de la API en todos los entornos. Si falta o es inválida, se rechaza la generación de URL en vez de confiar en `Host`.
 - **Aceptación:** prefijos, dominios parecidos, Host falsificado y redirects no registrados son rechazados; URI legítimas siguen funcionando.
