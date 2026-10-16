@@ -346,7 +346,10 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame('invalid_grant', $this->decodeJson($wrongTenant)['error']);
 
         $this->clientStore->register('other-client', 'other-secret', new \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData(
-            'other-client', ['authorization_code'], false, tokenEndpointAuthMethod: 'client_secret_post'
+            'other-client',
+            ['authorization_code'],
+            false,
+            tokenEndpointAuthMethod: 'client_secret_post'
         ));
         $wrongClient = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             ...$body, 'client_id' => 'other-client', 'client_secret' => 'other-secret'

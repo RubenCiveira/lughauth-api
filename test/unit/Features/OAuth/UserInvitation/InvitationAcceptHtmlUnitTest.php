@@ -44,7 +44,8 @@ final class InvitationAcceptHtmlUnitTest extends TestCase
             : 'https://attacker.example/login-redirect';
         $usecase = $this->createMock(InvitationAcceptUsecase::class);
         $usecase->expects(self::once())->method('accept')
-            ->with(self::callback(static fn (InvitationAcceptParams $params): bool =>
+            ->with(self::callback(
+                static fn (InvitationAcceptParams $params): bool =>
                 $params->tenantName === 'main'
                 && $params->clientId === 'lughauth-ui'
                 && $params->redirectUri === $redirect
