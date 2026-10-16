@@ -1,0 +1,258 @@
+# OIDC Module — Security Model
+
+This document describes the security mechanisms built into the OIDC module's domain and application layers, grounded in the relevant RFC requirements.
+
+---
+
+## PKCE — Proof Key for Code Exchange (RFC 7636)
+
+PKCE prevents authorization code interception attacks by binding the code to a secret known only to the initiating client.
+
+### Code Verifier (RFC 7636 §4.1)
+
+| Requirement | Detail |
+|-------------|--------|
+| Character set | `[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"` (RFC 3986 unreserved chars) |
+| Length | Minimum **43**, maximum **128** characters |
+| Entropy | MUST use minimum **256 bits** of entropy; recommended: base64url-encode 32 random octets |
+| Predictability | MUST be cryptographically random; MUST NOT be guessable |
+
+### Code Challenge (RFC 7636 §4.2)
+
+| Method | Transformation | Requirement |
+|--------|---------------|-------------|
+| `S256` | `BASE64URL(SHA256(ASCII(code_verifier)))` | MUST be used if client is capable |
+| `plain` | `code_challenge = code_verifier` | Only when S256 is not technically feasible |
+
+> "If the client is capable of using S256, it MUST use S256." — RFC 7636 §4.2
+
+### Authorization Request Parameters (RFC 7636 §4.3)
+
+| Parameter | Level |
+|-----------|-------|
+| `code_challenge` | REQUIRED (when PKCE used) |
+| `code_challenge_method` | OPTIONAL; defaults to `"plain"` if omitted |
+
+### Verification at Token Endpoint (RFC 7636 §4.6)
+
+The server MUST verify before issuing tokens:
+
+```
+# S256:
+BASE64URL(SHA256(ASCII(code_verifier))) == code_challenge  →  proceed
+                                                          ≠   →  invalid_grant (400)
+
+# plain:
+code_verifier == code_challenge  →  proceed
+               ≠                 →  invalid_grant (400)
+```
+
+If `code_verifier` is absent when a challenge was stored: `invalid_request` (400).
+
+The server MUST associate `code_challenge` + `code_challenge_method` with the issued authorization code and MUST NOT expose `code_challenge` to any other party (RFC 7636 §4.4).
+
+---
+
+## CSRF Protection (`state` parameter)
+
+**RFC 6749 §10.12** — The `state` parameter MUST be used for CSRF protection in browser flows:
+
+- The client generates a cryptographically random, unguessable `state` value.
+- The value MUST be included in the authorization request.
+- The server MUST echo it back unchanged in the authorization response.
+- The client MUST verify the returned `state` matches before processing the response.
+
+---
+
+## CSID — Client Session ID
+
+CSID is a short-lived HMAC-HS256 token generated in the **browser** using the server's current symmetric key and verified **server-side**. It binds each form POST to a specific OIDC flow initiation, preventing CSRF at the HTML form layer.
+
+**Generation (browser-side, via `HtmlSecurer`-supplied JavaScript):**
+```
+csid = HMAC-HS256(currentSymmetricKey, nonce + timestamp)
+```
+
+**Verification:**
+```
+HtmlSecurer::verifyToken(csid) → payload or null
+```
+
+Every `POST /authorize` MUST carry a valid CSID. Invalid CSID → clear session and redirect to login.
+
+The key is supplied by `TemporalKeysGateway::currentKey` — a rotating symmetric key. The gateway retains the previous key (`old`) during the rotation window so in-flight tokens remain valid across key rotations.
+
+---
+
+## Client-Side Password Encryption
+
+Passwords are AES-encrypted in the browser before transmission, preventing credentials from appearing in plaintext in HTTP logs or intermediate proxies (defense-in-depth; TLS is still required).
+
+**Flow:**
+1. `HtmlSecurer` injects a JavaScript snippet into the form page with the server's current AES key.
+2. On form submit, the visible password field (`type_password`) is AES-encrypted into a hidden field (`password`).
+3. The visible field is cleared before submission so only the ciphertext is sent.
+4. Server-side: `TemporalKeysGateway::verifyCypher(encryptedPassword)` → plaintext.
+
+The AES key is the same rotating symmetric key used for CSID (from `TemporalKeysGateway::currentKey`).
+
+---
+
+## Pre-Session Cookie (`PRE_SESSION_ID`)
+
+`ChallengesState` travels between HTTP requests as a signed JWT cookie, eliminating the need for server-side session storage for intermediate authentication state.
+
+```
+PRE_SESSION_ID = RS256-signed JWT(payload={keypass: {withMfa, session, username, extra}})
+```
+
+Signed with `TokenSigner::signKeypass`. Verified with `TokenSigner::verifiedKeypass`.
+
+**Lifecycle:**
+- Created/updated after each step that modifies `ChallengesState`.
+- Cleared on successful completion or logout.
+- Short expiry aligned with the overall session timeout.
+
+---
+
+## Authenticated Session Cookie (`AUTH_SESSION_ID_{tenant}`)
+
+A per-tenant HTTP-only cookie linking the user-agent to a server-side `SessionInfo` record.
+
+- Value: the opaque `state` token identifying the session.
+- The `SessionInfo.csid` field MUST match the CSID from the final form POST to prevent session fixation attacks.
+- `SessionStoreGateway::updateSession` rotates the session token on re-authentication.
+- `SessionStoreGateway::deleteSession` invalidates it on logout.
+- Cookie name is per-tenant (`AUTH_SESSION_ID_{tenant}`) to prevent cross-tenant session confusion on a shared domain.
+
+---
+
+## JWT Token Signing — RS256 (RFC 7518 §3)
+
+All tokens (access, id, refresh, pre-session) are signed with **RS256** (RSASSA-PKCS1-v1_5 + SHA-256).
+
+**Key requirements (RFC 7518 §3):**
+- RSA key size MUST be **≥ 2048 bits**. Implementation uses 4096-bit keys.
+
+**JWKS representation (RFC 7517 §5, RFC 7518 §6.3):**
+
+Public keys are exposed via `GET /jwks` as a JWKS document:
+
+```json
+{
+  "keys": [
+    {
+      "kty": "RSA",        // REQUIRED — key type
+      "use": "sig",        // OPTIONAL — key use
+      "alg": "RS256",      // OPTIONAL — intended algorithm
+      "kid": "key-id-1",   // OPTIONAL — key identifier for selection
+      "n":   "<base64urlUInt>",  // REQUIRED — RSA modulus
+      "e":   "AQAB"              // REQUIRED — RSA public exponent (65537)
+    }
+  ]
+}
+```
+
+**Key rotation strategy:**
+- Per-tenant key sets.
+- Active key TTL: **7 days**.
+- Pre-generated future keys: **3 ahead** of current — ensures JWKS always contains valid future keys so token verification continues across rotations.
+- `TokenStoreGateway` MUST retain expired keys until all tokens signed with them have also expired.
+- JWKS is cached with 1-hour ETag.
+
+**Token TTL summary:**
+
+| Token | TTL | Notes |
+|-------|-----|-------|
+| Access token | 10 min | RFC 6749 recommends short-lived access tokens |
+| ID token | 10 min | OIDC Core §3.1.3.3 |
+| Refresh token | 10 hours | Confidential; MUST never be sent to resource servers (RFC 6749 §6) |
+| Authorization code | 3 min | ≤ 10 min per RFC 6749 §4.1.2 recommendation; single-use |
+| Client credentials access token | `m2mTokenTtlSeconds` (default 3600 s) | No refresh token issued |
+
+---
+
+## Authorization Codes — One-Time Use (RFC 6749 §4.1.2)
+
+Per RFC 6749 §4.1.2: authorization codes MUST be short-lived and single-use. The code MUST be bound to `client_id` and, if provided, `redirect_uri`.
+
+`TemporalKeysGateway::registerTemporalAuthCode` stores the code (TTL: 3 min).
+`retrieveTemporalAuthCode` MUST delete the record atomically on first retrieval.
+
+Implementation requirements:
+- Reject expired codes.
+- Delete the record on the first successful retrieval (reject any second attempt with `invalid_grant`).
+
+---
+
+## Request Objects — JAR (RFC 9101)
+
+When `GET /authorize` includes a `request=` JWT parameter:
+
+1. `RequestObjectValidator` fetches the client's JWKS from `jwksJson` (inline) or `jwksUri` (remote HTTPS fetch).
+2. Verifies the JWT signature using the client's registered `requestObjectSigningAlg`.
+3. **`alg=none` MUST be rejected** — unsecured JWTs are not permitted.
+4. Claims in the request object **override** same-named query parameters, preventing parameter injection via URL manipulation.
+5. `client_id` in the JWT MUST match the authenticated client (RFC 9126 §3 by reference).
+
+---
+
+## TLS Requirement
+
+**All OIDC endpoints MUST be served over TLS** (HTTPS). This is a baseline requirement of RFC 6749, RFC 8628, RFC 9126, and OIDC Core. All token responses MUST include:
+
+```
+Cache-Control: no-store
+Pragma: no-cache
+```
+
+(RFC 6749 §5.1)
+
+---
+
+## MFA Security Properties
+
+- TOTP seeds MUST NOT be stored in plaintext. The gateway implementation is responsible for encrypting seeds at rest.
+- `UserMfaGateway::verifyNewOpt` MUST verify the OTP **before** persisting the seed, preventing storage of unverified seeds.
+- The domain enforces the error contract; the gateway implementation decides lockout mechanism and attempt counting.
+
+---
+
+## Token Revocation Security
+
+`TokenRevocationGateway::revoke` stores a revocation record.  
+`TokenRevocationGateway::isRevoked` MUST be consulted by introspection and userinfo endpoints.
+
+`TokenSigner::parseSignedPayload` allows parsing the signature of expired tokens without rejecting on `exp` — required to extract a token identifier for revocation after the token has already expired.
+
+Per RFC 7009 §2.2, the revocation endpoint MUST return HTTP 200 regardless of whether the token was valid (prevents information leakage).
+
+---
+
+## Federated Login Security
+
+- The `state` parameter passed to the external provider encodes the full OIDC flow context in base64. `DelegatedController.verify` decodes it to route back to the correct tenant's `/authorize`.
+- `DelegatedLoginProvider::authorize` MUST verify the provider's response state/signature before trusting any returned user data.
+- The gateway (`DelegateLoginGateway::save`) is responsible for user provisioning; it MUST ensure that a federated identity cannot claim an existing local account without explicit linking.
+
+---
+
+## Security Requirements Cross-Reference
+
+| Requirement | Source | Implementation point |
+|-------------|--------|---------------------|
+| TLS on all endpoints | RFC 6749, RFC 8628, RFC 9126 | Transport layer |
+| `state` CSRF protection | RFC 6749 §10.12 | `OidcFlowContext.state` |
+| Authorization code: ≤ 10 min, single-use | RFC 6749 §4.1.2 | `TemporalKeysGateway` (3 min TTL, atomic delete) |
+| PKCE S256 required if capable | RFC 7636 §4.2 | `PkceChallenge::verify` |
+| `code_verifier`: min 256-bit entropy | RFC 7636 §4.1 | Client responsibility |
+| RSA key size ≥ 2048 bits | RFC 7518 §3 | `TokenSigner` implementation (uses 4096) |
+| ID Token `iss` exact match | OIDC Core §3.1.3.7 | Client validation responsibility |
+| ID Token `nonce` verification | OIDC Core §3.1.3.7 | Client validation responsibility |
+| Refresh token confidentiality | RFC 6749 §6 | Never returned to resource servers |
+| `request_uri` single-use | RFC 9126 §4 | `ParRequestGateway::markUsed` |
+| `device_code` not shown to user | RFC 8628 §3.3 | UI layer |
+| `slow_down` interval +5 s | RFC 8628 §3.5 | Client polling responsibility |
+| Token response `Cache-Control: no-store` | RFC 6749 §5.1 | HTTP layer |
+| Revocation returns 200 regardless | RFC 7009 §2.2 | `LogoutController::revoke` |
+| `alg=none` rejected for request objects | RFC 9101 §6.2 | `RequestObjectValidator` |
