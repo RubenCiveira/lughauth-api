@@ -12,7 +12,7 @@ namespace Civi\Lughauth\Features\OAuth\Oidc\Domain;
  * mTLS-terminating reverse proxy rather than the standard OAuth base URL so that mutual-TLS
  * clients can discover the correct host. The forBase() factory derives all alias URLs from a
  * single base string, keeping alias construction consistent with the main endpoint derivation
- * in OpenIdConfiguration::forTenant(). toArray() returns the snake_case map expected by the
+ * in OpenIdConfiguration::forIssuer(). toArray() returns the snake_case map expected by the
  * mtls_endpoint_aliases field in the discovery document.
  */
 final class MtlsEndpointAliases
@@ -32,14 +32,12 @@ final class MtlsEndpointAliases
         public readonly string $userinfoEndpoint,
         /** mTLS-specific URL for the Pushed Authorization Request endpoint (RFC 9126). */
         public readonly string $pushedAuthorizationRequestEndpoint,
-        /** mTLS-specific URL for the CIBA backchannel authentication endpoint. */
-        public readonly string $backchannelAuthenticationEndpoint,
     ) {
     }
 
     /**
      * Derives all mTLS alias URLs from the given base path by appending the standard endpoint suffixes.
-     * Intended to be called with the same per-tenant base string used by OpenIdConfiguration::forTenant().
+     * Intended to be called with a per-tenant base string shaped like the canonical issuer.
      */
     public static function forBase(string $base): self
     {
@@ -51,7 +49,6 @@ final class MtlsEndpointAliases
             registrationEndpoint: "$base/register",
             userinfoEndpoint: "$base/userinfo",
             pushedAuthorizationRequestEndpoint: "$base/par",
-            backchannelAuthenticationEndpoint: "$base/backchannel",
         );
     }
 
@@ -69,7 +66,6 @@ final class MtlsEndpointAliases
             'registration_endpoint' => $this->registrationEndpoint,
             'userinfo_endpoint' => $this->userinfoEndpoint,
             'pushed_authorization_request_endpoint' => $this->pushedAuthorizationRequestEndpoint,
-            'backchannel_authentication_endpoint' => $this->backchannelAuthenticationEndpoint,
         ];
     }
 }

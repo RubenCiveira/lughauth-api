@@ -20,7 +20,14 @@ final class ActiveUserFindServiceUnitTest extends TestCase
             {
                 return $this->info;
             }
-            public function findActiveSessionIdByCsid(string $csid): ?string
+            public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+            {
+                return null;
+            }
+            public function addSessionClient(string $state, string $issuer, string $clientId): void
+            {
+            }
+            public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
             {
                 return $this->csidSessionId;
             }
@@ -66,7 +73,7 @@ final class ActiveUserFindServiceUnitTest extends TestCase
         $session = new SessionInfo('csid-9', false, 'https://iss', 'user-2', 'c-2');
         $service = new ActiveUserFindService($this->makeStore($session, 'sess-via-csid'));
 
-        $user = $service->findByCsid('csid-9');
+        $user = $service->findByCsid('csid-9', 'https://iss');
 
         $this->assertNotNull($user);
         $this->assertSame('sess-via-csid', $user->sessionId);
@@ -75,6 +82,6 @@ final class ActiveUserFindServiceUnitTest extends TestCase
     public function test_find_by_csid_returns_null_when_no_session_id(): void
     {
         $service = new ActiveUserFindService($this->makeStore(null, null));
-        $this->assertNull($service->findByCsid('unknown-csid'));
+        $this->assertNull($service->findByCsid('unknown-csid', 'https://iss'));
     }
 }

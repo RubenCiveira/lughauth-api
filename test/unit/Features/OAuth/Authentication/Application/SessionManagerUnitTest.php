@@ -52,7 +52,14 @@ final class SessionManagerUnitTest extends TestCase
             {
                 return $this->session;
             }
-            public function findActiveSessionIdByCsid(string $csid): ?string
+            public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+            {
+                return null;
+            }
+            public function addSessionClient(string $state, string $issuer, string $clientId): void
+            {
+            }
+            public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
             {
                 return null;
             }

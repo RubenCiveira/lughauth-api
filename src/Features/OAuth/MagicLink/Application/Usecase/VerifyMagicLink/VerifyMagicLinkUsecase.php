@@ -58,20 +58,6 @@ class VerifyMagicLinkUsecase
 
         $this->gateway->markUsed($magicLink->uid);
 
-        $authCode = $this->codeGateway->createAuthCode(
-            userUid: $magicLink->userUid,
-            clientId: $clientId,
-            scope: $magicLink->scope,
-            redirectUri: $magicLink->redirectUri,
-            tenant: $tenantId,
-            nonce: $magicLink->nonce,
-        );
-
-        $redirectUrl = $magicLink->redirectUri . '?code=' . urlencode($authCode);
-        if ($magicLink->state !== null && $magicLink->state !== '') {
-            $redirectUrl .= '&state=' . urlencode($magicLink->state);
-        }
-
         $tenant = $this->tenants->findOneByName($tenantId);
         $tenantUid = $tenant?->uid() ?? '';
 
@@ -85,6 +71,22 @@ class VerifyMagicLinkUsecase
             tenantName: $tenantId,
             clientId: $clientId,
         );
+
+        $authCode = $this->codeGateway->createAuthCode(
+            userUid: $magicLink->userUid,
+            clientId: $clientId,
+            scope: $magicLink->scope,
+            redirectUri: $magicLink->redirectUri,
+            tenant: $tenantId,
+            nonce: $magicLink->nonce,
+            // Bind the code to the browser session so logout also stops its refresh tokens.
+            sessionId: $session?->sessionId,
+        );
+
+        $redirectUrl = $magicLink->redirectUri . '?code=' . urlencode($authCode);
+        if ($magicLink->state !== null && $magicLink->state !== '') {
+            $redirectUrl .= '&state=' . urlencode($magicLink->state);
+        }
 
         return new MagicLinkVerifyResult(
             redirectUrl: $redirectUrl,

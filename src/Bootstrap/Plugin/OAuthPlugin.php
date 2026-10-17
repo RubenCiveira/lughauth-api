@@ -21,6 +21,8 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driver\Rest\JwksCo
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSigner;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
+use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
+use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\ClientStoreAdapter;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ApiKeyStoreGateway;
@@ -158,6 +160,10 @@ class OAuthPlugin extends MicroPlugin
         $def[UserInvitationSessionGateway::class] = \DI\autowire(UserInvitationSessionAdapter::class);
         $def[GdprDataExportGateway::class] = \DI\autowire(GdprDataAdapter::class);
         $def[GdprDataDeleteGateway::class] = \DI\autowire(GdprDataAdapter::class);
+        $def[MtlsDiscoveryContributor::class] = \DI\autowire()
+            ->constructorParameter('mtlsBaseUrl', \DI\factory(fn (AppConfig $config): ?string => $config->get('app.oauth.mtls-base-url')));
+        $def[OpenIdConfigurationController::class] = \DI\autowire()
+            ->constructorParameter('contributors', [\DI\get(MtlsDiscoveryContributor::class)]);
         return $def;
     }
 

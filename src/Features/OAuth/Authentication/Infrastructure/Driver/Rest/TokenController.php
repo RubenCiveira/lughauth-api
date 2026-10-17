@@ -24,6 +24,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\PkceChallenge
 use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Exception\DeviceAuthorizationException;
 use OpenApi\Attributes as OA;
+use Ramsey\Uuid\Uuid;
 
 /**
  * REST controller that implements the OAuth 2.0 Token Endpoint for all supported grant types.
@@ -33,8 +34,13 @@ use OpenApi\Attributes as OA;
  *
  * - authorization_code: redeems a temporal auth code issued by the Authorization Endpoint,
  *   verifies PKCE, and exchanges it for access_token, id_token, and refresh_token.
- * - refresh_token: validates an existing refresh token, resolves the client, and delegates to
- *   TokenGranterMediator to issue a new access token set.
+ * - refresh_token: authenticates the client, requires the refresh token to have been issued to
+ *   that client under this tenant issuer, and delegates to TokenGranterMediator (which checks
+ *   that the bound session is still active and consumes the token, detecting replay) to issue a
+ *   new token set keeping the same sid. Refresh tokens rotate: the new one inherits the family
+ *   (fid) and its absolute expiration (fexp), which no rotated refresh token may outlive.
+ *   A code redeemed without a browser session gets no refresh token, so every refresh token
+ *   that logout must reach is bound to a session.
  * - urn:ietf:params:oauth:grant-type:device_code: polls the device authorization grant, returns
  *   tokens when the device code has been approved by the user.
  * - password / client_credentials and other confidential-client grants: authenticate the client
@@ -51,6 +57,11 @@ use OpenApi\Attributes as OA;
  */
 class TokenController
 {
+    /** Lifetime of each refresh token. */
+    private const string REFRESH_TTL = 'PT10H';
+    /** Absolute lifetime of a refresh token family, counted from the original grant. */
+    private const string REFRESH_FAMILY_TTL = 'P30D';
+
     public function __construct(
         private readonly Context $context,
         private readonly TokenGranterMediator $granter,
@@ -121,12 +132,16 @@ class TokenController
     private function handlePost(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
+        $issuer = $this->context->getIssuer($tenant);
+        $sid = null;
+        $originGrant = null;
+        $family = null;
         $params = (array) ($request->getParsedBody() ?? []);
         // Get client data
         $grant = $params['grant_type'] ?? '';
         $scopes = $params['scope'] ?? '';
         if ("authorization_code" == $grant) {
-            $client = $this->authenticateCodeClient($request, $params);
+            $client = $this->authenticateClient($request, $params, 'authorization_code');
             $codeValue = $params['code'] ?? null;
             $redirectUri = $params['redirect_uri'] ?? null;
             if (!is_string($codeValue) || $codeValue === '' || !is_string($redirectUri) || $redirectUri === '') {
@@ -164,16 +179,23 @@ class TokenController
             $identity = ['nonce' => $code->nonce ];
             $scopes = $code->request->scope;
             $audiences = $code->request->audiences;
+            $sid = $code->sessionId;
         } elseif ("refresh_token" == $grant) {
             $refreshPayload = $this->manager->verifyTokenPayload($tenant, $params['refresh_token'] ?? '');
             if ($refreshPayload === null) {
                 throw new UnauthorizedException("Invalid refresh token");
             }
-            $scopes = $params['scope'] ?? '';
-            $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
-            if (!$client) {
-                throw new UnauthorizedException("Unknown client");
+            $client = $this->authenticateClient($request, $params);
+            if (($refreshPayload['token_use'] ?? null) !== 'refresh'
+                || ($refreshPayload['azp'] ?? null) !== $client->id
+                || ($refreshPayload['iss'] ?? null) !== $issuer
+            ) {
+                throw OAuthTokenException::invalidGrant('Invalid refresh token');
             }
+            $scopes = $params['scope'] ?? '';
+            $sid = isset($refreshPayload['sid']) ? (string) $refreshPayload['sid'] : null;
+            $originGrant = $refreshPayload['origin_grant'] ?? null;
+            $family = ['fid' => $refreshPayload['fid'] ?? null, 'fexp' => (int) ($refreshPayload['fexp'] ?? 0)];
             $original = array_values(array_filter((array) ($refreshPayload['resources'] ?? []), 'is_string'));
             $audiences = $this->grantedAudiences($params, $client, $original);
             $auth = $this->granter->authenticate(
@@ -242,7 +264,6 @@ class TokenController
         if ($auth === null || !$auth->valid) {
             throw new UnauthorizedException("No auth");
         }
-        $issuer = $this->context->getIssuer($tenant);
         $detail = [
             'aud' => $this->tokenAudiences($client->id, $audiences),
             'azp' => $client->id,
@@ -286,13 +307,37 @@ class TokenController
         ];
         if ($grant !== 'client_credentials') {
             $data['id_token'] = $this->manager->sign($tenant, $identity, $expiration);
-            $data['refresh_token'] = $this->manager->sign($tenant, [
+        }
+        if ($grant !== 'client_credentials' && ($grant !== 'authorization_code' || $sid !== null)) {
+            // A rotated refresh token stays in its family and never outlives the family deadline.
+            $family ??= [
+                'fid' => Uuid::uuid4()->toString(),
+                'fexp' => $now->add(new DateInterval(self::REFRESH_FAMILY_TTL))->getTimestamp(),
+            ];
+            $refreshExp = min($now->add(new DateInterval(self::REFRESH_TTL))->getTimestamp(), $family['fexp']);
+            $refreshTtl = $refreshExp - $now->getTimestamp();
+            if ($refreshTtl < 1) {
+                throw OAuthTokenException::invalidGrant('Refresh token family expired');
+            }
+            $refresh = [
                 'keypass' => $auth->id,
                 'azp' => $client->id,
+                'iss' => $issuer,
+                'token_use' => 'refresh',
+                'origin_grant' => $originGrant ?? $grant,
                 'scope' => ['refresh'],
                 // Ceiling for later refreshes: they may narrow these audiences but never widen them.
                 'resources' => array_values(array_diff($audiences, [$client->id])),
-            ], new DateInterval("PT10H"));
+                'fid' => $family['fid'],
+                'fexp' => $family['fexp'],
+                // Explicit exp: the signer would count the TTL from its own (later) clock reading.
+                'exp' => $refreshExp,
+            ];
+            if ($sid !== null) {
+                // Ties the refresh token to the browser session so logout stops further refreshes.
+                $refresh['sid'] = $sid;
+            }
+            $data['refresh_token'] = $this->manager->sign($tenant, $refresh, new DateInterval('PT' . $refreshTtl . 'S'));
         }
         $encoded = json_encode($data);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');
@@ -326,7 +371,11 @@ class TokenController
         return count($aud) == 1 ? $aud[0] : $aud;
     }
 
-    private function authenticateCodeClient(ServerRequestInterface $request, array $params): ClientData
+    /**
+     * Authenticates the client with its registered token endpoint auth method; when $requiredGrant
+     * is given the client must also be registered for that grant.
+     */
+    private function authenticateClient(ServerRequestInterface $request, array $params, ?string $requiredGrant = null): ClientData
     {
         $basic = $this->basicCredentials($request);
         $bodyClientId = $params['client_id'] ?? null;
@@ -336,7 +385,7 @@ class TokenController
         }
 
         $registered = $this->clientDataGateway->findEnabledClient($clientId);
-        if ($registered === null || !in_array('authorization_code', $registered->grants, true)) {
+        if ($registered === null || ($requiredGrant !== null && !in_array($requiredGrant, $registered->grants, true))) {
             throw OAuthTokenException::invalidClient();
         }
 

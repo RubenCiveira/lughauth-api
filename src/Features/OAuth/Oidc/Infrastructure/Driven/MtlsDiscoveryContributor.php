@@ -5,53 +5,38 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven;
 
 use Override;
+use Civi\Lughauth\Features\OAuth\Oidc\Domain\MtlsEndpointAliases;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway;
 
 /**
  * DiscoveryContributorGateway implementation that injects RFC 8705 mTLS endpoint aliases.
  *
- * When an mTLS base URL is configured (e.g. pointing at an nginx instance that terminates
- * client-certificate TLS), this contributor replaces the default mtls_endpoint_aliases in the
- * discovery document with URLs that share the same path structure but use the mTLS-terminating
- * host. When no mTLS base URL is configured it falls back to the aliases already present on the
- * base OpenIdConfiguration object so the field is always present in the discovery response.
- * Override mtls_base_url in the application configuration to enable mTLS-aware endpoint aliases.
+ * Aliases are only published when a trusted mTLS-terminating base URL is configured
+ * (app.oauth.mtls-base-url, e.g. an nginx instance that terminates client-certificate TLS);
+ * the aliases share the standard path structure but use that host. Without it nothing is
+ * contributed, because advertising aliases on the regular host would claim mTLS support
+ * that the deployment does not provide.
  */
 final class MtlsDiscoveryContributor implements DiscoveryContributorGateway
 {
     public function __construct(
-        /** Optional mTLS-terminating base URL; when null or empty the base configuration aliases are used. */
+        /** Optional mTLS-terminating base URL; when null or empty no aliases are published. */
         private readonly ?string $mtlsBaseUrl = null,
     ) {
     }
 
     /**
-     * Returns the mtls_endpoint_aliases map for inclusion in the discovery document.
-     * When an mTLS base URL is set, all alias URLs are derived from it; otherwise the base aliases are returned.
+     * Returns the mtls_endpoint_aliases map derived from the mTLS base URL, or nothing when it is not configured.
      */
     #[Override]
     public function contribute(OpenIdConfiguration $base, string $tenant): array
     {
-        $effectiveBase = $this->mtlsBaseUrl !== null && $this->mtlsBaseUrl !== ''
-            ? rtrim($this->mtlsBaseUrl, '/') . "/openid/$tenant"
-            : null;
-
-        if ($effectiveBase === null) {
-            return ['mtls_endpoint_aliases' => $base->mtlsEndpointAliases->toArray()];
+        if ($this->mtlsBaseUrl === null || $this->mtlsBaseUrl === '') {
+            return [];
         }
 
-        return [
-            'mtls_endpoint_aliases' => [
-                'token_endpoint' => "$effectiveBase/token",
-                'revocation_endpoint' => "$effectiveBase/revoke",
-                'introspection_endpoint' => "$effectiveBase/introspect",
-                'device_authorization_endpoint' => "$effectiveBase/device",
-                'registration_endpoint' => "$effectiveBase/register",
-                'userinfo_endpoint' => "$effectiveBase/userinfo",
-                'pushed_authorization_request_endpoint' => "$effectiveBase/par",
-                'backchannel_authentication_endpoint' => "$effectiveBase/backchannel",
-            ],
-        ];
+        $aliases = MtlsEndpointAliases::forBase(rtrim($this->mtlsBaseUrl, '/') . "/openid/$tenant");
+        return ['mtls_endpoint_aliases' => $aliases->toArray()];
     }
 }

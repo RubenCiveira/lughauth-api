@@ -6,20 +6,29 @@ declare(strict_types=1);
 namespace Tests\integration\Features\OAuth;
 
 use Nimbly\Capsule\Response;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest\LogoutController;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest\TokenController;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
 class TokenEndpointTest extends OidcIntegrationTestCase
 {
+    private const string SESSION_ID = 'session-default';
+
     private TokenController $controller;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->controller = $this->container->get(TokenController::class);
+        $this->openSession(self::SESSION_ID, self::USER_ID, $this->context->getIssuer(self::TENANT));
     }
 
     public function testClientCredentialsReturnsAccessToken(): void
@@ -124,6 +133,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             client: $clientData,
             nonce: 'test-nonce-123',
             request: $authRequest,
+            sessionId: self::SESSION_ID,
         );
         $codeKey = $this->temporalKeys->registerTemporalAuthCode($code);
 
@@ -469,7 +479,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             email: 'test@example.com',
         );
         $authRequest = new AuthenticationRequest($clientData, 'openid profile', 'https://app.example.com/callback');
-        $code = new TemporalAuthCode(data: $authResult, client: $clientData, nonce: 'n', request: $authRequest);
+        $code = new TemporalAuthCode(data: $authResult, client: $clientData, nonce: 'n', request: $authRequest, sessionId: self::SESSION_ID);
         $codeKey = $this->temporalKeys->registerTemporalAuthCode($code);
 
         $firstResponse = $this->controller->post(
@@ -491,6 +501,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
                 'grant_type' => 'refresh_token',
                 'refresh_token' => $refreshToken,
                 'client_id' => self::CLIENT_ID,
+                'client_secret' => self::CLIENT_SECRET,
             ]),
             new Response(200),
             ['tenant' => self::TENANT]
@@ -546,9 +557,11 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
         $kept = $this->refresh($refreshToken);
         $this->assertSame(200, $kept->getStatusCode());
-        $this->assertSame([self::CLIENT_ID, 'api-resource'], $this->payload($this->decodeJson($kept)['access_token'])['aud']);
+        $keptBody = $this->decodeJson($kept);
+        $this->assertSame([self::CLIENT_ID, 'api-resource'], $this->payload($keptBody['access_token'])['aud']);
 
-        $narrowed = $this->refresh($refreshToken, ['audience' => self::CLIENT_ID]);
+        // Refresh tokens are single use: narrowing goes through the rotated one.
+        $narrowed = $this->refresh($keptBody['refresh_token'], ['audience' => self::CLIENT_ID]);
         $this->assertSame(200, $narrowed->getStatusCode());
         $this->assertSame(self::CLIENT_ID, $this->payload($this->decodeJson($narrowed)['access_token'])['aud']);
     }
@@ -599,7 +612,275 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(self::CLIENT_ID, $this->payload($body['access_token'])['aud']);
     }
 
-    private function redeemCodeWithAudience(string $audience, array $extra = []): array
+    public function testRefreshRequiresAuthenticatedConfidentialClient(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+
+        $withoutSecret = $this->refresh($refreshToken, ['client_secret' => '']);
+        $wrongSecret = $this->refresh($refreshToken, ['client_secret' => 'wrong']);
+
+        $this->assertSame('invalid_client', $this->decodeJson($withoutSecret)['error']);
+        $this->assertSame('invalid_client', $this->decodeJson($wrongSecret)['error']);
+        $this->assertSame(200, $this->refresh($refreshToken)->getStatusCode());
+    }
+
+    public function testRefreshIssuedToAnotherClientIsRejected(): void
+    {
+        $other = new ClientData('other-client', ['authorization_code', 'refresh_token'], true, tokenEndpointAuthMethod: 'client_secret_post');
+        $this->clientStore->register('other-client', 'other-secret', $other);
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+
+        $response = $this->refresh($refreshToken, ['client_id' => 'other-client', 'client_secret' => 'other-secret']);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($response)['error']);
+        $this->assertArrayNotHasKey('access_token', $this->decodeJson($response));
+    }
+
+    public function testRefreshIssuedForAnotherTenantIsRejectedEvenWithSharedKeys(): void
+    {
+        // Same signing key, but the token was issued under another tenant issuer.
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        $refreshToken = $signer->sign(self::TENANT, [
+            'keypass' => self::USER_ID,
+            'azp' => self::CLIENT_ID,
+            'iss' => $this->context->getIssuer('tenant2'),
+            'token_use' => 'refresh',
+            'scope' => ['refresh'],
+            'resources' => [],
+        ], new \DateInterval('PT1H'));
+
+        $response = $this->refresh($refreshToken);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($response)['error']);
+    }
+
+    public function testRefreshKeepsSessionAndStopsWorkingAfterLogoutEndpoint(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+        $this->assertSame(self::SESSION_ID, $this->payload($refreshToken)['sid']);
+
+        $refreshed = $this->refresh($refreshToken);
+        $this->assertSame(200, $refreshed->getStatusCode());
+        $rotated = $this->decodeJson($refreshed)['refresh_token'];
+        $this->assertSame(self::SESSION_ID, $this->payload($rotated)['sid']);
+
+        $logout = $this->logout(self::SESSION_ID);
+        $this->assertSame(302, $logout->getStatusCode());
+        $this->assertNull($this->sessionStore->loadSession(self::SESSION_ID));
+
+        $this->assertSame(401, $this->refreshStatus($refreshToken));
+        $this->assertSame(401, $this->refreshStatus($rotated));
+    }
+
+    public function testLogoutOfAnotherSessionKeepsRefreshWorking(): void
+    {
+        $this->openSession('other-session', self::USER_ID, $this->context->getIssuer(self::TENANT));
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+
+        $this->assertSame(302, $this->logout('other-session')->getStatusCode());
+
+        $this->assertSame(200, $this->refreshStatus($refreshToken));
+    }
+
+    public function testAuthorizationCodeWithoutSessionIssuesNoRefreshToken(): void
+    {
+        $body = $this->redeemCodeWithAudience(self::CLIENT_ID, [], null);
+
+        $this->assertArrayHasKey('access_token', $body);
+        $this->assertArrayNotHasKey('refresh_token', $body);
+    }
+
+    public function testRefreshWithoutSessionIsOnlyAcceptedFromSessionlessGrants(): void
+    {
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        $unbound = $signer->sign(self::TENANT, [
+            'keypass' => self::USER_ID,
+            'azp' => self::CLIENT_ID,
+            'iss' => $this->context->getIssuer(self::TENANT),
+            'token_use' => 'refresh',
+            'origin_grant' => 'authorization_code',
+            'scope' => ['refresh'],
+            'resources' => [],
+        ], new \DateInterval('PT1H'));
+        $password = $this->decodeJson($this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'password',
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'username' => self::USERNAME,
+            'password' => self::PASSWORD,
+        ]), new Response(200), ['tenant' => self::TENANT]))['refresh_token'];
+
+        $this->assertSame(401, $this->refreshStatus($unbound));
+        $this->assertArrayNotHasKey('sid', $this->payload($password));
+        $this->assertSame('password', $this->payload($password)['origin_grant']);
+        $this->assertSame(200, $this->refreshStatus($password));
+    }
+
+    public function testRefreshBoundToSessionOfAnotherClientIsRejectedUntilItJoinsThroughSso(): void
+    {
+        $other = new ClientData('other-client', ['authorization_code'], true, tokenEndpointAuthMethod: 'client_secret_post');
+        $this->clientStore->register('other-client', 'other-secret', $other);
+        $this->sessionStore->saveSession(
+            'other-client-session',
+            $other,
+            $this->context->getIssuer(self::TENANT),
+            new ChallengesState(),
+            new AuthenticationResult(valid: true, id: self::USER_ID),
+            'csid',
+            new \DateInterval('P1D')
+        );
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID, [], 'other-client-session')['refresh_token'];
+
+        $this->assertSame(401, $this->refreshStatus($refreshToken));
+
+        // SSO: the test client is authorized from the session opened by the other client.
+        $this->container->get(\Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser::class)->sessionAuthenticated(
+            new AuthenticationRequest($this->clientStore->preValidatedClient(self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
+            (new ChallengesState())->withUsername(self::USER_ID)->withSession(true),
+            self::TENANT,
+            $this->context->getIssuer(self::TENANT),
+            'csid',
+            'other-client-session',
+            'state',
+            'nonce'
+        );
+
+        $this->assertSame(200, $this->refreshStatus($refreshToken));
+    }
+
+    public function testRefreshBoundToSessionOfAnotherUserOrTenantIsRejected(): void
+    {
+        $this->openSession('foreign-user', 'someone-else', $this->context->getIssuer(self::TENANT));
+        $this->openSession('foreign-tenant', self::USER_ID, $this->context->getIssuer('tenant2'));
+
+        $this->assertSame(401, $this->refreshStatus($this->redeemCodeWithAudience(self::CLIENT_ID, [], 'foreign-user')['refresh_token']));
+        $this->assertSame(401, $this->refreshStatus($this->redeemCodeWithAudience(self::CLIENT_ID, [], 'foreign-tenant')['refresh_token']));
+    }
+
+    public function testRefreshRotatesWithinItsFamilyUntilTheAbsoluteExpiration(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+        $original = $this->payload($refreshToken);
+        $this->assertNotEmpty($original['fid']);
+        $this->assertGreaterThan($original['exp'], $original['fexp']);
+
+        $rotated = $this->payload($this->decodeJson($this->refresh($refreshToken))['refresh_token']);
+        $this->assertNotSame($original['jti'], $rotated['jti']);
+        $this->assertSame($original['fid'], $rotated['fid']);
+        $this->assertSame($original['fexp'], $rotated['fexp']);
+
+        // Close to the family deadline the rotated token is cut short instead of extending the family.
+        $deadline = time() + 60;
+        $nearDeadline = $this->sign([...$original, 'fexp' => $deadline]);
+        $capped = $this->payload($this->decodeJson($this->refresh($nearDeadline))['refresh_token']);
+        $this->assertSame($original['fid'], $capped['fid']);
+        $this->assertSame($deadline, $capped['fexp']);
+        $this->assertSame($deadline, $capped['exp']);
+    }
+
+    public function testReusedRefreshIsReplayAndRevokesFamilyAndSessionWithoutIssuingTokens(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+        $first = $this->refresh($refreshToken);
+        $this->assertSame(200, $first->getStatusCode());
+        $rotated = $this->decodeJson($first)['refresh_token'];
+
+        $replay = $this->refreshBody($refreshToken);
+        $this->assertSame(401, $replay['status']);
+        $this->assertArrayNotHasKey('access_token', $replay['body']);
+
+        $fid = $this->payload($refreshToken)['fid'];
+        $this->assertTrue($this->tokenRevocation->isFamilyRevoked($fid, self::TENANT));
+        $this->assertNull($this->sessionStore->loadSession(self::SESSION_ID));
+        $this->assertSame(401, $this->refreshStatus($rotated));
+    }
+
+    public function testSecondRedemptionOfARefreshTokenLosesAndIsHandledAsReplay(): void
+    {
+        // The losing request of a race is handled as replay (no grace period for concurrent refreshes).
+        // The real concurrent race against SQL is covered by TokenRevocationSqlAdapterTest.
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+
+        $statuses = [$this->refreshStatus($refreshToken), $this->refreshStatus($refreshToken)];
+
+        $this->assertSame([200, 401], $statuses);
+        $this->assertTrue($this->tokenRevocation->isFamilyRevoked($this->payload($refreshToken)['fid'], self::TENANT));
+    }
+
+    public function testReplayOnlyRevokesItsOwnFamily(): void
+    {
+        $password = fn (): string => $this->decodeJson($this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'password',
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'username' => self::USERNAME,
+            'password' => self::PASSWORD,
+        ]), new Response(200), ['tenant' => self::TENANT]))['refresh_token'];
+        $compromised = $password();
+        $other = $password();
+
+        $this->assertSame(200, $this->refreshStatus($compromised));
+        $this->assertSame(401, $this->refreshStatus($compromised));
+
+        $this->assertSame(200, $this->refreshStatus($other));
+    }
+
+    private function sign(array $payload): string
+    {
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        // Fresh jti and time claims: a new token of the same family.
+        unset($payload['jti'], $payload['iat'], $payload['nbf'], $payload['exp']);
+        return $signer->sign(self::TENANT, $payload, new \DateInterval('PT1H'));
+    }
+
+    /** @return array{status: int, body: array} */
+    private function refreshBody(string $refreshToken): array
+    {
+        try {
+            $response = $this->refresh($refreshToken);
+            return ['status' => $response->getStatusCode(), 'body' => $this->decodeJson($response)];
+        } catch (\Civi\Lughauth\Shared\Exception\UnauthorizedException) {
+            return ['status' => 401, 'body' => []];
+        }
+    }
+
+    private function logout(string $sessionId): \Psr\Http\Message\ResponseInterface
+    {
+        $this->container->set(TrustedClientQueryRepositoryGateway::class, $this->createStub(TrustedClientQueryRepositoryGateway::class));
+        $this->container->set(ClientInterface::class, $this->createStub(ClientInterface::class));
+        $this->container->set(RequestFactoryInterface::class, $this->createStub(RequestFactoryInterface::class));
+        $this->container->set(StreamFactoryInterface::class, $this->createStub(StreamFactoryInterface::class));
+        $request = $this->makeRequest('GET', '/oauth/openid/tenant1/logout')
+            ->withCookieParams(['AUTH_SESSION_ID_' . strtoupper(self::TENANT) => $sessionId])
+            ->withQueryParams(['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+        return $this->container->get(LogoutController::class)->logout($request, new Response(200), ['tenant' => self::TENANT]);
+    }
+
+    private function openSession(string $sid, string $userId, string $issuer): void
+    {
+        $this->sessionStore->saveSession(
+            $sid,
+            $this->clientStore->preValidatedClient(self::CLIENT_ID),
+            $issuer,
+            new ChallengesState(),
+            new AuthenticationResult(valid: true, id: $userId),
+            'csid',
+            new \DateInterval('P1D')
+        );
+    }
+
+    private function refreshStatus(string $refreshToken): int
+    {
+        try {
+            return $this->refresh($refreshToken)->getStatusCode();
+        } catch (\Civi\Lughauth\Shared\Exception\UnauthorizedException) {
+            return 401;
+        }
+    }
+
+    private function redeemCodeWithAudience(string $audience, array $extra = [], ?string $sessionId = self::SESSION_ID): array
     {
         $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback', null, [self::CLIENT_ID, $audience]);
@@ -608,6 +889,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             client: $clientData,
             nonce: 'n',
             request: $authRequest,
+            sessionId: $sessionId,
         ));
         $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             'grant_type' => 'authorization_code',
@@ -627,6 +909,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
             'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
             ...$extra,
         ]), new Response(200), ['tenant' => self::TENANT]);
     }

@@ -46,17 +46,45 @@ class SessionInfo
      */
     public readonly string $clientId;
 
+    /**
+     * Other clients that obtained an authorization from this session through SSO.
+     *
+     * @var string[]
+     */
+    public readonly array $ssoClients;
+
     public function __construct(
         string $csid,
         bool $withMfa,
         string $issuer,
         string $userId,
         string $clientId,
+        array $ssoClients = [],
     ) {
         $this->csid = $csid;
         $this->withMfa = $withMfa;
         $this->issuer = $issuer;
         $this->userId = $userId;
         $this->clientId = $clientId;
+        $this->ssoClients = $ssoClients;
+    }
+
+    /**
+     * Returns true when the client opened this session or joined it later through SSO.
+     */
+    public function hasClient(string $clientId): bool
+    {
+        return in_array($clientId, $this->clients(), true);
+    }
+
+    /**
+     * Relying parties that take part in this session: the one that opened it followed by those
+     * that joined it through SSO. Only these must be notified when the session ends.
+     *
+     * @return string[]
+     */
+    public function clients(): array
+    {
+        return array_values(array_unique([$this->clientId, ...$this->ssoClients]));
     }
 }

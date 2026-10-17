@@ -45,6 +45,7 @@ class MagicLinkCodeAdapter implements MagicLinkCodeGateway
         string $redirectUri,
         string $tenant,
         string $nonce = '',
+        ?string $sessionId = null,
     ): string {
         $client = $this->clientStore->preValidatedClient($clientId);
         if ($client === null) {
@@ -67,6 +68,7 @@ class MagicLinkCodeAdapter implements MagicLinkCodeGateway
             client: $client,
             nonce: $nonce,
             request: $authRequest,
+            sessionId: $sessionId,
         );
 
         return $this->temporalKeys->registerTemporalAuthCode($temporalCode);

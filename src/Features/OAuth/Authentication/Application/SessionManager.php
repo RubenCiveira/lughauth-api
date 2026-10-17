@@ -36,6 +36,15 @@ class SessionManager
     }
 
     /**
+     * Retrieves the session data only when it was opened under the given issuer, so a session
+     * cookie of another tenant is treated as no session at all.
+     */
+    public function findActiveSession(string $code, string $issuer): ?SessionInfo
+    {
+        return $this->sessionStore->findActiveSession($code, $issuer);
+    }
+
+    /**
      * Retrieves the session data associated with the given session code.
      * Returns null when no session exists for the provided code or when it has already expired.
      */

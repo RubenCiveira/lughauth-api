@@ -19,6 +19,7 @@ interface MagicLinkCodeGateway
     /**
      * Creates and persists a temporary authorization code bound to the given user, client, and scope.
      * The returned code is a single-use opaque string that expires within a short window (typically 3 minutes).
+     * When $sessionId is given, refresh tokens issued for the code are bound to that browser session.
      */
     public function createAuthCode(
         string $userUid,
@@ -27,5 +28,6 @@ interface MagicLinkCodeGateway
         string $redirectUri,
         string $tenant,
         string $nonce = '',
+        ?string $sessionId = null,
     ): string;
 }

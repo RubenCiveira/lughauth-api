@@ -106,7 +106,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->willReturn(new ClientData('client-123', ['code'], true));
         $sessions = $this->createMock(SessionManager::class);
         $sessions->expects($this->once())
-            ->method('loadSession')
+            ->method('findActiveSession')
             ->willReturn(null);
 
         $consentForm = $this->createMock(TermsAndGdprConsentForm::class);
@@ -183,7 +183,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $clients->method('publicClientData')
             ->willReturn(new ClientData('client-123', ['code'], true, allowedAudiences: ['api-resource']));
         $sessions = $this->createMock(SessionManager::class);
-        $sessions->expects($this->never())->method('loadSession');
+        $sessions->expects($this->never())->method('findActiveSession');
         $cookies = $this->createMock(OidcCookieManager::class);
         $cookies->method('clearSession')
             ->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
@@ -378,7 +378,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $sessions = $this->createMock(SessionManager::class);
         $sessions->expects($this->never())
-            ->method('loadSession')
+            ->method('findActiveSession')
             ->willReturn(null);
 
         $securer = $this->createMock(HtmlSecurer::class);
@@ -468,7 +468,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->willReturn(new ClientData('client-123', ['code'], true));
 
         $sessions = $this->createMock(SessionManager::class);
-        $sessions->expects($this->once())->method('loadSession')->willReturn(null);
+        $sessions->expects($this->once())->method('findActiveSession')->willReturn(null);
 
         $consentForm = $this->createMock(TermsAndGdprConsentForm::class);
         $consentForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));

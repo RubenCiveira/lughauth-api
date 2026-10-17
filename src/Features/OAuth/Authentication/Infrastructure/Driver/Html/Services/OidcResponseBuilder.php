@@ -73,6 +73,7 @@ class OidcResponseBuilder
                 request: $authRequest,
                 codeChallenge: $flow->codeChallenge,
                 codeChallengeMethod: $flow->codeChallengeMethod,
+                sessionId: $auth->sessionId,
             );
             $location .= '&code=' . $this->temporals->registerTemporalAuthCode($data);
         } else {

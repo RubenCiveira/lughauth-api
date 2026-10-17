@@ -6,30 +6,48 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter;
 
 use Override;
+use DateTimeImmutable;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorizationGrantType;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
 
 /**
  * Token granter strategy for the OAuth 2.0 refresh_token grant type.
  *
- * Validates an incoming refresh token by verifying its signature and checking whether
- * its JTI has been revoked. If the token is valid and not revoked, the keypass claim is
- * used as the user identifier to reload fresh user data from the store via LoginUsecase.
+ * Validates an incoming refresh token by verifying its signature and requiring its JTI and
+ * family (fid) claims. A token bound to a browser session (sid claim) is only accepted while
+ * that session is still active under the tenant issuer, belongs to the same user and was opened
+ * or joined through SSO by the requesting client, so logging out stops further refreshes. Only
+ * grants without a browser session (password, device) may omit the sid.
  *
- * This approach ensures that changes to user permissions, roles, or account status are
- * reflected in newly issued access tokens without requiring a full re-authentication by
- * the user.
+ * Refresh tokens are single use and rotate: once every other check passes (including reloading
+ * the user, so a refresh rejected for another reason is not spent), the JTI is consumed
+ * atomically, so of two simultaneous redemptions only one wins (there is no grace period). A
+ * token whose JTI was already consumed or revoked is treated as replay: its whole family is
+ * revoked, its browser session is closed, and no tokens are issued. The family absolute
+ * expiration (fexp) travels signed in the token and caps every rotated refresh token.
+ *
+ * If all checks pass, the keypass claim is used as the user identifier to reload fresh user data
+ * from the store via LoginUsecase, so changes to user permissions, roles, or account status are
+ * reflected in newly issued access tokens without requiring a full re-authentication.
  */
 class ResolverForRefresh implements TokenGranterStrategy
 {
+    /** Grants with no browser session, whose refresh tokens logout cannot reach. */
+    private const array SESSIONLESS_GRANTS = ['password', DeviceAuthorizationGrantType::DEVICE_CODE];
+
     public function __construct(
         private readonly LoginUsecase $userLoginGateway,
         private readonly TokenSigner $manager,
-        private readonly TokenRevocationGateway $revocationGateway
+        private readonly TokenRevocationGateway $revocationGateway,
+        private readonly SessionStoreGateway $sessionStore,
+        private readonly Context $context
     ) {
     }
 
@@ -44,8 +62,10 @@ class ResolverForRefresh implements TokenGranterStrategy
     }
 
     /**
-     * Verifies the refresh token signature, checks the revocation list, and reloads user data.
-     * Returns a wrong-credentials result when the token is invalid, missing claims, or revoked.
+     * Verifies the refresh token signature, its family and the bound session, reloads user data,
+     * and only then consumes its JTI. Returns a wrong-credentials result when the token is invalid, missing
+     * claims, of a revoked family, or its session is no longer active for the same user; a token
+     * already consumed additionally revokes its family and session.
      */
     #[Override]
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
@@ -58,13 +78,42 @@ class ResolverForRefresh implements TokenGranterStrategy
         }
 
         $jti = $payload['jti'] ?? null;
-        if ($jti !== null && $this->revocationGateway->isRevoked($jti, $tenant)) {
+        $family = $payload['fid'] ?? null;
+        if (!is_string($jti) || $jti === '' || !is_string($family) || $family === ''
+            || $this->revocationGateway->isFamilyRevoked($family, $tenant)
+        ) {
             return AuthenticationResult::wrongCredentials($tenant, '');
         }
 
-        $challenges = (new ChallengesState())
-            ->withSession(true)
-            ->withUsername((string) $key);
-        return $this->userLoginGateway->fillPreLoadById($tenant, $client, $challenges);
+        $challenges = (new ChallengesState())->withUsername((string) $key);
+        $sid = $payload['sid'] ?? null;
+        if ($sid === null) {
+            if (!in_array($payload['origin_grant'] ?? null, self::SESSIONLESS_GRANTS, true)) {
+                return AuthenticationResult::wrongCredentials($tenant, '');
+            }
+        } else {
+            $session = $this->sessionStore->findActiveSession((string) $sid, $this->context->getIssuer($tenant));
+            if ($session === null || $session->userId !== (string) $key || !$session->hasClient($client->client->id)) {
+                return AuthenticationResult::wrongCredentials($tenant, '');
+            }
+            $challenges = $challenges->withSession(true);
+        }
+
+        // Consumed last, so a refresh rejected for any other reason is not spent and can be retried.
+        $result = $this->userLoginGateway->fillPreLoadById($tenant, $client, $challenges);
+        if (!$result->valid) {
+            return $result;
+        }
+        $expiresAt = new DateTimeImmutable('@' . (int) ($payload['exp'] ?? time()));
+        if (!$this->revocationGateway->consumeJti($jti, $tenant, 'refresh', $expiresAt)) {
+            // Replay: the token was already redeemed (or revoked), so its family is compromised.
+            $familyExpiresAt = new DateTimeImmutable('@' . (int) ($payload['fexp'] ?? $payload['exp'] ?? time()));
+            $this->revocationGateway->revokeFamily($family, $tenant, $familyExpiresAt);
+            if ($sid !== null) {
+                $this->sessionStore->deleteSession((string) $sid);
+            }
+            return AuthenticationResult::wrongCredentials($tenant, '');
+        }
+        return $result;
     }
 }

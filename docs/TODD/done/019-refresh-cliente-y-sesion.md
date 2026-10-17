@@ -1,6 +1,6 @@
 # 019 — Vincular refresh a cliente, tenant y sesión activa
 
-- **Estado:** pendiente. **Prioridad:** crítica.
+- **Estado:** hecho. **Prioridad:** crítica.
 - **Evidencia:** [TokenController](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) resuelve `client_id` por `preValidatedClient` sin contrastar `azp`; [ResolverForRefresh](../../src/Features/OAuth/Authentication/Application/TokenGranter/ResolverForRefresh.php) fuerza `withSession(true)` sin consultar sesión.
 - **Impacto:** refresh robado puede reutilizarse bajo otro cliente; logout no corta su uso.
 - **Por hacer:** autenticar al cliente confidencial, comprobar `azp`/tenant/token_use, incluir `sid` en refresh y validar que siga vigente; ajustar logout y pruebas negativas.

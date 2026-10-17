@@ -12,6 +12,9 @@ class InMemoryTokenRevocation implements TokenRevocationGateway
     /** @var array<string, bool> */
     private array $revoked = [];
 
+    /** @var array<string, bool> */
+    private array $revokedFamilies = [];
+
     public function revokeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): void
     {
         $this->revoked[$tenantId . ':' . $jti] = true;
@@ -22,8 +25,28 @@ class InMemoryTokenRevocation implements TokenRevocationGateway
         return $this->revoked[$tenantId . ':' . $jti] ?? false;
     }
 
+    public function consumeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): bool
+    {
+        if ($this->isRevoked($jti, $tenantId)) {
+            return false;
+        }
+        $this->revokeJti($jti, $tenantId, $tokenType, $expiresAt);
+        return true;
+    }
+
+    public function revokeFamily(string $familyId, string $tenantId, \DateTimeImmutable $expiresAt): void
+    {
+        $this->revokedFamilies[$tenantId . ':' . $familyId] = true;
+    }
+
+    public function isFamilyRevoked(string $familyId, string $tenantId): bool
+    {
+        return $this->revokedFamilies[$tenantId . ':' . $familyId] ?? false;
+    }
+
     public function cleanup(): void
     {
         $this->revoked = [];
+        $this->revokedFamilies = [];
     }
 }

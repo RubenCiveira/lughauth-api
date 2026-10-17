@@ -6,6 +6,10 @@ declare(strict_types=1);
 namespace Tests\integration\Features\OAuth;
 
 use Nimbly\Capsule\Response;
+use Slim\Factory\AppFactory;
+use Civi\Lughauth\Bootstrap\Plugin\OAuthPlugin;
+use Civi\Lughauth\Features\OAuth\Oidc\Domain\OidcCapabilities;
+use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 
 class DiscoveryTest extends OidcIntegrationTestCase
@@ -18,10 +22,10 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->controller = $this->container->get(OpenIdConfigurationController::class);
     }
 
-    private function discover(string $tenant = self::TENANT): array
+    private function discover(string $tenant = self::TENANT, ?OpenIdConfigurationController $controller = null): array
     {
         $request = $this->makeRequest('GET', "/oauth/openid/$tenant/.well-known/openid-configuration");
-        $response = $this->controller->get($request, new Response(200), ['tenant' => $tenant]);
+        $response = ($controller ?? $this->controller)->get($request, new Response(200), ['tenant' => $tenant]);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
         return $this->decodeJson($response);
@@ -117,13 +121,86 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->assertTrue($doc['backchannel_logout_session_supported']);
     }
 
-    public function testMtlsEndpointAliasesArePresent(): void
+    public function testMtlsEndpointAliasesAreAbsentWithoutTrustedTermination(): void
     {
         $doc = $this->discover();
 
-        $this->assertArrayHasKey('mtls_endpoint_aliases', $doc);
-        $aliases = $doc['mtls_endpoint_aliases'];
-        $this->assertArrayHasKey('token_endpoint', $aliases);
+        $this->assertArrayNotHasKey('mtls_endpoint_aliases', $doc);
+    }
+
+    public function testMtlsEndpointAliasesArePresentWithTrustedTermination(): void
+    {
+        $doc = $this->discover(controller: $this->controllerWithMtls());
+
+        $this->assertSame('https://mtls.example/openid/tenant1/token', $doc['mtls_endpoint_aliases']['token_endpoint']);
+    }
+
+    public function testContributorCannotOverrideBaseFields(): void
+    {
+        $controller = new OpenIdConfigurationController($this->context, [new class () implements \Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway {
+            public function contribute(\Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration $base, string $tenant): array
+            {
+                return ['issuer' => 'https://attacker.example'];
+            }
+        }]);
+
+        $this->expectException(\LogicException::class);
+        $this->discover(controller: $controller);
+    }
+
+    public function testEveryAnnouncedEndpointIsRegisteredInOAuthPlugin(): void
+    {
+        $doc = $this->discover(controller: $this->controllerWithMtls());
+        $routes = $this->oauthPluginRoutes();
+
+        $endpoints = [];
+        foreach ([$doc, $doc['mtls_endpoint_aliases']] as $metadata) {
+            foreach ($metadata as $field => $value) {
+                if (is_string($value) && (str_ends_with($field, '_endpoint') || str_ends_with($field, '_uri') || str_ends_with($field, '_iframe'))) {
+                    $endpoints[] = [$field, $value];
+                }
+            }
+        }
+        $this->assertNotEmpty($endpoints);
+        foreach ($endpoints as [$field, $url]) {
+            $urlPath = parse_url($url, PHP_URL_PATH);
+            $this->assertIsString($urlPath, "$field must have a URL path");
+            $path = (string) preg_replace('#^/(?:oauth/)?openid/' . self::TENANT . '#', '/oauth/openid/{tenant}', $urlPath);
+            $this->assertContains($path, $routes, "$field ($url) is announced but not routed in OAuthPlugin");
+        }
+    }
+
+    public function testEveryActiveFlagIsBackedByACapability(): void
+    {
+        $doc = $this->discover();
+        $caps = OidcCapabilities::implemented();
+
+        $this->assertSame($caps->requirePushedAuthorizationRequests, $doc['require_pushed_authorization_requests']);
+        $this->assertSame($caps->claimsParameter, $doc['claims_parameter_supported']);
+        $this->assertSame($caps->requestParameter, $doc['request_parameter_supported']);
+        $this->assertSame($caps->authorizationResponseIssParameter, $doc['authorization_response_iss_parameter_supported']);
+        $this->assertSame($caps->backchannelLogout, $doc['backchannel_logout_supported']);
+        $this->assertSame($caps->frontchannelLogout, $doc['frontchannel_logout_supported']);
+        $this->assertSame($caps->grantTypes, $doc['grant_types_supported']);
+        $this->assertSame($caps->responseTypes, $doc['response_types_supported']);
+        $this->assertSame($caps->responseModes, $doc['response_modes_supported']);
+        $this->assertSame($caps->codeChallengeMethods, $doc['code_challenge_methods_supported']);
+        $this->assertSame($caps->subjectTypes, $doc['subject_types_supported']);
+        $this->assertFalse($doc['tls_client_certificate_bound_access_tokens']);
+        $this->assertFalse($doc['request_uri_parameter_supported']);
+    }
+
+    private function controllerWithMtls(): OpenIdConfigurationController
+    {
+        return new OpenIdConfigurationController($this->context, [new MtlsDiscoveryContributor('https://mtls.example')]);
+    }
+
+    /** @return string[] */
+    private function oauthPluginRoutes(): array
+    {
+        $app = AppFactory::create();
+        (new OAuthPlugin())->registerRoutes($app);
+        return array_map(fn ($route) => $route->getPattern(), $app->getRouteCollector()->getRoutes());
     }
 
     public function testDifferentTenantsReturnDifferentIssuers(): void
@@ -136,10 +213,10 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->assertStringContainsString('tenant-b', $doc2['issuer']);
     }
 
-    public function testRequirePushedAuthorizationRequestsIsTrue(): void
+    public function testRequirePushedAuthorizationRequestsIsFalse(): void
     {
         $doc = $this->discover();
 
-        $this->assertTrue($doc['require_pushed_authorization_requests']);
+        $this->assertFalse($doc['require_pushed_authorization_requests']);
     }
 }

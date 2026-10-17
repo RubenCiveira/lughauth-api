@@ -49,11 +49,12 @@ final class ActiveUserFindService
 
     /**
      * Looks up an active session using the cross-session identifier (csid).
-     * This allows reusing an existing authenticated identity across different browser tabs or OAuth flows.
+     * This allows reusing an existing authenticated identity across different browser tabs or OAuth flows,
+     * only among the sessions opened under the given issuer.
      */
-    public function findByCsid(string $csid): ?ActiveUser
+    public function findByCsid(string $csid, string $issuer): ?ActiveUser
     {
-        $sessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
+        $sessionId = $this->sessionStore->findActiveSessionIdByCsid($csid, $issuer);
         if ($sessionId === null) {
             return null;
         }

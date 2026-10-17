@@ -108,6 +108,17 @@ final class TokenGranterMediatorUnitTest extends TestCase
             {
                 return false;
             }
+            public function consumeJti(string $j, string $t, string $type, \DateTimeImmutable $e): bool
+            {
+                return true;
+            }
+            public function revokeFamily(string $f, string $t, \DateTimeImmutable $e): void
+            {
+            }
+            public function isFamilyRevoked(string $f, string $t): bool
+            {
+                return false;
+            }
             public function cleanup(): void
             {
             }
@@ -143,7 +154,7 @@ final class TokenGranterMediatorUnitTest extends TestCase
 
         return new TokenGranterMediator(
             passResolver: new ResolverForPassword($loginUsecase),
-            refreshResolver: new ResolverForRefresh($loginUsecase, $signer, $revocations),
+            refreshResolver: new ResolverForRefresh($loginUsecase, $signer, $revocations, new \Tests\integration\Features\OAuth\Stub\InMemorySessionStore(), $this->createStub(\Civi\Lughauth\Shared\Context::class)),
             deviceResolver: new ResolverForDevice(new DeviceAuthorizationService($deviceGateway)),
             clientCredentialsResolver: new ResolverForClientCredentials(),
         );

@@ -5,97 +5,108 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Application;
 
+use Closure;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\LogoutToken;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 /**
- * Dispatches OIDC Back-Channel Logout notifications (server-to-server) to all
- * registered Relying Parties that have a backchannel_logout_uri configured.
+ * Dispatches OIDC Back-Channel Logout notifications (server-to-server) to the Relying Parties
+ * that took part in the ended session and have a backchannel_logout_uri configured.
  *
- * Iterates over every enabled trusted client, builds a signed logout+jwt token for
- * each one that declares a back-channel URI, and POSTs it as an
+ * The caller supplies the participant clients, so a RP that never joined the session never
+ * receives its sub/sid. For each enabled one a signed logout+jwt token is built and POSTed as an
  * application/x-www-form-urlencoded body per the OIDC Back-Channel Logout 1.0 spec.
  *
- * Per spec, delivery is best-effort: a failure to notify one RP MUST NOT
- * prevent the user's session from being terminated at the IdP. All errors are
- * logged at WARNING level and silently swallowed so that other RPs continue to
- * receive their notifications regardless of individual failures.
+ * The HTTP deliveries are deferred as a job run at end of request (register_shutdown_function,
+ * after fastcgi_finish_request has flushed the response), so slow or unreachable RPs never add
+ * latency to the user's logout. Per spec, delivery is best-effort: a failure to notify one RP MUST
+ * NOT prevent the session from being terminated at the IdP. All errors are logged at WARNING level
+ * and swallowed so that other RPs continue to receive their notifications.
  */
 final class BackChannelLogoutDispatcher
 {
-    private readonly LoggerInterface $logger;
+    use LoggerAwareTrait;
 
+    /** @var Closure(callable): void */
+    private readonly Closure $defer;
+
+    /**
+     * @param (Closure(callable): void)|null $defer Schedules the delivery job; defaults to running it at shutdown
+     */
     public function __construct(
-        private readonly TrustedClientQueryRepositoryGateway $clients,
         private readonly TokenSigner $signer,
         private readonly ClientInterface $http,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
-        ?LoggerInterface $logger = null,
+        ?Closure $defer = null,
     ) {
-        $this->logger = $logger ?? new NullLogger();
+        $this->defer = $defer ?? static function (callable $job): void {
+            register_shutdown_function($job);
+        };
     }
 
     /**
-     * Sends a logout_token JWT to every RP with a back_channel_logout_uri.
+     * Schedules a logout_token JWT for every participant RP with a back_channel_logout_uri.
      *
-     * @param string $tenant    Tenant identifier (used to sign the token)
-     * @param string $issuer    Token issuer (iss claim)
-     * @param string $userSub   Subject (sub claim) — the authenticated user's ID
-     * @param string $sessionId Session identifier (sid claim)
+     * @param string          $tenant    Tenant identifier (used to sign the token)
+     * @param string          $issuer    Token issuer (iss claim)
+     * @param string          $userSub   Subject (sub claim) — the authenticated user's ID
+     * @param string          $sessionId Session identifier (sid claim)
+     * @param TrustedClient[] $clients   Relying parties that took part in the session
      */
     public function dispatch(
         string $tenant,
         string $issuer,
         string $userSub,
         string $sessionId,
+        array $clients,
     ): void {
         if ($userSub === '' || $sessionId === '') {
             return;
         }
 
-        $allClients = $this->clients->list()->values();
-
-        foreach ($allClients as $client) {
-            if (!$client->isEnabled()) {
-                continue;
-            }
-
+        $uris = [];
+        foreach ($clients as $client) {
             $uri = $client->getBackChannelLogoutUri();
-            if ($uri === null || $uri === '') {
-                continue;
+            if ($client->isEnabled() && $uri !== null && $uri !== '') {
+                $uris[$client->getCode()] = $uri;
             }
+        }
 
+        if ($uris !== []) {
+            ($this->defer)(fn () => $this->deliver($tenant, $issuer, $userSub, $sessionId, $uris));
+        }
+    }
+
+    /** @param array<string, string> $uris back-channel logout URI by client code */
+    private function deliver(string $tenant, string $issuer, string $userSub, string $sessionId, array $uris): void
+    {
+        foreach ($uris as $clientId => $uri) {
             try {
                 $logoutToken = LogoutToken::build(
                     signer: $this->signer,
                     tenant: $tenant,
                     issuer: $issuer,
                     subject: $userSub,
-                    clientId: $client->getCode(),
+                    clientId: $clientId,
                     sessionId: $sessionId,
-                );
-
-                $body = $this->streamFactory->createStream(
-                    http_build_query(['logout_token' => $logoutToken])
                 );
 
                 $request = $this->requestFactory
                     ->createRequest('POST', $uri)
                     ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
-                    ->withBody($body);
+                    ->withBody($this->streamFactory->createStream(http_build_query(['logout_token' => $logoutToken])));
 
                 $this->http->sendRequest($request);
             } catch (\Throwable $ex) {
                 // Best-effort per spec — log but never propagate
-                $this->logger->warning('Back-channel logout notification failed', [
-                    'client' => $client->getCode(),
+                $this->logWarning('Back-channel logout notification failed', [
+                    'client' => $clientId,
                     'uri'    => $uri,
                     'error'  => $ex->getMessage(),
                 ]);

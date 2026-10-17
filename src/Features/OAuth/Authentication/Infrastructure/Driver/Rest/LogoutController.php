@@ -8,12 +8,14 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\BackChannelLogoutDispatcher;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
+use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use OpenApi\Attributes as OA;
@@ -22,12 +24,13 @@ use OpenApi\Attributes as OA;
  * REST controller that implements RP-Initiated Logout and OAuth 2.0 Token Revocation (RFC 7009).
  *
  * The logout action (GET /logout) terminates the user's server-side session, dispatches
- * back-channel logout notifications to all registered relying parties via
- * BackChannelLogoutDispatcher, and — when any trusted clients have front-channel logout URIs —
- * renders a small HTML page with hidden iframes that trigger each client's own logout handler
- * before redirecting the user to the post_logout_redirect_uri. When no front-channel URIs exist
+ * back-channel logout notifications to the relying parties that took part in that session via
+ * BackChannelLogoutDispatcher, and — when any of them has a front-channel logout URI — renders a
+ * small HTML page with hidden iframes that trigger each client's own logout handler (adding iss
+ * and sid when the client requires them) before redirecting the user to the post_logout_redirect_uri. When no front-channel URIs exist
  * the redirect is immediate. The post-logout redirect URI is validated against the client's
- * registered URIs to prevent open-redirect attacks.
+ * registered URIs to prevent open-redirect attacks; an invalid request is rejected before the session
+ * is touched, so the session is either kept intact or ended together with the RP notifications.
  *
  * The revoke action (POST /revoke) implements RFC 7009 token revocation. It authenticates the
  * calling client (HTTP Basic or body credentials), then delegates to RevokeTokenUsecase. Per
@@ -36,7 +39,7 @@ use OpenApi\Attributes as OA;
  *
  * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
  * removal, ClientStoreGateway for client validation, TokenSigner for id_token_hint parsing,
- * RevokeTokenUsecase for revocation, TrustedClientQueryRepositoryGateway for front-channel URIs, and
+ * RevokeTokenUsecase for revocation, TrustedClientQueryRepositoryGateway for the participants' logout URIs, and
  * BackChannelLogoutDispatcher for back-channel notifications.
  */
 class LogoutController
@@ -77,7 +80,8 @@ class LogoutController
     /**
      * Ends the authenticated session and redirects the user to the post-logout URI.
      *
-     * Removes the server-side session, dispatches back-channel logout notifications, renders
+     * Validates the client and post-logout URI first (400 without touching the session), then
+     * removes the server-side session, dispatches back-channel logout notifications, renders
      * front-channel logout iframes when applicable, clears session cookies, and finally
      * redirects to the validated post_logout_redirect_uri with the optional state parameter.
      */
@@ -88,47 +92,43 @@ class LogoutController
         $query = $request->getQueryParams();
 
         $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '';
-
-        // Load session before deletion so we can extract the user subject for back-channel
-        $session = $sessionId !== '' ? $this->sessionStore->loadSession($sessionId) : null;
-        $userSub = $session?->userId ?? '';
-        $issuer  = $session?->issuer ?? '';
-
-        $this->sessionManager->removeSession($sessionId);
-
         $redirectUri = $query['post_logout_redirect_uri'] ?? '';
         $clientId = $query['client_id'] ?? '';
 
         if ($clientId === '' && isset($query['id_token_hint'])) {
             $payload = $this->keys->parseSignedPayload($tenant, $query['id_token_hint']);
             $clientId = $payload['azp'] ?? '';
-            if ($userSub === '') {
-                $userSub = $payload['sub'] ?? '';
-            }
         }
 
+        // Validate before ending anything: an invalid request keeps the session and notifies nobody
         if ($redirectUri === '' || $clientId === '' || !$this->isAllowedRedirect($clientId, $tenant, $redirectUri)) {
             $response->getBody()->write('{"error":"invalid_request"}');
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        // Dispatch back-channel logout notifications (best-effort, never blocks the user)
-        if ($issuer === '') {
-            $issuer = $this->context->getIssuer($tenant);
+        // Load the tenant's session before deletion: only its participant RPs are notified
+        $issuer = $this->context->getIssuer($tenant);
+        $session = $sessionId !== '' ? $this->sessionStore->findActiveSession($sessionId, $issuer) : null;
+        $participants = [];
+        if ($session !== null) {
+            $participants = $this->participants($session);
+            $this->sessionManager->removeSession($sessionId);
         }
-        $this->backChannelLogout->dispatch($tenant, $issuer, $userSub, $sessionId);
 
-        // Collect front-channel URIs and render iframe page if any are registered
-        $frontChannelClients = $this->trustedClients->list()->values();
+        // Dispatch back-channel logout notifications (best-effort, never blocks the user)
+        $this->backChannelLogout->dispatch($tenant, $issuer, $session?->userId ?? '', $sessionId, $participants);
+
+        // Collect the participants' front-channel URIs and render iframe page if any are registered
         $frontChannelUris = [];
-        foreach ($frontChannelClients as $client) {
-            if (!$client->isEnabled()) {
+        foreach ($participants as $client) {
+            $uri = $client->getFrontChannelLogoutUri();
+            if (!$client->isEnabled() || $uri === null || $uri === '') {
                 continue;
             }
-            $uri = $client->getFrontChannelLogoutUri();
-            if ($uri !== null && $uri !== '') {
-                $frontChannelUris[] = $uri;
+            if ($client->isFrontChannelLogoutSessionRequired()) {
+                $uri .= (str_contains($uri, '?') ? '&' : '?') . http_build_query(['iss' => $issuer, 'sid' => $sessionId]);
             }
+            $frontChannelUris[] = $uri;
         }
 
         $response = $this->clearCookies($response, $tenant);
@@ -201,6 +201,25 @@ class LogoutController
         $this->revokeTokenUsecase->revoke($token, $client->id, $tenant);
 
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Resolves the RPs that opened or joined the session through SSO. Clients are looked up among
+     * the global ones (tenant = null), the only kind that exists until task 022; the session itself
+     * is already bound to the tenant issuer.
+     *
+     * @return TrustedClient[]
+     */
+    private function participants(SessionInfo $session): array
+    {
+        $clients = [];
+        foreach ($session->clients() as $code) {
+            $client = $this->trustedClients->findOneByTenantAndCode(null, $code);
+            if ($client !== null) {
+                $clients[] = $client;
+            }
+        }
+        return $clients;
     }
 
     private function renderFrontChannelLogoutPage(

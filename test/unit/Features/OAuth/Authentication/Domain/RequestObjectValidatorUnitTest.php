@@ -9,6 +9,8 @@ use GuzzleHttp\Psr7\Response;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\Algorithm\ES256;
+use Jose\Component\Signature\Algorithm\PS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use PHPUnit\Framework\TestCase;
@@ -33,6 +35,18 @@ final class RequestObjectValidatorUnitTest extends TestCase
 
         $this->assertSame('client-123', $payload['client_id']);
         $this->assertSame('openid', $payload['scope']);
+    }
+
+    public function testValidateAcceptsOtherAdvertisedSigningAlgorithms(): void
+    {
+        foreach (['ES256', 'PS256'] as $alg) {
+            [$privateJwk, $publicJwkJson] = $this->buildJwks($alg);
+            $jwt = $this->buildJwt($privateJwk, ['client_id' => 'client-123'], $alg);
+            $client = new ClientData('client-123', ['code'], true, [], 3600, $alg, null, $publicJwkJson);
+
+            $payload = $this->buildValidator($this->createMock(ClientInterface::class))->validate($jwt, $client);
+            $this->assertSame('client-123', $payload['client_id'], $alg);
+        }
     }
 
     public function testValidateThrowsWhenClientIdDoesNotMatch(): void
@@ -92,7 +106,12 @@ final class RequestObjectValidatorUnitTest extends TestCase
 
     private function buildJwt(object $privateJwk, array $payload, string $alg): string
     {
-        $builder = new JWSBuilder(new AlgorithmManager([new RS256()]));
+        $algorithm = match ($alg) {
+            'ES256' => new ES256(),
+            'PS256' => new PS256(),
+            default => new RS256(),
+        };
+        $builder = new JWSBuilder(new AlgorithmManager([$algorithm]));
         $jws = $builder->create()
             ->withPayload((string) json_encode($payload))
             ->addSignature($privateJwk, ['alg' => $alg])
@@ -101,7 +120,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
         return (new CompactSerializer())->serialize($jws, 0);
     }
 
-    private function buildRsaJwks(): array
+    private function buildRsaJwks(string $alg = 'RS256'): array
     {
         $resource = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
         if ($resource === false) {
@@ -112,11 +131,29 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $details = openssl_pkey_get_details($resource);
         $publicPem = is_array($details) ? (string) ($details['key'] ?? '') : '';
 
-        $privateJwk = JWKFactory::createFromKey($privatePem, null, ['kid' => 'k1', 'alg' => 'RS256', 'use' => 'sig']);
-        $publicJwk = JWKFactory::createFromKey($publicPem, null, ['kid' => 'k1', 'alg' => 'RS256', 'use' => 'sig']);
+        $privateJwk = JWKFactory::createFromKey($privatePem, null, ['kid' => 'k1', 'alg' => $alg, 'use' => 'sig']);
+        $publicJwk = JWKFactory::createFromKey($publicPem, null, ['kid' => 'k1', 'alg' => $alg, 'use' => 'sig']);
         $jwksJson = (string) json_encode(['keys' => [$publicJwk->all()]]);
 
         return [$privateJwk, $jwksJson];
+    }
+
+    private function buildJwks(string $alg): array
+    {
+        if ($alg !== 'ES256') {
+            return $this->buildRsaJwks($alg);
+        }
+
+        $resource = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+        if ($resource === false) {
+            $this->fail('Unable to generate EC key');
+        }
+        openssl_pkey_export($resource, $privatePem);
+        $details = openssl_pkey_get_details($resource);
+        $publicPem = is_array($details) ? (string) ($details['key'] ?? '') : '';
+        $privateJwk = JWKFactory::createFromKey($privatePem, null, ['kid' => 'k1', 'alg' => $alg, 'use' => 'sig']);
+        $publicJwk = JWKFactory::createFromKey($publicPem, null, ['kid' => 'k1', 'alg' => $alg, 'use' => 'sig']);
+        return [$privateJwk, (string) json_encode(['keys' => [$publicJwk->all()]])];
     }
 
     private function buildValidator(ClientInterface $http): RequestObjectValidator

@@ -42,41 +42,58 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     #[Override]
     public function loadSession(string $state): ?SessionInfo
     {
-        $now = new \DateTime();
-        $stmt = $this->pdo->prepare('SELECT client_id, expiration, issuer, auth_data, csid FROM _oauth_session where session = :session and expiration > :now');
-        $stmt->bindValue('session', $state, PDO::PARAM_STR);
-        $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $stmt->execute();
-        $result = null;
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $data = (array)json_decode($row['auth_data']);
-            // $now = new \DateTime();
-            // $until = new \DateTime($row['expiration']);
-            $result = new SessionInfo(
-                csid: $row['csid'],
-                issuer: $row['issuer'],
-                userId: $data['userId'],
-                clientId: $row['client_id'],
-                withMfa: $data['withMfa'],
-            );
-        }
-        return $result;
+        return $this->fetchSession('session = :session', ['session' => $state]);
     }
 
     /**
-     * Finds the most recent unexpired session state key for the given cross-session identifier.
-     * Returns null when no active session exists for the provided csid value.
+     * Loads an active, unexpired session by its identifier restricted to the given issuer.
+     * Returns null when the session was closed, expired, or belongs to another tenant.
      */
     #[Override]
-    public function findActiveSessionIdByCsid(string $csid): ?string
+    public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+    {
+        return $this->fetchSession('session = :session and issuer = :issuer', ['session' => $sid, 'issuer' => $issuer]);
+    }
+
+    /**
+     * Finds the most recent unexpired session state key for the given cross-session identifier
+     * restricted to the given issuer. Returns null when no active session exists for the provided csid value.
+     */
+    #[Override]
+    public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
     {
         $now = new \DateTime();
-        $stmt = $this->pdo->prepare('SELECT session FROM _oauth_session WHERE csid = :csid AND expiration > :now ORDER BY expiration DESC LIMIT 1');
+        $stmt = $this->pdo->prepare('SELECT session FROM _oauth_session WHERE csid = :csid AND issuer = :issuer AND expiration > :now ORDER BY expiration DESC LIMIT 1');
         $stmt->bindValue('csid', $csid, PDO::PARAM_STR);
+        $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
         $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return is_array($row) && isset($row['session']) ? (string) $row['session'] : null;
+    }
+
+    /**
+     * Appends the client to the session's SSO participants (sso_clients_json) unless it opened
+     * the session, is already listed, or the session belongs to another issuer.
+     *
+     * A single UPDATE appends inside the JSON instead of reading and rewriting the whole list, so
+     * concurrent joins to the same session are serialised by the row lock and none is lost.
+     */
+    #[Override]
+    public function addSessionClient(string $state, string $issuer, string $clientId): void
+    {
+        $now = new \DateTime();
+        $clients = "COALESCE(NULLIF(sso_clients_json, ''), JSON_ARRAY())";
+        $stmt = $this->pdo->prepare('UPDATE _oauth_session SET sso_clients_json = JSON_ARRAY_APPEND(' . $clients . ', \'$\', :client)'
+            . ' WHERE session = :session AND issuer = :issuer AND expiration > :now AND client_id <> :opener'
+            . ' AND NOT JSON_CONTAINS(' . $clients . ', JSON_QUOTE(:listed))');
+        $stmt->bindValue('client', $clientId, PDO::PARAM_STR);
+        $stmt->bindValue('session', $state, PDO::PARAM_STR);
+        $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
+        $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue('opener', $clientId, PDO::PARAM_STR);
+        $stmt->bindValue('listed', $clientId, PDO::PARAM_STR);
+        $stmt->execute();
     }
 
     /**
@@ -157,6 +174,31 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     public function purgeExpired(): void
     {
         $this->clearTemp();
+    }
+
+    /** @param array<string, string> $params */
+    private function fetchSession(string $where, array $params): ?SessionInfo
+    {
+        $now = new \DateTime();
+        $stmt = $this->pdo->prepare('SELECT client_id, expiration, issuer, auth_data, csid, sso_clients_json FROM _oauth_session where ' . $where . ' and expiration > :now');
+        foreach ($params as $name => $value) {
+            $stmt->bindValue($name, $value, PDO::PARAM_STR);
+        }
+        $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
+        $result = null;
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $data = (array)json_decode($row['auth_data']);
+            $result = new SessionInfo(
+                csid: $row['csid'],
+                issuer: $row['issuer'],
+                userId: $data['userId'],
+                clientId: $row['client_id'],
+                withMfa: $data['withMfa'],
+                ssoClients: array_values(array_filter((array) json_decode((string) ($row['sso_clients_json'] ?? '[]'), true), 'is_string')),
+            );
+        }
+        return $result;
     }
 
     private function clearTemp(): void

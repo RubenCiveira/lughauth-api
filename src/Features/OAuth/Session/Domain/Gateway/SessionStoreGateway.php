@@ -28,10 +28,24 @@ interface SessionStoreGateway
     public function loadSession(string $state): ?SessionInfo;
 
     /**
-     * Finds the most recently active session identifier for the given cross-session identifier.
+     * Loads an active session by its identifier (the refresh token sid) only when it was opened
+     * under the given issuer, so a session of another tenant is never matched.
+     */
+    public function findActiveSession(string $sid, string $issuer): ?SessionInfo;
+
+    /**
+     * Finds the most recently active session identifier for the given cross-session identifier
+     * among the sessions opened under the given issuer, so a session of another tenant is never reused.
      * Returns null when no unexpired session exists for the provided csid.
      */
-    public function findActiveSessionIdByCsid(string $csid): ?string;
+    public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string;
+
+    /**
+     * Records that the client obtained an authorization from an existing session through SSO,
+     * so refresh tokens issued to it stay bound to that session and it is notified on logout.
+     * Does nothing when the session was opened under another issuer.
+     */
+    public function addSessionClient(string $state, string $issuer, string $clientId): void;
 
     /**
      * Persists a new session record associating the state key with the client, user, and challenge data.

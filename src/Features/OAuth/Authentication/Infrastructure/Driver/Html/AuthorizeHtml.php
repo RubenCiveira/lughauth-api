@@ -120,7 +120,7 @@ class AuthorizeHtml
             return $requestError;
         }
         $authRequest = $this->buildAuthRequest($flow, $client);
-        $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
+        $sess = $this->sessions->findActiveSession($flow->sessionId ?? '', $flow->issuer);
         $this->logDebug('OIDC authorize session lookup', [
             'tenant' => $tenant,
             'sessionId' => (string) ($flow->sessionId ?? ''),
@@ -182,7 +182,7 @@ class AuthorizeHtml
             ]);
             return $this->redirectToLogin($response, $flow, $authRequest);
         }
-        $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
+        $sess = $this->sessions->findActiveSession($flow->sessionId ?? '', $flow->issuer);
         if ($sess) {
             $this->logDebug('OIDC check-session session loaded', [
                 'tenant' => $tenant,

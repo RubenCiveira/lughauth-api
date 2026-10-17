@@ -10,7 +10,8 @@ This context owns the **OIDC metadata publication layer**: constructing and serv
 
 | Concept | Type | Description |
 |---|---|---|
-| `OpenIdConfiguration` | ValueObject | The complete OIDC discovery document: issuer, all endpoint URIs, supported response types, grant types, scopes, signing algorithms, claim types, PKCE methods, and feature support flags |
+| `OpenIdConfiguration` | ValueObject | The OIDC discovery document: canonical issuer, endpoint URIs, scopes, claims and the values derived from `OidcCapabilities` |
+| `OidcCapabilities` | ValueObject | Grants, response types/modes, algorithms, auth methods and flags actually implemented; `implemented()` is the single place to enable a capability |
 | `MtlsEndpointAliases` | ValueObject | Mutual TLS endpoint aliases as defined in RFC 8705 (e.g., mTLS-specific token endpoint) |
 
 ## Ports (Gateways)
@@ -23,7 +24,7 @@ This context owns the **OIDC metadata publication layer**: constructing and serv
 
 ### Driven (Outbound Adapters)
 
-- **`MtlsDiscoveryContributor`** — Implements `DiscoveryContributorGateway`; appends `mtls_endpoint_aliases` to the discovery document.
+- **`MtlsDiscoveryContributor`** — Implements `DiscoveryContributorGateway`; appends `mtls_endpoint_aliases` only when `app.oauth.mtls-base-url` (trusted mTLS termination) is configured.
 
 ### Driver (Inbound Adapters)
 
@@ -32,7 +33,8 @@ This context owns the **OIDC metadata publication layer**: constructing and serv
 ## Key Invariants
 
 - The discovery document is **tenant-scoped**: each tenant exposes its own issuer and endpoint URLs.
-- Contributors are applied in registration order; the base `OpenIdConfiguration` is built first, then each contributor enriches it.
+- Only implemented features are advertised; anything not backed by a route or code path stays out of `OidcCapabilities::implemented()`.
+- Contributors are applied in registration order (`OAuthPlugin`); the base `OpenIdConfiguration` is built first, then each contributor may add fields but never redefine existing ones.
 - The document is **cached** at the HTTP layer — changes to tenant configuration (new provider, new scope) must invalidate the cache.
 
 ## Interactions with Other Contexts

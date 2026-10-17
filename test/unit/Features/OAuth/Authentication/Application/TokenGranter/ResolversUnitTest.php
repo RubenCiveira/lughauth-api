@@ -20,6 +20,9 @@ use Civi\Lughauth\Features\OAuth\Device\Domain\Exception\DeviceAuthorizationExce
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
+use Civi\Lughauth\Shared\Context;
+use Tests\integration\Features\OAuth\Stub\InMemorySessionStore;
+use Tests\integration\Features\OAuth\Stub\InMemoryTokenRevocation;
 
 final class ResolversUnitTest extends TestCase
 {
@@ -93,7 +96,7 @@ final class ResolversUnitTest extends TestCase
 
     public function test_refresh_can_handle_correct_grant(): void
     {
-        $r = new ResolverForRefresh($this->makeLoginUsecase(), $this->makeSigner(), $this->makeRevocation());
+        $r = $this->makeRefreshResolver($this->makeSigner());
         $this->assertTrue($r->canHandle('refresh_token', []));
         $this->assertFalse($r->canHandle('password', []));
     }
@@ -101,7 +104,7 @@ final class ResolversUnitTest extends TestCase
     public function test_refresh_returns_wrong_credentials_when_no_keypass(): void
     {
         $signer = $this->makeSigner(payload: ['sub' => 'u1']);
-        $resolver = new ResolverForRefresh($this->makeLoginUsecase(), $signer, $this->makeRevocation());
+        $resolver = $this->makeRefreshResolver($signer);
         $client = new ClientData('c', ['refresh_token'], true);
         $req = new AuthenticationRequest($client, '', '');
 
@@ -112,15 +115,136 @@ final class ResolversUnitTest extends TestCase
 
     public function test_refresh_returns_wrong_credentials_when_jti_revoked(): void
     {
-        $signer = $this->makeSigner(payload: ['keypass' => 'user@x.com', 'jti' => 'jti-123']);
-        $revocation = $this->makeRevocation(revoked: true);
-        $resolver = new ResolverForRefresh($this->makeLoginUsecase(), $signer, $revocation);
+        $signer = $this->makeSigner(payload: ['keypass' => 'user@x.com', 'jti' => 'jti-123', 'origin_grant' => 'password']);
+        $revocation = new InMemoryTokenRevocation();
+        $revocation->revokeJti('jti-123', 'tenant', 'refresh', new \DateTimeImmutable('+1 hour'));
+        $resolver = $this->makeRefreshResolver($signer, $revocation);
         $client = new ClientData('c', ['refresh_token'], true);
         $req = new AuthenticationRequest($client, '', '');
 
         $result = $resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token']);
 
         $this->assertFalse($result->valid);
+    }
+
+    public function test_refresh_without_jti_or_family_is_rejected(): void
+    {
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+        $withoutJti = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'password', 'jti' => null]));
+        $withoutFamily = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'password', 'fid' => null]));
+
+        $this->assertFalse($withoutJti->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($withoutFamily->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
+    public function test_refresh_is_single_use_and_replay_revokes_family_and_session(): void
+    {
+        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
+        $revocation = new InMemoryTokenRevocation();
+        $resolver = $this->makeRefreshResolver(
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1', 'jti' => 'jti-1', 'fid' => 'fam-1']),
+            $revocation,
+            $sessions
+        );
+        $sibling = $this->makeRefreshResolver(
+            $this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'password', 'jti' => 'jti-2', 'fid' => 'fam-1']),
+            $revocation
+        );
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertTrue($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+
+        $this->assertTrue($revocation->isFamilyRevoked('fam-1', 'tenant'));
+        $this->assertNull($sessions->loadSession('sid-1'));
+        $this->assertFalse($sibling->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($revocation->isRevoked('jti-2', 'tenant'), 'a token of a revoked family is not consumed');
+    }
+
+    public function test_refresh_rejected_when_reloading_the_user_is_not_consumed(): void
+    {
+        $revocation = new InMemoryTokenRevocation();
+        $signer = $this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'password', 'jti' => 'jti-1']);
+        $disabled = $this->makeRefreshResolver($signer, $revocation, login: $this->makeLoginUsecase(AuthenticationResult::wrongCredentials('tenant', '')));
+        $enabled = $this->makeRefreshResolver($signer, $revocation);
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertFalse($disabled->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($revocation->isRevoked('jti-1', 'tenant'));
+        $this->assertFalse($revocation->isFamilyRevoked('fam-1', 'tenant'));
+
+        $this->assertTrue($enabled->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertTrue($revocation->isRevoked('jti-1', 'tenant'));
+    }
+
+    public function test_refresh_rejected_by_session_is_not_consumed(): void
+    {
+        $revocation = new InMemoryTokenRevocation();
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1', 'jti' => 'jti-1']), $revocation);
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($revocation->isRevoked('jti-1', 'tenant'));
+    }
+
+    public function test_refresh_without_sid_is_accepted_only_from_sessionless_grants(): void
+    {
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+        $password = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'password']));
+        $device = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => DeviceAuthorizationGrantType::DEVICE_CODE]));
+        $code = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'origin_grant' => 'authorization_code']));
+        $unknown = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1']));
+
+        $this->assertTrue($password->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertTrue($device->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($code->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($unknown->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
+    public function test_refresh_with_session_of_other_client_is_rejected_unless_joined_by_sso(): void
+    {
+        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $req = new AuthenticationRequest(new ClientData('sso-client', ['refresh_token'], true), '', '');
+
+        $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $sessions->addSessionClient('sid-1', 'https://issuer/tenant', 'sso-client');
+        $this->assertTrue($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
+    public function test_refresh_with_active_session_of_same_user_is_accepted(): void
+    {
+        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertTrue($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
+    public function test_refresh_with_closed_session_is_rejected(): void
+    {
+        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
+        $sessions->deleteSession('sid-1');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
+    public function test_refresh_with_session_of_other_user_or_issuer_is_rejected(): void
+    {
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+        $otherUser = $this->makeRefreshResolver(
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']),
+            sessions: $this->makeSessions('sid-1', 'u2', 'https://issuer/tenant')
+        );
+        $otherIssuer = $this->makeRefreshResolver(
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']),
+            sessions: $this->makeSessions('sid-1', 'u1', 'https://issuer/other')
+        );
+
+        $this->assertFalse($otherUser->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+        $this->assertFalse($otherIssuer->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
     }
 
     // --- ResolverForDevice ---
@@ -165,8 +289,42 @@ final class ResolversUnitTest extends TestCase
         };
     }
 
+    private function makeRefreshResolver(
+        TokenSigner $signer,
+        ?TokenRevocationGateway $revocation = null,
+        ?InMemorySessionStore $sessions = null,
+        ?LoginUsecase $login = null
+    ): ResolverForRefresh {
+        $context = $this->createStub(Context::class);
+        $context->method('getIssuer')->willReturnCallback(fn (string $tenant): string => 'https://issuer/' . $tenant);
+        return new ResolverForRefresh(
+            $login ?? $this->makeLoginUsecase(),
+            $signer,
+            $revocation ?? new InMemoryTokenRevocation(),
+            $sessions ?? new InMemorySessionStore(),
+            $context
+        );
+    }
+
+    private function makeSessions(string $sid, string $userId, string $issuer): InMemorySessionStore
+    {
+        $sessions = new InMemorySessionStore();
+        $sessions->saveSession(
+            $sid,
+            new ClientData('c', ['authorization_code'], true),
+            $issuer,
+            new ChallengesState(),
+            new AuthenticationResult(valid: true, id: $userId),
+            'csid',
+            new \DateInterval('P1D')
+        );
+        return $sessions;
+    }
+
     private function makeSigner(?array $payload = null): TokenSigner
     {
+        // Rotated refresh tokens always carry a jti and a family; tests may unset them with null.
+        $payload = $payload === null ? null : array_filter(['jti' => 'jti-1', 'fid' => 'fam-1', ...$payload], fn ($v) => $v !== null);
         return new class ($payload) implements TokenSigner {
             public function __construct(private ?array $payload)
             {
@@ -194,25 +352,6 @@ final class ResolversUnitTest extends TestCase
             public function parseSignedPayload(string $t, string $tok): ?array
             {
                 return null;
-            }
-        };
-    }
-
-    private function makeRevocation(bool $revoked = false): TokenRevocationGateway
-    {
-        return new class ($revoked) implements TokenRevocationGateway {
-            public function __construct(private bool $revoked)
-            {
-            }
-            public function revokeJti(string $j, string $t, string $type, \DateTimeImmutable $e): void
-            {
-            }
-            public function isRevoked(string $j, string $t): bool
-            {
-                return $this->revoked;
-            }
-            public function cleanup(): void
-            {
             }
         };
     }

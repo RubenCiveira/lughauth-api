@@ -10,6 +10,7 @@ use DateInterval;
 use Ramsey\Uuid\Uuid;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
@@ -178,14 +179,22 @@ class AuthenticateUser
         }
 
         if ($challenges->session && $activeSessionId !== null && $activeSessionId !== '') {
+            // Never authorize from a session of another tenant: the client could not join it and
+            // would miss its logout, so the authorization must not carry that sid.
+            if ($this->sessionStore->findActiveSession($activeSessionId, $issuer) === null) {
+                $this->logWarning('OIDC saveIt rejected session of another issuer', ['sessionId' => $activeSessionId]);
+                throw new UnauthorizedException();
+            }
             $this->logDebug('OIDC saveIt reusing active session', ['sessionId' => $activeSessionId]);
+            $this->sessionStore->addSessionClient($activeSessionId, $issuer, $request->client->id);
             return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $activeSessionId);
         }
 
         if (!$challenges->session) {
-            $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
+            $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid, $issuer);
             if ($existingSessionId !== null && $existingSessionId !== '') {
                 $this->logDebug('OIDC saveIt reusing csid session', ['existingSessionId' => $existingSessionId]);
+                $this->sessionStore->addSessionClient($existingSessionId, $issuer, $request->client->id);
                 return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
             }
         }

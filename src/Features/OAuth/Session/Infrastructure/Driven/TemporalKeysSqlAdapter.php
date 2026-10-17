@@ -291,6 +291,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
             request: $request,
             codeChallenge: $res['codeChallenge'] ?? null,
             codeChallengeMethod: $res['codeChallengeMethod'] ?? null,
+            sessionId: $res['sessionId'] ?? null,
         );
     }
 }

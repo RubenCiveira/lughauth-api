@@ -56,6 +56,8 @@ class TemporalAuthCode
      */
     public readonly ?string $codeChallengeMethod;
 
+    public readonly ?string $sessionId;
+
     public function __construct(
         AuthenticationResult $data,
         ClientData $client,
@@ -63,6 +65,7 @@ class TemporalAuthCode
         AuthenticationRequest $request,
         ?string $codeChallenge = null,
         ?string $codeChallengeMethod = null,
+        ?string $sessionId = null,
     ) {
         $this->data = $data;
         $this->client = $client;
@@ -70,5 +73,6 @@ class TemporalAuthCode
         $this->request = $request;
         $this->codeChallenge = $codeChallenge;
         $this->codeChallengeMethod = $codeChallengeMethod;
+        $this->sessionId = $sessionId;
     }
 }

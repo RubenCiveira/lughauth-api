@@ -15,6 +15,10 @@ namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway;
  * The cleanup method should be invoked periodically (e.g. via a scheduled job)
  * to remove entries whose original token has already expired, preventing
  * unbounded growth of the revocation store.
+ *
+ * Refresh tokens are single use: each one is consumed atomically when redeemed, and every
+ * token rotated from the same original grant shares a family identifier. Presenting an already
+ * consumed refresh token is treated as replay, and the whole family is revoked.
  */
 interface TokenRevocationGateway
 {
@@ -32,7 +36,24 @@ interface TokenRevocationGateway
     public function isRevoked(string $jti, string $tenantId): bool;
 
     /**
-     * Removes all revocation records whose corresponding token has already expired.
+     * Atomically records the JTI as used. Returns true only for the single caller that recorded
+     * it; false when it was already consumed or revoked, even under concurrent requests.
+     */
+    public function consumeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): bool;
+
+    /**
+     * Revokes every refresh token of the family until expiresAt (the family absolute expiration).
+     * Duplicate revocations of the same family must be silently ignored.
+     */
+    public function revokeFamily(string $familyId, string $tenantId, \DateTimeImmutable $expiresAt): void;
+
+    /**
+     * Checks whether the refresh token family has been revoked for the tenant.
+     */
+    public function isFamilyRevoked(string $familyId, string $tenantId): bool;
+
+    /**
+     * Removes all revocation records whose corresponding token or family has already expired.
      * This housekeeping operation prevents the revocation table from growing indefinitely.
      */
     public function cleanup(): void;

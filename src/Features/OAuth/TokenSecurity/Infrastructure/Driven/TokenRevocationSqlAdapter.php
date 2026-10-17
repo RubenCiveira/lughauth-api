@@ -18,7 +18,10 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGat
  * isolation and is tagged with the original expiration timestamp so that the
  * cleanup operation can safely remove rows without checking external JWT state.
  * The INSERT uses INSERT IGNORE semantics, making duplicate revocation calls
- * idempotent and safe to call multiple times for the same JTI.
+ * idempotent and safe to call multiple times for the same JTI. Refresh token consumption
+ * relies on the same primary key: only the request whose INSERT adds the row wins, so two
+ * concurrent redemptions of one refresh token cannot both succeed. Revoked refresh token
+ * families are kept in `_oauth_revoked_refresh_family` until their absolute expiration.
  */
 class TokenRevocationSqlAdapter implements TokenRevocationGateway
 {
@@ -61,6 +64,56 @@ class TokenRevocationSqlAdapter implements TokenRevocationGateway
     }
 
     /**
+     * Inserts the JTI into the revocation table and reports whether this call added the row.
+     * The primary key on jti makes the check-and-set atomic across concurrent requests.
+     */
+    #[Override]
+    public function consumeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT IGNORE INTO _oauth_revoked_jti (jti, tenant_id, token_type, expires_at)
+             VALUES (:jti, :tenant_id, :token_type, :expires_at)'
+        );
+        $stmt->bindValue('jti', $jti, PDO::PARAM_STR);
+        $stmt->bindValue('tenant_id', $tenantId, PDO::PARAM_STR);
+        $stmt->bindValue('token_type', $tokenType, PDO::PARAM_STR);
+        $stmt->bindValue('expires_at', $expiresAt->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->rowCount() === 1;
+    }
+
+    /**
+     * Inserts the family into the revoked families table, ignoring duplicates.
+     */
+    #[Override]
+    public function revokeFamily(string $familyId, string $tenantId, \DateTimeImmutable $expiresAt): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT IGNORE INTO _oauth_revoked_refresh_family (family_id, tenant_id, expires_at)
+             VALUES (:family_id, :tenant_id, :expires_at)'
+        );
+        $stmt->bindValue('family_id', $familyId, PDO::PARAM_STR);
+        $stmt->bindValue('tenant_id', $tenantId, PDO::PARAM_STR);
+        $stmt->bindValue('expires_at', $expiresAt->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    /**
+     * Checks whether the refresh token family has been revoked for the given tenant.
+     */
+    #[Override]
+    public function isFamilyRevoked(string $familyId, string $tenantId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM _oauth_revoked_refresh_family WHERE family_id = :family_id AND tenant_id = :tenant_id LIMIT 1'
+        );
+        $stmt->bindValue('family_id', $familyId, PDO::PARAM_STR);
+        $stmt->bindValue('tenant_id', $tenantId, PDO::PARAM_STR);
+        $stmt->execute();
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
      * Deletes all revocation records whose expiration timestamp is in the past.
      * Should be called periodically to prevent unbounded table growth.
      */
@@ -68,5 +121,6 @@ class TokenRevocationSqlAdapter implements TokenRevocationGateway
     public function cleanup(): void
     {
         $this->pdo->exec('DELETE FROM _oauth_revoked_jti WHERE expires_at < NOW()');
+        $this->pdo->exec('DELETE FROM _oauth_revoked_refresh_family WHERE expires_at < NOW()');
     }
 }

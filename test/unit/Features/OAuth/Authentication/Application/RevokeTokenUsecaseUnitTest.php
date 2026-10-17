@@ -129,6 +129,17 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
             {
                 return false;
             }
+            public function consumeJti(string $j, string $t, string $type, \DateTimeImmutable $e): bool
+            {
+                return true;
+            }
+            public function revokeFamily(string $f, string $t, \DateTimeImmutable $e): void
+            {
+            }
+            public function isFamilyRevoked(string $f, string $t): bool
+            {
+                return false;
+            }
             public function cleanup(): void
             {
             }

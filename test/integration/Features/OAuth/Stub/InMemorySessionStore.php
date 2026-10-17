@@ -21,14 +21,35 @@ class InMemorySessionStore implements SessionStoreGateway
         return $this->sessions[$state] ?? null;
     }
 
-    public function findActiveSessionIdByCsid(string $csid): ?string
+    public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+    {
+        $session = $this->sessions[$sid] ?? null;
+        return $session !== null && $session->issuer === $issuer ? $session : null;
+    }
+
+    public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
     {
         foreach ($this->sessions as $state => $session) {
-            if ($session->csid === $csid) {
+            if ($session->csid === $csid && $session->issuer === $issuer) {
                 return $state;
             }
         }
         return null;
+    }
+
+    public function addSessionClient(string $state, string $issuer, string $clientId): void
+    {
+        $session = $this->findActiveSession($state, $issuer);
+        if ($session !== null && !$session->hasClient($clientId)) {
+            $this->sessions[$state] = new SessionInfo(
+                csid: $session->csid,
+                withMfa: $session->withMfa,
+                issuer: $session->issuer,
+                userId: $session->userId,
+                clientId: $session->clientId,
+                ssoClients: [...$session->ssoClients, $clientId],
+            );
+        }
     }
 
     public function saveSession(

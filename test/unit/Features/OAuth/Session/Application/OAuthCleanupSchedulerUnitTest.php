@@ -65,7 +65,14 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             {
                 return null;
             }
-            public function findActiveSessionIdByCsid(string $csid): ?string
+            public function findActiveSession(string $sid, string $issuer): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
+            {
+                return null;
+            }
+            public function addSessionClient(string $state, string $issuer, string $clientId): void
+            {
+            }
+            public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
             {
                 return null;
             }
@@ -95,6 +102,17 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             {
             }
             public function isRevoked(string $jti, string $tenant): bool
+            {
+                return false;
+            }
+            public function consumeJti(string $j, string $t, string $type, \DateTimeImmutable $e): bool
+            {
+                return true;
+            }
+            public function revokeFamily(string $f, string $t, \DateTimeImmutable $e): void
+            {
+            }
+            public function isFamilyRevoked(string $f, string $t): bool
             {
                 return false;
             }

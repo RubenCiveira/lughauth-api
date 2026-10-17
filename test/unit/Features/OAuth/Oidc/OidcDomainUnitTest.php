@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\MtlsEndpointAliases;
+use Civi\Lughauth\Features\OAuth\Oidc\Domain\OidcCapabilities;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
 
@@ -22,7 +23,6 @@ final class OidcDomainUnitTest extends TestCase
             registrationEndpoint: 'https://mtls/register',
             userinfoEndpoint: 'https://mtls/userinfo',
             pushedAuthorizationRequestEndpoint: 'https://mtls/par',
-            backchannelAuthenticationEndpoint: 'https://mtls/backchannel',
         );
 
         $this->assertSame('https://mtls/token', $aliases->tokenEndpoint);
@@ -51,21 +51,25 @@ final class OidcDomainUnitTest extends TestCase
         $this->assertArrayHasKey('registration_endpoint', $arr);
         $this->assertArrayHasKey('userinfo_endpoint', $arr);
         $this->assertArrayHasKey('pushed_authorization_request_endpoint', $arr);
-        $this->assertArrayHasKey('backchannel_authentication_endpoint', $arr);
     }
 
     // --- OpenIdConfiguration ---
 
-    public function test_open_id_configuration_for_tenant_sets_issuer(): void
+    private function config(string $issuer = 'https://auth.example.com/openid/tenant1'): OpenIdConfiguration
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'my-tenant');
+        return OpenIdConfiguration::forIssuer($issuer, OidcCapabilities::implemented());
+    }
+
+    public function test_open_id_configuration_for_issuer_sets_issuer(): void
+    {
+        $config = $this->config('https://auth.example.com/openid/my-tenant');
 
         $this->assertSame('https://auth.example.com/openid/my-tenant', $config->issuer);
     }
 
     public function test_open_id_configuration_endpoints_are_under_issuer(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
+        $config = $this->config();
         $base = 'https://auth.example.com/openid/tenant1';
 
         $this->assertSame("$base/authorize", $config->authorizationEndpoint);
@@ -75,77 +79,86 @@ final class OidcDomainUnitTest extends TestCase
         $this->assertSame("$base/device", $config->deviceAuthorizationEndpoint);
     }
 
-    public function test_open_id_configuration_requires_par(): void
+    public function test_open_id_configuration_does_not_require_par(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
-        $this->assertTrue($config->requirePushedAuthorizationRequests);
+        $this->assertFalse($this->config()->toArray()['require_pushed_authorization_requests']);
     }
 
-    public function test_open_id_configuration_supports_s256_code_challenge(): void
+    public function test_open_id_configuration_advertises_only_s256_code_challenge(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
-        $this->assertContains('S256', $config->codeChallengeMethodsSupported);
+        $this->assertSame(['S256'], $this->config()->toArray()['code_challenge_methods_supported']);
     }
 
     public function test_open_id_configuration_to_array_contains_required_fields(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
-        $arr = $config->toArray();
+        $arr = $this->config()->toArray();
 
         $this->assertArrayHasKey('issuer', $arr);
         $this->assertArrayHasKey('authorization_endpoint', $arr);
         $this->assertArrayHasKey('token_endpoint', $arr);
         $this->assertArrayHasKey('jwks_uri', $arr);
         $this->assertArrayHasKey('grant_types_supported', $arr);
-        $this->assertArrayHasKey('mtls_endpoint_aliases', $arr);
         $this->assertArrayHasKey('require_pushed_authorization_requests', $arr);
-        $this->assertTrue($arr['require_pushed_authorization_requests']);
+    }
+
+    public function test_open_id_configuration_omits_unimplemented_capabilities(): void
+    {
+        $arr = $this->config()->toArray();
+
+        foreach ([
+            'backchannel_authentication_endpoint',
+            'backchannel_token_delivery_modes_supported',
+            'check_session_iframe',
+            'acr_values_supported',
+            'mtls_endpoint_aliases',
+            'id_token_encryption_alg_values_supported',
+            'userinfo_signing_alg_values_supported',
+            'userinfo_encryption_alg_values_supported',
+            'authorization_signing_alg_values_supported',
+            'authorization_encryption_alg_values_supported',
+            'request_object_encryption_alg_values_supported',
+        ] as $field) {
+            $this->assertArrayNotHasKey($field, $arr, $field);
+        }
+        $this->assertNotContains('form_post', $arr['response_modes_supported']);
+        $this->assertSame(['public'], $arr['subject_types_supported']);
+        $this->assertFalse($arr['claims_parameter_supported']);
+        $this->assertFalse($arr['authorization_response_iss_parameter_supported']);
     }
 
     // --- MtlsDiscoveryContributor ---
 
-    public function test_mtls_contributor_uses_base_aliases_when_no_mtls_url(): void
+    public function test_mtls_contributor_publishes_nothing_when_no_mtls_url(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
         $contributor = new MtlsDiscoveryContributor(null);
 
-        $extra = $contributor->contribute($config, 'tenant1');
-
-        $this->assertArrayHasKey('mtls_endpoint_aliases', $extra);
-        $this->assertSame(
-            $config->mtlsEndpointAliases->toArray(),
-            $extra['mtls_endpoint_aliases']
-        );
+        $this->assertSame([], $contributor->contribute($this->config(), 'tenant1'));
     }
 
-    public function test_mtls_contributor_uses_base_aliases_when_mtls_url_empty(): void
+    public function test_mtls_contributor_publishes_nothing_when_mtls_url_empty(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
         $contributor = new MtlsDiscoveryContributor('');
 
-        $extra = $contributor->contribute($config, 'tenant1');
-
-        $this->assertArrayHasKey('mtls_endpoint_aliases', $extra);
+        $this->assertSame([], $contributor->contribute($this->config(), 'tenant1'));
     }
 
     public function test_mtls_contributor_overrides_endpoints_when_mtls_url_set(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
         $contributor = new MtlsDiscoveryContributor('https://mtls.example.com');
 
-        $extra = $contributor->contribute($config, 'tenant1');
+        $extra = $contributor->contribute($this->config(), 'tenant1');
 
         $aliases = $extra['mtls_endpoint_aliases'];
         $this->assertSame('https://mtls.example.com/openid/tenant1/token', $aliases['token_endpoint']);
         $this->assertSame('https://mtls.example.com/openid/tenant1/par', $aliases['pushed_authorization_request_endpoint']);
+        $this->assertArrayNotHasKey('backchannel_authentication_endpoint', $aliases);
     }
 
     public function test_mtls_contributor_strips_trailing_slash_from_mtls_url(): void
     {
-        $config = OpenIdConfiguration::forTenant('https://auth.example.com', 'tenant1');
         $contributor = new MtlsDiscoveryContributor('https://mtls.example.com/');
 
-        $extra = $contributor->contribute($config, 'tenant1');
+        $extra = $contributor->contribute($this->config(), 'tenant1');
 
         $this->assertSame(
             'https://mtls.example.com/openid/tenant1/token',

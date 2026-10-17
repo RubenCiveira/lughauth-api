@@ -213,7 +213,7 @@ final class MagicLinkDomainUnitTest extends TestCase
         };
 
         $codeGateway = new class () implements MagicLinkCodeGateway {
-            public function createAuthCode(string $userUid, string $clientId, string $scope, string $redirectUri, string $tenant, string $nonce = ''): string
+            public function createAuthCode(string $userUid, string $clientId, string $scope, string $redirectUri, string $tenant, string $nonce = '', ?string $sessionId = null): string
             {
                 return 'auth-code-test';
             }
