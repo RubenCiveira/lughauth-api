@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 
@@ -32,7 +31,6 @@ class UserPdoConnector
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
         private readonly SqlTemplate $db,
     ) {
     }
@@ -144,7 +142,7 @@ class UserPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'password', value: $entity->getCypheredPassword($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'password', value: $entity->getStoredPassword(), type: SqlParam::STR),
                      new SqlParam(name: 'email', value: $entity->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'welcomeAt', value: $entity->getWelcomeAt(), type: SqlParam::STR),
                      new SqlParam(name: 'emailVerified', value: $entity->isEmailVerified(), type: SqlParam::BOOL),
@@ -152,7 +150,7 @@ class UserPdoConnector
                      new SqlParam(name: 'approve', value: $entity->getApprove()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'temporalPassword', value: $entity->isTemporalPassword(), type: SqlParam::BOOL),
                      new SqlParam(name: 'useSecondFactors', value: $entity->isUseSecondFactors(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'secondFactorSeed', value: $entity->getCypheredSecondFactorSeed($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'secondFactorSeed', value: $entity->getStoredSecondFactorSeed(), type: SqlParam::STR),
                      new SqlParam(name: 'blockedUntil', value: $entity->getBlockedUntil(), type: SqlParam::STR),
                      new SqlParam(name: 'provider', value: $entity->getProvider(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -186,7 +184,7 @@ class UserPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'password', value: $update->getCypheredPassword($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'password', value: $update->getStoredPassword(), type: SqlParam::STR),
                      new SqlParam(name: 'email', value: $update->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'welcomeAt', value: $update->getWelcomeAt(), type: SqlParam::STR),
                      new SqlParam(name: 'emailVerified', value: $update->isEmailVerified(), type: SqlParam::BOOL),
@@ -194,7 +192,7 @@ class UserPdoConnector
                      new SqlParam(name: 'approve', value: $update->getApprove()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'temporalPassword', value: $update->isTemporalPassword(), type: SqlParam::BOOL),
                      new SqlParam(name: 'useSecondFactors', value: $update->isUseSecondFactors(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'secondFactorSeed', value: $update->getCypheredSecondFactorSeed($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'secondFactorSeed', value: $update->getStoredSecondFactorSeed(), type: SqlParam::STR),
                      new SqlParam(name: 'blockedUntil', value: $update->getBlockedUntil(), type: SqlParam::STR),
                      new SqlParam(name: 'provider', value: $update->getProvider(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
@@ -436,7 +434,7 @@ class UserPdoConnector
             if (null === $rawPassword) {
                 throw ConstraintException::ofError('not-null', ['password'], [null]);
             }
-            $password = UserPasswordVO::fromCypheredText($this->cypher, $rawPassword);
+            $password = UserPasswordVO::fromStoredText($rawPassword);
             $email = $row['email'] ?? null;
             $welcomeAt = $row['welcome_at'] ? new \DateTimeImmutable($row['welcome_at']) : null;
             $emailVerified = isset($row['email_verified']) ? !! $row['email_verified'] : null;
@@ -444,7 +442,7 @@ class UserPdoConnector
             $approve = isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty();
             $temporalPassword = isset($row['temporal_password']) ? !! $row['temporal_password'] : null;
             $useSecondFactors = isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null;
-            $secondFactorSeed = isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromCypheredText($this->cypher, $row['second_factor_seed']) : UserSecondFactorSeedVO::empty();
+            $secondFactorSeed = UserSecondFactorSeedVO::fromStoredText($row['second_factor_seed'] ?? null);
             $blockedUntil = $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null;
             $provider = $row['provider'] ?? null;
             $version = $row['version'] ?? null;

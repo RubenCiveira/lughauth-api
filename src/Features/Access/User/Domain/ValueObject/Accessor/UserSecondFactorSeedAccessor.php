@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 
 trait UserSecondFactorSeedAccessor
 {
@@ -19,13 +19,20 @@ trait UserSecondFactorSeedAccessor
     {
         return $this->_secondFactorSeed;
     }
-    public function getCypheredSecondFactorSeed(AesCypherService $cypher): ?string
+    public function getStoredSecondFactorSeed(): ?string
     {
-        return $this->_secondFactorSeed?->cypheredValueWith($cypher);
+        return $this->_secondFactorSeed?->storedValue();
     }
-    public function getPlainSecondFactorSeed(AesCypherService $cypher): ?string
+    /**
+     * The sealed value is bound to the entity uid, the owner.
+     */
+    public function getPlainSecondFactorSeed(ReversibleSecretStorage $storage): ?string
     {
-        return $this->_secondFactorSeed?->plainValueWith($cypher);
+        return $this->_secondFactorSeed?->plainValueWith($storage, (string) $this->uid());
+    }
+    public function secondFactorSeedNeedsReseal(ReversibleSecretStorage $storage): bool
+    {
+        return true === $this->_secondFactorSeed?->needsReseal($storage);
     }
     public function isSecondFactorSeedChanged(?self $original = null): bool
     {

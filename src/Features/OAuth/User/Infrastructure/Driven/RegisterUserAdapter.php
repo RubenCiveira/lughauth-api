@@ -10,7 +10,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -32,7 +32,7 @@ class RegisterUserAdapter implements RegisterUserGateway
         private readonly TenantConfigQueryRepositoryGateway $configs,
         private readonly UserCommandRepositoryGateway $repository,
         private readonly UserAccessTemporalCodeCommandRepositoryGateway $codes,
-        private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
         private readonly UserAcceptedTermsOfUseCommandRepositoryGateway $writerUserTerms,
         private readonly Random $randomizer,
     ) {
@@ -73,7 +73,7 @@ class RegisterUserAdapter implements RegisterUserGateway
                 uid:  $this->randomizer->comb(),
                 name: $email,
                 email: $email,
-                cypher: $this->cypher,
+                hasher: $this->hasher,
                 password: $password,
                 tenant: $theTenant
             ));
@@ -104,7 +104,7 @@ class RegisterUserAdapter implements RegisterUserGateway
                 return null;
             }
             $att = $theUser->toAttributes();
-            $att->password(UserPasswordVO::fromPlainText($this->cypher, $password));
+            $att->password(UserPasswordVO::fromPlainText($this->hasher, $password));
             $updated = $this->repository->update($theUser, $theUser->replace($att));
             $verify = md5($this->randomizer->comb());
             $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;

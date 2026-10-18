@@ -10,6 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Exception\BadRequestException;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeFilter;
@@ -49,6 +50,7 @@ class MfaAdapter implements MfaGateway
         private readonly UserCommandRepositoryGateway $repository,
         private readonly UserMfaGateway $mfaGateway,
         private readonly UserMfaRecoveryCodeCommandRepositoryGateway $recoveryWrite,
+        private readonly ReversibleSecretStorage $secrets,
     ) {
     }
 
@@ -121,7 +123,7 @@ class MfaAdapter implements MfaGateway
      * Clears the stored TOTP seed so the user is no longer challenged for a second factor.
      *
      * Persists the change through UserCommandRepositoryGateway::update() using the change-set returned
-     * by User::setMfaSeed(null, null).
+     * by User::setMfaSeed($secrets, null).
      */
     #[Override]
     public function disable(string $userUid, string $tenant): void
@@ -131,7 +133,7 @@ class MfaAdapter implements MfaGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $userUid);
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
-            $changed = $theUser->setMfaSeed(null, null);
+            $changed = $theUser->setMfaSeed($this->secrets, null);
             $this->repository->update($theUser, $changed);
         } catch (Throwable $ex) {
             $span->recordException($ex);

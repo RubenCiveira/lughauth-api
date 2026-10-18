@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserNameVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
@@ -36,7 +36,7 @@ class UserCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserCreateUsecase $createUsecase,
-        private readonly AesCypherService $cypherService,
+        private readonly PasswordHasher $passwordHasher,
     ) {
     }
     #[OA\Post(
@@ -97,7 +97,7 @@ class UserCreateController
             }
             $readPassword = $body['password'] ?? '******';
             if (null !== $readPassword && '******' !== $readPassword) {
-                $valuePassword = UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList);
+                $valuePassword = UserPasswordVO::tryFromPlainText($this->passwordHasher, $readPassword, $errorsList);
                 if (null !== $valuePassword) {
                     $value->password($valuePassword);
                 }

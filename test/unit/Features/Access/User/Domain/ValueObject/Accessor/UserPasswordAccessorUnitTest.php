@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserPasswordAccessor;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,7 +25,7 @@ class UserPasswordAccessorUnitTest extends TestCase
         $holder = new ImplWithUserPasswordAccessorUnitTest();
 
         // Act
-        $result = $holder->withPassword('cyphered://cypher');
+        $result = $holder->withPassword('$argon2id$v=19$m=65536,t=4,p=1$cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +41,7 @@ class UserPasswordAccessorUnitTest extends TestCase
         $holder = new ImplWithUserPasswordAccessorUnitTest();
 
         // Act
-        $result = $holder->withPassword('cyphered://cypher');
+        $result = $holder->withPassword('$argon2id$v=19$m=65536,t=4,p=1$cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -49,10 +50,10 @@ class UserPasswordAccessorUnitTest extends TestCase
     public function testChangedPassword(): void
     {
         // Arrange
-        $holder = new ImplWithUserPasswordAccessorUnitTest()->withPassword('cyphered://cypher');
-        $original = $holder->withPassword('cyphered://cypher');
-        $same = $holder->withPassword('cyphered://cypher');
-        $modified = $holder->withPassword('cyphered://ocyphered');
+        $holder = new ImplWithUserPasswordAccessorUnitTest()->withPassword('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $original = $holder->withPassword('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $same = $holder->withPassword('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $modified = $holder->withPassword('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
 
         // Act
         $withSame = $original->isPasswordChanged($same);
@@ -61,6 +62,23 @@ class UserPasswordAccessorUnitTest extends TestCase
         // Assert
         $this->assertFalse($withSame);
         $this->assertTrue($withDiferent);
+    }
+    public function testVerifyAndStoredPassword(): void
+    {
+        // Arrange
+        $hasher = new PasswordHasher(['memory_cost' => 1024, 'time_cost' => 1, 'threads' => 1]);
+        $stored = $hasher->hash('s3cret');
+        $holder = new ImplWithUserPasswordAccessorUnitTest()->withPassword($stored);
+
+        // Act
+        $right = $holder->verifyPassword($hasher, 's3cret');
+        $wrong = $holder->verifyPassword($hasher, 'other');
+
+        // Assert
+        $this->assertTrue($right);
+        $this->assertFalse($wrong);
+        $this->assertFalse($holder->passwordNeedsRehash($hasher));
+        $this->assertEquals($stored, $holder->getStoredPassword());
     }
 }
 class ImplWithUserPasswordAccessorUnitTest

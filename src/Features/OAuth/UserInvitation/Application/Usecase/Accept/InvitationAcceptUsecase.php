@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Accept
 
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -26,7 +26,7 @@ class InvitationAcceptUsecase
         private readonly UserInvitationSessionGateway $sessionGateway,
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly UserCommandRepositoryGateway $userWriter,
-        private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
     ) {
     }
 
@@ -56,7 +56,7 @@ class InvitationAcceptUsecase
                 uid: Random::comb(),
                 name: $invitation->getEmail(),
                 email: $invitation->getEmail(),
-                cypher: $this->cypher,
+                hasher: $this->hasher,
                 password: $params->password,
                 tenant: $tenantRef,
             )

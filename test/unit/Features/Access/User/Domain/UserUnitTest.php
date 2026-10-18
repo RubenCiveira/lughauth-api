@@ -5,7 +5,8 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -20,7 +21,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -28,7 +29,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -63,7 +64,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -71,7 +72,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -80,7 +81,7 @@ final class UserUnitTest extends TestCase
             uid: 'other',
             tenant: new TenantRef('other'),
             name: 'other',
-            password: 'cyphered://ocyphered',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$ocyphered',
             email: 'other@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             emailVerified: false,
@@ -88,7 +89,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::PENDING,
             temporalPassword: false,
             useSecondFactors: false,
-            secondFactorSeed: 'cyphered://ocyphered',
+            secondFactorSeed: 'sealed:k1:ocyphered',
             blockedUntil: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             provider: 'other',
             version: 2,
@@ -121,7 +122,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -129,7 +130,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -160,7 +161,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -168,7 +169,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -202,7 +203,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -210,7 +211,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -219,7 +220,7 @@ final class UserUnitTest extends TestCase
             uid: 'other',
             tenant: new TenantRef('other'),
             name: 'other',
-            password: 'cyphered://ocyphered',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$ocyphered',
             email: 'other@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             emailVerified: false,
@@ -227,7 +228,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::PENDING,
             temporalPassword: false,
             useSecondFactors: false,
-            secondFactorSeed: 'cyphered://ocyphered',
+            secondFactorSeed: 'sealed:k1:ocyphered',
             blockedUntil: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             provider: 'other',
             version: 2,
@@ -262,7 +263,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -270,7 +271,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -302,12 +303,13 @@ final class UserUnitTest extends TestCase
         $targetUid = 'other';
         $targetName = 'other';
         $targetEmail = 'other@fakemail.net';
-        $cypher = $this->createMock(AesCypherService::class);
-        $targetPassword = 'cyphered://ocyphered';
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->once())->method('hash')->with('plain-other')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
+        $targetPassword = 'plain-other';
         $targetTenant = new TenantRef('other');
 
         // @Act
-        $target = User::register($targetUid, $targetName, $targetEmail, $cypher, $targetPassword, $targetTenant);
+        $target = User::register($targetUid, $targetName, $targetEmail, $hasher, $targetPassword, $targetTenant);
 
         // @Assert
         $this->assertEquals('other', $target->uid());
@@ -323,7 +325,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -331,7 +333,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -355,7 +357,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -363,7 +365,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -387,7 +389,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -395,7 +397,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -419,7 +421,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -427,7 +429,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -451,7 +453,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -459,7 +461,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -483,7 +485,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -491,7 +493,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -515,7 +517,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -523,7 +525,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
@@ -547,7 +549,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -555,21 +557,24 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
         );
-        $cypher = $this->createMock(AesCypherService::class);
-        $sourceSecondFactorSeed = 'cyphered://cypher';
-        $targetSecondFactorSeed = 'cyphered://ocyphered';
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->once())->method('seal')
+            ->with('plain-seed', 'access.user.second_factor_seed#one')
+            ->willReturn('sealed:k1:ocyphered');
+        $sourceSecondFactorSeed = 'sealed:k1:cypher';
+        $targetSecondFactorSeed = 'plain-seed';
         $source = $source->withSecondFactorSeed($sourceSecondFactorSeed);
         $sourceUseSecondFactors = false;
         $targetUseSecondFactors = true;
         $source = $source->withUseSecondFactors($sourceUseSecondFactors);
 
         // @Act
-        $target = $source->setMfaSeed($cypher, $targetSecondFactorSeed);
+        $target = $source->setMfaSeed($storage, $targetSecondFactorSeed);
 
         // @Assert
         $this->assertEquals('****er', $source->getSecondFactorSeed());
@@ -586,7 +591,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -594,21 +599,22 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,
         );
-        $cypher = $this->createMock(AesCypherService::class);
-        $sourcePassword = 'cyphered://cypher';
-        $targetPassword = 'cyphered://ocyphered';
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->once())->method('hash')->with('plain-other')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
+        $sourcePassword = '$argon2id$v=19$m=65536,t=4,p=1$cypher';
+        $targetPassword = 'plain-other';
         $source = $source->withPassword($sourcePassword);
         $sourceTemporalPassword = true;
         $targetTemporalPassword = false;
         $source = $source->withTemporalPassword($sourceTemporalPassword);
 
         // @Act
-        $target = $source->changePassword($cypher, $targetPassword);
+        $target = $source->changePassword($hasher, $targetPassword);
 
         // @Assert
         $this->assertEquals('****er', $source->getPassword());
@@ -625,7 +631,7 @@ final class UserUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             name: 'one',
-            password: 'cyphered://cypher',
+            password: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             email: 'one@fakemail.net',
             welcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             emailVerified: true,
@@ -633,7 +639,7 @@ final class UserUnitTest extends TestCase
             approve: UserApproveOptions::UNVERIFIED,
             temporalPassword: true,
             useSecondFactors: true,
-            secondFactorSeed: 'cyphered://cypher',
+            secondFactorSeed: 'sealed:k1:cypher',
             blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             provider: 'one',
             version: 1,

@@ -56,7 +56,8 @@ use Civi\Lughauth\Features\Access\User\Domain\Event\UserSetMfaSeedEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserChangePasswordEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserVerifyEmailEvent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 
 class User extends UserRef
 {
@@ -166,13 +167,13 @@ class User extends UserRef
         $value->recordedEvents[] = new UserDeleteEvent($value);
         return $value;
     }
-    public static function register(string $uid, string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
+    public static function register(string $uid, string $name, string|null $email, PasswordHasher $hasher, string $password, TenantRef $tenant): User
     {
         $attributes = new UserAttributes();
         $attributes->uid(UserUidVO::from($uid));
         $attributes->name(UserNameVO::from($name));
         $attributes->email(UserEmailVO::from($email));
-        $attributes->password(UserPasswordVO::fromPlainText($cypher, $password));
+        $attributes->password(UserPasswordVO::fromPlainText($hasher, $password));
         $attributes->tenant(UserTenantVO::from($tenant));
         $attributes->enabled(UserEnabledVO::from(true));
         $attributes->approve(UserApproveVO::from(UserApproveOptions::UNVERIFIED));
@@ -234,21 +235,21 @@ class User extends UserRef
         $value->recordedEvents[] = new UserBlockEvent($value, original: $this);
         return $value;
     }
-    public function setMfaSeed(AesCypherService $cypher, string|null $secondFactorSeed): User
+    public function setMfaSeed(ReversibleSecretStorage $storage, string|null $secondFactorSeed): User
     {
         $value = clone $this;
         if (null === $secondFactorSeed) {
             $value->_secondFactorSeed = UserSecondFactorSeedVO::empty();
         } else {
-            $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($cypher, $secondFactorSeed);
+            $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($storage, (string) $this->uid(), $secondFactorSeed);
         }    $value->_useSecondFactors = UserUseSecondFactorsVO::from(true);
         $value->recordedEvents[] = new UserSetMfaSeedEvent($value, original: $this);
         return $value;
     }
-    public function changePassword(AesCypherService $cypher, string $password): User
+    public function changePassword(PasswordHasher $hasher, string $password): User
     {
         $value = clone $this;
-        $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
+        $value->_password = UserPasswordVO::fromPlainText($hasher, $password);
         $value->_temporalPassword = UserTemporalPasswordVO::from(false);
         $value->recordedEvents[] = new UserChangePasswordEvent($value, original: $this);
         return $value;

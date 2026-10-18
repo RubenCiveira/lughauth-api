@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 
 trait UserPasswordAccessor
 {
@@ -19,13 +19,17 @@ trait UserPasswordAccessor
     {
         return $this->_password;
     }
-    public function getCypheredPassword(AesCypherService $cypher): string
+    public function getStoredPassword(): string
     {
-        return $this->_password->cypheredValueWith($cypher);
+        return $this->_password->storedValue();
     }
-    public function getPlainPassword(AesCypherService $cypher): string
+    public function verifyPassword(PasswordHasher $hasher, string $plain): bool
     {
-        return $this->_password->plainValueWith($cypher);
+        return $this->_password->verify($hasher, $plain);
+    }
+    public function passwordNeedsRehash(PasswordHasher $hasher): bool
+    {
+        return $this->_password->needsRehash($hasher);
     }
     public function isPasswordChanged(?self $original = null): bool
     {

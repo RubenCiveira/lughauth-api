@@ -6,32 +6,50 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
+/**
+ * private-content="sealed": the value is kept sealed by a ReversibleSecretStorage, bound to these
+ * field and to the owner entity, and can be opened only through the storage.
+ */
 class UserSecondFactorSeedVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): UserSecondFactorSeedVO
+    /**
+     * Context bound to the sealed value: module.entity.field
+     */
+    private const string CONTEXT = 'access.user.second_factor_seed';
+
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(?string $value): UserSecondFactorSeedVO
     {
-        return self::from('cyphered://' . $value);
+        return $value ? self::from($value) : self::empty();
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): UserSecondFactorSeedVO
+    public static function fromPlainText(ReversibleSecretStorage $storage, string $owner, string $value): UserSecondFactorSeedVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($storage, $owner, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserSecondFactorSeedVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
+    public static function tryFromPlainText(ReversibleSecretStorage $storage, string $owner, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
-    }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
-    {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
-    }
-    private static function isCyphered(string $value): bool
-    {
-        return strpos($value, 'cyphered://') === 0;
+        // The rules are checked against the plain text, never against the sealed value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('secondFactorSeed', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserSecondFactorSeedVO($storage->seal($value, self::context($owner))) : null;
     }
     public static function empty(): UserSecondFactorSeedVO
     {
@@ -41,23 +59,18 @@ class UserSecondFactorSeedVO
     {
         return self::fromUnsafe($value);
     }
+    /**
+     * A string value must be an already sealed value, never a plain one.
+     */
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
         if ($value instanceof UserSecondFactorSeedVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new UserSecondFactorSeedVO($value);
+            return new UserSecondFactorSeedVO(null);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('secondFactorSeed', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserSecondFactorSeedVO($value) : null;
+            return new UserSecondFactorSeedVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['secondFactorSeed'], [$value], ['string']));
             return null;
@@ -85,43 +98,53 @@ class UserSecondFactorSeedVO
             return $candidate;
         }
     }
+    private static function isSealed(string $value): bool
+    {
+        return str_starts_with($value, ReversibleSecretStorage::SEALED_PREFIX);
+    }
+    private static function context(string $owner): string
+    {
+        return self::CONTEXT . '#' . $owner;
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
         private readonly ?string $secondFactorSeed
     ) {
-        $this->validateCyphered($this->secondFactorSeed);
+        if (null !== $this->secondFactorSeed && !self::isSealed($this->secondFactorSeed)) {
+            throw new InvalidArgumentException('secondFactorSeed is not a valid sealed text');
+        }
     }
     public function equals(?UserSecondFactorSeedVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(?string $key): void
-    {
-        if (null !== $key &&  strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
+        if (null === $other) {
+            return false;
         }
+        return null === $this->secondFactorSeed || null === $other->secondFactorSeed
+            ? $this->secondFactorSeed === $other->secondFactorSeed
+            : hash_equals($this->secondFactorSeed, $other->secondFactorSeed);
     }
     public function value(): ?string
     {
         return null !== $this->secondFactorSeed ? "****" . substr($this->secondFactorSeed, -2) : null;
     }
-    public function cypheredValueWith(AesCypherService $cypher): ?string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): ?string
     {
-        return null === $this->secondFactorSeed ? null : substr($this->secondFactorSeed, 11);
+        return $this->secondFactorSeed;
     }
-    public function plainValueWith(AesCypherService $cypher): ?string
+    /**
+     * @param string $owner The identifier of the entity that owns the value (it is part of the sealed context).
+     */
+    public function plainValueWith(ReversibleSecretStorage $storage, string $owner): ?string
     {
-        return null === $this->secondFactorSeed ? null : $this->decrypt($cypher, $this->secondFactorSeed);
+        return null === $this->secondFactorSeed ? null : $storage->open($this->secondFactorSeed, self::context($owner));
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsReseal(ReversibleSecretStorage $storage): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return null !== $this->secondFactorSeed && $storage->needsReseal($this->secondFactorSeed);
     }
 }

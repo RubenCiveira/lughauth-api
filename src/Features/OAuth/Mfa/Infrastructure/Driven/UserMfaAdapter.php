@@ -6,15 +6,19 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Mfa\Infrastructure\Driven;
 
 use Override;
+use Throwable;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider; // if using Endroid
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 
 /**
  * Infrastructure adapter implementing UserMfaGateway using the RobThree TwoFactorAuth library.
@@ -23,17 +27,20 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
  * the RobThree/TwoFactorAuth package. It resolves tenant and user entities from their respective
  * read/write gateways before delegating TOTP operations to a TwoFactorAuth instance, ensuring
  * that all operations are correctly scoped to the right tenant and user. The TOTP seed stored
- * in the user record is encrypted at rest using AesCypherService and is decrypted on-the-fly
- * only when needed for verification, so the raw secret is never persisted in plain text.
+ * in the user record is sealed at rest by ReversibleSecretStorage (bound to the user) and is
+ * opened on-the-fly only when needed for verification, so the raw secret is never persisted in
+ * plain text. Seeds sealed with an old key are resealed with the current one after a valid OTP.
  * The QR code image is generated via EndroidQrCodeProvider and embedded as a data URI.
  */
 class UserMfaAdapter implements UserMfaGateway
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly TenantConfigQueryRepositoryGateway $configs,
         private readonly UserCommandRepositoryGateway $usersWriter,
-        private readonly AesCypherService $cypher
+        private readonly ReversibleSecretStorage $secrets
     ) {
     }
 
@@ -82,8 +89,12 @@ class UserMfaAdapter implements UserMfaGateway
             throw new NotFoundException('tenant ' . $username);
         }
         $delegated = new TwoFactorAuth(new EndroidQrCodeProvider());
-        $secret = $theUser->getPlainSecondFactorSeed($this->cypher) ?? '';
-        return $delegated->verifyCode($secret, $otp);
+        $secret = $theUser->getPlainSecondFactorSeed($this->secrets) ?? '';
+        $valid = $delegated->verifyCode($secret, $otp);
+        if ($valid) {
+            $this->resealIfNeeded($theUser, $secret);
+        }
+        return $valid;
     }
 
     /**
@@ -112,6 +123,23 @@ class UserMfaAdapter implements UserMfaGateway
         if (!$theUser) {
             throw new NotFoundException('tenant ' . $username);
         }
-        $this->usersWriter->update($theUser, $theUser->setMfaSeed($this->cypher, $seed));
+        $this->usersWriter->update($theUser, $theUser->setMfaSeed($this->secrets, $seed));
+    }
+
+    /**
+     * Moves an old-key seed to the current key; withSecondFactorSeed records no event.
+     * A failure does not invalidate the OTP already verified: it will be retried on the next one.
+     */
+    private function resealIfNeeded(User $user, string $seed): void
+    {
+        if (!$user->secondFactorSeedNeedsReseal($this->secrets)) {
+            return;
+        }
+        try {
+            $resealed = UserSecondFactorSeedVO::fromPlainText($this->secrets, (string) $user->uid(), $seed);
+            $this->usersWriter->update($user, $user->withSecondFactorSeed($resealed));
+        } catch (Throwable $ex) {
+            $this->logWarning('MFA seed reseal error', ['username' => $user->getName(), 'error' => $ex->getMessage()]);
+        }
     }
 }

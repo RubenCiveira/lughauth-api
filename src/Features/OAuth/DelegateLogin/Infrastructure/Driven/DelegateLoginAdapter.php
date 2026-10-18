@@ -9,7 +9,7 @@ use Override;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderQueryRepositoryGateway;
@@ -53,7 +53,7 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         private readonly UserLoaderAdapter $userLoader,
         private readonly UserCommandRepositoryGateway $users,
         private readonly LoginGateway $login,
-        private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
         private readonly TenantLoginProviderQueryRepositoryGateway $loginProviders
     ) {
     }
@@ -85,7 +85,7 @@ class DelegateLoginAdapter implements DelegateLoginGateway
             $attr->name($user->email);
             $attr->provider($existent->getSource()->value);
             $attr->tenant($theTenant);
-            $attr->password(UserPasswordVO::fromPlainText($this->cypher, Random::password()));
+            $attr->password(UserPasswordVO::fromPlainText($this->hasher, Random::password()));
             $prev = $this->users->create(User::create($attr));
             if ($enabled) {
                 $this->users->update($prev, $prev->enable());

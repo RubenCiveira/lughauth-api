@@ -6,52 +6,59 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
+/**
+ * private-content="password-hash": only a one-way hash is kept, there is no way to get the plain value back.
+ */
 class UserPasswordVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): UserPasswordVO
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): UserPasswordVO
     {
-        return self::from('cyphered://' . $value);
+        return self::from($value);
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): UserPasswordVO
+    public static function fromPlainText(PasswordHasher $hasher, string $value): UserPasswordVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($hasher, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserPasswordVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserPasswordVO
+    public static function tryFromPlainText(PasswordHasher $hasher, string $value, ConstraintFailList $list): ?UserPasswordVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
-    }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserPasswordVO
-    {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
-    }
-    private static function isCyphered(string $value): bool
-    {
-        return strpos($value, 'cyphered://') === 0;
+        // The rules are checked against the plain text, never against the hash
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('password', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserPasswordVO($hasher->hash($value)) : null;
     }
     public static function from(UserPasswordVO|string $value): UserPasswordVO
     {
         return self::fromUnsafe($value);
     }
+    /**
+     * A string value must be an already hashed value, never a plain password.
+     */
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserPasswordVO
     {
         if ($value instanceof UserPasswordVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('password', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserPasswordVO($value) : null;
+            return new UserPasswordVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['password'], [$value], ['string']));
             return null;
@@ -85,37 +92,34 @@ class UserPasswordVO
     private function __construct(
         private readonly string $password
     ) {
-        $this->validateCyphered($this->password);
+        if (!PasswordHasher::isSupported($this->password)) {
+            throw new InvalidArgumentException('password is not a valid hash');
+        }
     }
     public function equals(?UserPasswordVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(string $key): void
-    {
-        if (strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
-        }
+        return null !== $other && hash_equals($this->password, $other->password);
     }
     public function value(): string
     {
         return "****" . substr($this->password, -2);
     }
-    public function cypheredValueWith(AesCypherService $cypher): string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
     {
-        return substr($this->password, 11);
+        return $this->password;
     }
-    public function plainValueWith(AesCypherService $cypher): string
+    /**
+     * Constant time comparation of a plain candidate with the stored hash.
+     */
+    public function verify(PasswordHasher $hasher, string $plain): bool
     {
-        return $this->decrypt($cypher, $this->password);
+        return $hasher->verify($plain, $this->password);
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsRehash(PasswordHasher $hasher): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return $hasher->needsRehash($this->password);
     }
 }

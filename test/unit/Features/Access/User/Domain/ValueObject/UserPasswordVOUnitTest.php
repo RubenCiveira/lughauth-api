@@ -7,17 +7,18 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[AllowMockObjectsWithoutExpectations]
 final class UserPasswordVOUnitTest extends TestCase
 {
+    private const string HASH = '$argon2id$v=19$m=65536,t=4,p=1$hashed';
+
     public function test_asignation_keep_value(): void
     {
-        $value = 'cyphered://cypher';
-        $ref = UserPasswordVO::from($value);
-        $this->assertEquals('****er', $ref->value());
+        $ref = UserPasswordVO::from(self::HASH);
+        $this->assertEquals('****ed', $ref->value());
         $other = UserPasswordVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserPasswordVO::from($ref);
@@ -38,73 +39,69 @@ final class UserPasswordVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = UserPasswordVO::from('cyphered://cypher');
-        $same = UserPasswordVO::from('cyphered://cypher');
-        $other = UserPasswordVO::from('cyphered://ocyphered');
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+        $one = UserPasswordVO::from(self::HASH);
+        $same = UserPasswordVO::from(self::HASH);
+        $other = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$other');
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
+        $this->assertFalse($one->equals(null));
+        $this->assertTrue($one->equals($same));
+        $this->assertFalse($one->equals($other));
     }
-    public function test_cypher_builders(): void
+    public function test_stored_builders(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
+        $hash = UserPasswordVO::fromStoredText(self::HASH);
+        $this->assertEquals(self::HASH, $hash->storedValue());
+    }
+    public function test_stored_unhashed_value_has_error(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        UserPasswordVO::fromStoredText('cyphered://gold');
+    }
+    public function test_plain_builders_hash_the_value(): void
+    {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->exactly(2))->method('hash')->with('gold')->willReturn(self::HASH);
         $errors = new ConstraintFailList();
-        $value = UserPasswordVO::fromCypheredText($aes, 'gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserPasswordVO::tryFromCypheredText($aes, 'gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $value = UserPasswordVO::fromPlainText($hasher, 'gold');
+        $this->assertEquals(self::HASH, $value->storedValue());
+        $value = UserPasswordVO::tryFromPlainText($hasher, 'gold', $errors);
+        $this->assertEquals(self::HASH, $value?->storedValue());
         $this->assertTrue($errors->isEmpty());
     }
-    public function test_plain_but_cypher_builders(): void
+    public function test_plain_builders_never_trust_stored_formats(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = UserPasswordVO::fromPlainText($aes, 'cyphered://gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserPasswordVO::tryFromPlainText($aes, 'cyphered://gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->once())->method('hash')->with('cyphered://gold')->willReturn(self::HASH);
+        $value = UserPasswordVO::fromPlainText($hasher, 'cyphered://gold');
+        $this->assertEquals(self::HASH, $value->storedValue());
     }
-    public function test_plain_builders(): void
+    public function test_verify_and_rehash_delegate_on_hasher(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = UserPasswordVO::fromPlainText($aes, 'gold');
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserPasswordVO::tryFromPlainText($aes, 'gold', $errors);
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->method('verify')->willReturnCallback(fn (string $plain, string $stored) => 'gold' === $plain && self::HASH === $stored);
+        $hasher->expects($this->once())->method('needsRehash')->with(self::HASH)->willReturn(false);
+        $value = UserPasswordVO::from(self::HASH);
+        $this->assertTrue($value->verify($hasher, 'gold'));
+        $this->assertFalse($value->verify($hasher, 'silver'));
+        $this->assertFalse($value->needsRehash($hasher));
     }
-    public function test_uncypgere_build_has_error(): void
+    public function test_unhashed_build_has_error(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         UserPasswordVO::from('none');
     }
-    public function test_exception_on_wrong_value_1(): void
+    public function test_exception_on_wrong_plain_value(): void
     {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->never())->method('hash');
         $this->expectException(ConstraintException::class);
-        UserPasswordVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        UserPasswordVO::fromPlainText($hasher, str_repeat('x', 251));
+    }
+    public function test_try_on_wrong_plain_value_appends_errors(): void
+    {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $errors = new ConstraintFailList();
+        $this->assertNull(UserPasswordVO::tryFromPlainText($hasher, str_repeat('x', 251), $errors));
+        $this->assertTrue($errors->hasErrors());
     }
 }

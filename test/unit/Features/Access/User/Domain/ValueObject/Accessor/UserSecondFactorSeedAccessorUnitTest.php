@@ -24,7 +24,7 @@ class UserSecondFactorSeedAccessorUnitTest extends TestCase
         $holder = new ImplWithUserSecondFactorSeedAccessorUnitTest();
 
         // Act
-        $result = $holder->withSecondFactorSeed('cyphered://cypher');
+        $result = $holder->withSecondFactorSeed('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class UserSecondFactorSeedAccessorUnitTest extends TestCase
         $holder = new ImplWithUserSecondFactorSeedAccessorUnitTest();
 
         // Act
-        $result = $holder->withSecondFactorSeed('cyphered://cypher');
+        $result = $holder->withSecondFactorSeed('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -50,9 +50,9 @@ class UserSecondFactorSeedAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserSecondFactorSeedAccessorUnitTest();
-        $original = $holder->withSecondFactorSeed('cyphered://cypher');
-        $same = $holder->withSecondFactorSeed('cyphered://cypher');
-        $modified = $holder->withSecondFactorSeed('cyphered://ocyphered');
+        $original = $holder->withSecondFactorSeed('sealed:k1:cypher');
+        $same = $holder->withSecondFactorSeed('sealed:k1:cypher');
+        $modified = $holder->withSecondFactorSeed('sealed:k1:ocyphered');
 
         // Act
         $unchanged = $holder->isSecondFactorSeedChanged();

@@ -9,10 +9,11 @@ use Override;
 use Throwable;
 use DateInterval;
 use DateTimeImmutable;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
@@ -39,7 +40,7 @@ class LoginAdapter implements LoginGateway
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigQueryRepositoryGateway $configs,
         private readonly UserAcceptedTermsOfUseQueryRepositoryGateway $userTerms,
@@ -151,7 +152,7 @@ class LoginAdapter implements LoginGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUser($theTenant, $username);
-            $this->checkPassword($theTenant, $theUser, $password);
+            $theUser = $this->checkPassword($theTenant, $theUser, $password);
             if ($temp = $this->checkTemporalPassword($theTenant, $theUser)) {
                 $this->logInfo('OIDC login requires password change', ['tenant' => $tenant, 'username' => $username]);
                 return $temp;
@@ -198,13 +199,30 @@ class LoginAdapter implements LoginGateway
     }
 
     /**
-     * @return void
+     * Verifies the password in constant time and, when the stored hash was built with old options,
+     * replaces it with a fresh one (the plain password is only known at this point).
      */
-    private function checkPassword(Tenant $tenant, User $user, string $password): void
+    private function checkPassword(Tenant $tenant, User $user, string $password): User
     {
-        if ($user->getPlainPassword($this->cypher) !== $password) {
+        if (!$user->verifyPassword($this->hasher, $password)) {
             $this->markLoginFail($user);
             throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant->getName(), $user->getName()));
+        }
+        return $this->rehashPasswordIfNeeded($tenant, $user, $password);
+    }
+
+    private function rehashPasswordIfNeeded(Tenant $tenant, User $user, string $password): User
+    {
+        if (!$user->passwordNeedsRehash($this->hasher)) {
+            return $user;
+        }
+        try {
+            // withPassword does not record a change password event: the password is the same
+            return $this->writeUsers->update($user, $user->withPassword(UserPasswordVO::fromPlainText($this->hasher, $password)));
+        } catch (Throwable $ex) {
+            // A failed rehash must not block the login: it will be retried on the next one
+            $this->logWarning('OIDC login password rehash error', ['tenant' => $tenant->getName(), 'username' => $user->getName(), 'error' => $ex->getMessage()]);
+            return $user;
         }
     }
 

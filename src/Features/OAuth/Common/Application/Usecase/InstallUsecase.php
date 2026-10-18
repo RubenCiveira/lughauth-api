@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase;
 
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
@@ -71,6 +72,7 @@ class InstallUsecase
     public function __construct(
         private readonly SqlTemplate $template,
         private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
         private readonly RelyingPartyCommandRepositoryGateway $createReling,
         private readonly TrustedClientCommandRepositoryGateway $createTruted,
         private readonly TenantCommandRepositoryGateway $createTenant,
@@ -168,7 +170,7 @@ class InstallUsecase
         $user->uid(Random::comb());
         $user->name("ROOT");
         $user->tenant($createdTenant);
-        $user->password(UserPasswordVO::fromPlainText($this->cypher, $password));
+        $user->password(UserPasswordVO::fromPlainText($this->hasher, $password));
         $user->enabled(true);
         $created = $this->createUser->create(User::create($user));
         $this->createUser->update($created, $created->enable());

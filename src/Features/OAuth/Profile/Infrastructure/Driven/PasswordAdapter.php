@@ -9,7 +9,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
@@ -19,10 +19,10 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasswordGateway;
 /**
  * Infrastructure adapter that implements PasswordGateway for authenticated user self-service password changes.
  *
- * This adapter resolves the tenant and user entities via UserLoaderAdapter, decrypts the
- * currently stored password using AesCypherService, and compares it with the old password
- * supplied by the user.  Only if the comparison succeeds is the new password encrypted and
- * persisted through UserCommandRepositoryGateway::update().
+ * This adapter resolves the tenant and user entities via UserLoaderAdapter and verifies the
+ * old password supplied by the user against the stored hash with PasswordHasher (constant
+ * time).  Only if the verification succeeds is the new password hashed and persisted through
+ * UserCommandRepositoryGateway::update().
  *
  * A LoginException carrying the "wrong_old_pass" error code is thrown when the old password
  * does not match, allowing the calling controller to surface a specific, user-friendly message
@@ -39,15 +39,15 @@ class PasswordAdapter implements PasswordGateway
     public function __construct(
         private readonly UserLoaderAdapter $users,
         private readonly UserCommandRepositoryGateway $repository,
-        private readonly AesCypherService $cypher,
+        private readonly PasswordHasher $hasher,
     ) {
     }
 
     /**
      * Changes the password for the given user after verifying the current one.
      *
-     * Decrypts the stored password and compares it to oldPass; throws LoginException on
-     * mismatch.  On success the new password is encrypted and saved, and true is returned.
+     * Verifies oldPass against the stored hash in constant time; throws LoginException on
+     * mismatch.  On success the new password is hashed and saved, and true is returned.
      */
     #[Override]
     public function changePassword(string $userUid, string $tenant, string $oldPass, string $newPass): bool
@@ -57,10 +57,10 @@ class PasswordAdapter implements PasswordGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $userUid);
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
-            if ($oldPass !== $theUser->getPlainPassword($this->cypher)) {
+            if (!$theUser->verifyPassword($this->hasher, $oldPass)) {
                 throw new LoginException(AuthenticationResult::newPasswordRequired('wrong_old_pass'));
             }
-            $changed = $theUser->changePassword($this->cypher, $newPass);
+            $changed = $theUser->changePassword($this->hasher, $newPass);
             return !!$this->repository->update($theUser, $changed);
         } catch (Throwable $ex) {
             $span->recordException($ex);
