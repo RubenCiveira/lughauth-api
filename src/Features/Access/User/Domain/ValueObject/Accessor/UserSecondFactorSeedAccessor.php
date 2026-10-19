@@ -23,9 +23,6 @@ trait UserSecondFactorSeedAccessor
     {
         return $this->_secondFactorSeed?->storedValue();
     }
-    /**
-     * The sealed value is bound to the entity uid, the owner.
-     */
     public function getPlainSecondFactorSeed(ReversibleSecretStorage $storage): ?string
     {
         return $this->_secondFactorSeed?->plainValueWith($storage, (string) $this->uid());

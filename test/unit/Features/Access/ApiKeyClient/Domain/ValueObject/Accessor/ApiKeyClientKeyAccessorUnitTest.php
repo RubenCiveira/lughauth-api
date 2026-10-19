@@ -24,11 +24,11 @@ class ApiKeyClientKeyAccessorUnitTest extends TestCase
         $holder = new ImplWithApiKeyClientKeyAccessorUnitTest();
 
         // Act
-        $result = $holder->withKey('one');
+        $result = $holder->withKey('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getKey());
+        $this->assertEquals('****er', $result->getKey());
     }
     /**
      * Asserts that withkey has access to the value object
@@ -40,19 +40,19 @@ class ApiKeyClientKeyAccessorUnitTest extends TestCase
         $holder = new ImplWithApiKeyClientKeyAccessorUnitTest();
 
         // Act
-        $result = $holder->withKey('one');
+        $result = $holder->withKey('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->key()->value());
+        $this->assertEquals('****er', $result->key()->value());
     }
     public function testChangedKey(): void
     {
         // Arrange
         $holder = new ImplWithApiKeyClientKeyAccessorUnitTest();
-        $original = $holder->withKey('one');
-        $same = $holder->withKey('one');
-        $modified = $holder->withKey('other');
+        $original = $holder->withKey('hmac-sha256:p1:cypher');
+        $same = $holder->withKey('hmac-sha256:p1:cypher');
+        $modified = $holder->withKey('hmac-sha256:p1:ocyphered');
 
         // Act
         $unchanged = $holder->isKeyChanged();

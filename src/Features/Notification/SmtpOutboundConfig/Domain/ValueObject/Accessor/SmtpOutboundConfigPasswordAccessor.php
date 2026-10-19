@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 
 trait SmtpOutboundConfigPasswordAccessor
 {
@@ -19,13 +19,17 @@ trait SmtpOutboundConfigPasswordAccessor
     {
         return $this->_password;
     }
-    public function getCypheredPassword(AesCypherService $cypher): string
+    public function getStoredPassword(): string
     {
-        return $this->_password->cypheredValueWith($cypher);
+        return $this->_password->storedValue();
     }
-    public function getPlainPassword(AesCypherService $cypher): string
+    public function getPlainPassword(ReversibleSecretStorage $storage): string
     {
-        return $this->_password->plainValueWith($cypher);
+        return $this->_password->plainValueWith($storage, (string) $this->uid());
+    }
+    public function passwordNeedsReseal(ReversibleSecretStorage $storage): bool
+    {
+        return true === $this->_password->needsReseal($storage);
     }
     public function isPasswordChanged(?self $original = null): bool
     {

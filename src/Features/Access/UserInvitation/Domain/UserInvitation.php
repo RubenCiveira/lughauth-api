@@ -128,7 +128,6 @@ class UserInvitation extends UserInvitationRef
         $data['email'] = $this->getEmail();
         $data['roles'] = $this->getRoles();
         $data['invitedBy'] = [ '$ref' => $this->getInvitedBy()->uid() ];
-        $data['tokenHash'] = $this->getTokenHash();
         $data['metadataJson'] = $this->getMetadataJson();
         $data['status'] = $this->getStatus();
         $data['createdAt'] = $this->getCreatedAt();

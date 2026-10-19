@@ -24,7 +24,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest extends TestCas
         $holder = new ImplWithUserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest();
 
         // Act
-        $result = $holder->withTempSecondFactorSeed('cyphered://cypher');
+        $result = $holder->withTempSecondFactorSeed('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest extends TestCas
         $holder = new ImplWithUserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest();
 
         // Act
-        $result = $holder->withTempSecondFactorSeed('cyphered://cypher');
+        $result = $holder->withTempSecondFactorSeed('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -50,9 +50,9 @@ class UserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest extends TestCas
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest();
-        $original = $holder->withTempSecondFactorSeed('cyphered://cypher');
-        $same = $holder->withTempSecondFactorSeed('cyphered://cypher');
-        $modified = $holder->withTempSecondFactorSeed('cyphered://ocyphered');
+        $original = $holder->withTempSecondFactorSeed('sealed:k1:cypher');
+        $same = $holder->withTempSecondFactorSeed('sealed:k1:cypher');
+        $modified = $holder->withTempSecondFactorSeed('sealed:k1:ocyphered');
 
         // Act
         $unchanged = $holder->isTempSecondFactorSeedChanged();

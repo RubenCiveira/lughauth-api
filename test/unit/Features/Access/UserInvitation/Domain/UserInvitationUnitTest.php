@@ -20,7 +20,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
@@ -71,7 +71,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
@@ -86,7 +86,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'other',
             roles: 'other',
             invitedBy: new UserRef('other'),
-            tokenHash: 'other',
+            tokenHash: 'hmac-sha256:p1:ocyphered',
             metadataJson: 'other',
             status: UserInvitationStatusOptions::ACCEPTED,
             createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
@@ -135,7 +135,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
@@ -154,7 +154,6 @@ final class UserInvitationUnitTest extends TestCase
         $this->assertEquals('one', $json['email']);
         $this->assertEquals('one', $json['roles']);
         $this->assertEquals('one', $json['invitedBy']['$ref']);
-        $this->assertEquals('one', $json['tokenHash']);
         $this->assertEquals(UserInvitationStatusOptions::PENDING, $json['status']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['createdAt']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['expiredAt']);
@@ -171,7 +170,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
@@ -221,7 +220,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
@@ -236,7 +235,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'other',
             roles: 'other',
             invitedBy: new UserRef('other'),
-            tokenHash: 'other',
+            tokenHash: 'hmac-sha256:p1:ocyphered',
             metadataJson: 'other',
             status: UserInvitationStatusOptions::ACCEPTED,
             createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
@@ -287,7 +286,7 @@ final class UserInvitationUnitTest extends TestCase
             email: 'one',
             roles: 'one',
             invitedBy: new UserRef('one'),
-            tokenHash: 'one',
+            tokenHash: 'hmac-sha256:p1:cypher',
             metadataJson: 'one',
             status: UserInvitationStatusOptions::PENDING,
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),

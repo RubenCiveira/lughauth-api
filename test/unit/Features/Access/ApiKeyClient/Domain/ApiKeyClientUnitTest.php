@@ -14,7 +14,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $one = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -42,7 +42,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $base = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -50,7 +50,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $other = new ApiKeyClient(
             uid: 'other',
             code: 'other',
-            key: 'other',
+            key: 'hmac-sha256:p1:ocyphered',
             enabled: false,
             scopes: 'other',
             version: 2,
@@ -76,7 +76,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $one = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -88,7 +88,6 @@ final class ApiKeyClientUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['code']);
-        $this->assertEquals('one', $json['key']);
         $this->assertEquals(true, $json['enabled']);
         $this->assertEquals('one', $json['scopes']);
         $this->assertEquals(1, $json['version']);
@@ -99,7 +98,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $one = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -126,7 +125,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $base = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -134,7 +133,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $other = new ApiKeyClient(
             uid: 'other',
             code: 'other',
-            key: 'other',
+            key: 'hmac-sha256:p1:ocyphered',
             enabled: false,
             scopes: 'other',
             version: 2,
@@ -162,7 +161,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $one = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -188,7 +187,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $source = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,
@@ -211,7 +210,7 @@ final class ApiKeyClientUnitTest extends TestCase
         $source = new ApiKeyClient(
             uid: 'one',
             code: 'one',
-            key: 'one',
+            key: 'hmac-sha256:p1:cypher',
             enabled: true,
             scopes: 'one',
             version: 1,

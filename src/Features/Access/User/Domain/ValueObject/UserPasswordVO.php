@@ -11,9 +11,6 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
-/**
- * private-content="password-hash": only a one-way hash is kept, there is no way to get the plain value back.
- */
 class UserPasswordVO
 {
     /**
@@ -35,7 +32,7 @@ class UserPasswordVO
     }
     public static function tryFromPlainText(PasswordHasher $hasher, string $value, ConstraintFailList $list): ?UserPasswordVO
     {
-        // The rules are checked against the plain text, never against the hash
+        // The rules are checked against the plain text, never against the protected value
         $valid = true;
         foreach (self::rules() as $rule) {
             if ($fail = $rule->check($value)) {
@@ -49,15 +46,13 @@ class UserPasswordVO
     {
         return self::fromUnsafe($value);
     }
-    /**
-     * A string value must be an already hashed value, never a plain password.
-     */
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserPasswordVO
     {
         if ($value instanceof UserPasswordVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
+            // A string is the stored (protected) value: the rules only apply to the plain text
             return new UserPasswordVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['password'], [$value], ['string']));

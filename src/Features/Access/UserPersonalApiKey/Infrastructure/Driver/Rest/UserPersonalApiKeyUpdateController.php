@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPers
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyNameVO;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyKeyHashVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyScopesVO;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyExpiresAtVO;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyVersionVO;
@@ -35,6 +36,7 @@ class UserPersonalApiKeyUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserPersonalApiKeyUpdateUsecase $updateUsecase,
+        private readonly SecretDigester $digesterService,
     ) {
     }
     #[OA\Put(
@@ -103,9 +105,12 @@ class UserPersonalApiKeyUpdateController
             if (null !== $valueName) {
                 $value->name($valueName);
             }
-            $valueKeyHash = UserPersonalApiKeyKeyHashVO::tryFrom($body['keyHash'] ?? null, $errorsList);
-            if (null !== $valueKeyHash) {
-                $value->keyHash($valueKeyHash);
+            $readKeyHash = $body['keyHash'] ?? '******';
+            if (null !== $readKeyHash && '******' !== $readKeyHash) {
+                $valueKeyHash = UserPersonalApiKeyKeyHashVO::tryFromPlainText($this->digesterService, $readKeyHash, $errorsList);
+                if (null !== $valueKeyHash) {
+                    $value->keyHash($valueKeyHash);
+                }
             }
             $valueScopes = UserPersonalApiKeyScopesVO::tryFrom($body['scopes'] ?? null, $errorsList);
             if (null !== $valueScopes) {
@@ -134,7 +139,7 @@ class UserPersonalApiKeyUpdateController
             $dto->uid = $value->getUid();
             $dto->user = $user ? ['$ref' => $user->uid()] : null;
             $dto->name = $value->getName();
-            $dto->keyHash = $value->getKeyHash();
+            $dto->keyHash = '******';
             $dto->scopes = $value->getScopes();
             $dto->lastUsedAt = $value->getLastUsedAt()?->format(DateTime::ATOM);
             $dto->expiresAt = $value->getExpiresAt()?->format(DateTime::ATOM);

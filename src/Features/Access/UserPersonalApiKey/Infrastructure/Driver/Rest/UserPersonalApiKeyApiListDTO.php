@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driver
 
 use OpenApi\Attributes as OA;
 
-#[OA\Schema(title: "User personal api key", description: "A personal API key (PAT) scoped to a specific user. The raw key is shown to the user only at creation time and is never stored. Subsequent authentication uses the SHA-256 hash for constant-time comparison.")]
+#[OA\Schema(title: "User personal api key", description: "A personal API key (PAT) scoped to a specific user. The raw key is shown to the user only at creation time and is never stored. Subsequent authentication searches by its digest (HMAC with pepper) and compares it in constant time.")]
 class UserPersonalApiKeyApiListDTO
 {
     #[OA\Property(

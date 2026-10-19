@@ -6,32 +6,48 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class TrustedClientSecretOauthVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): TrustedClientSecretOauthVO
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(?string $value): TrustedClientSecretOauthVO
     {
-        return self::from('cyphered://' . $value);
+        return $value ? self::from($value) : self::empty();
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): TrustedClientSecretOauthVO
+    public static function fromPlainText(SecretDigester $digester, string $value): TrustedClientSecretOauthVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof TrustedClientSecretOauthVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientSecretOauthVO
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?TrustedClientSecretOauthVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('secretOauth', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new TrustedClientSecretOauthVO($digester->digest($value)) : null;
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientSecretOauthVO
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
     {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
-    }
-    private static function isCyphered(string $value): bool
-    {
-        return strpos($value, 'cyphered://') === 0;
+        return $digester->digest($plain);
     }
     public static function empty(): TrustedClientSecretOauthVO
     {
@@ -47,17 +63,10 @@ class TrustedClientSecretOauthVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new TrustedClientSecretOauthVO($value);
+            return new TrustedClientSecretOauthVO(null);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('secretOauth', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new TrustedClientSecretOauthVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new TrustedClientSecretOauthVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['secretOauth'], [$value], ['string']));
             return null;
@@ -91,37 +100,39 @@ class TrustedClientSecretOauthVO
     private function __construct(
         private readonly ?string $secretOauth
     ) {
-        $this->validateCyphered($this->secretOauth);
+        if (null !== $this->secretOauth && !SecretDigester::isSupported($this->secretOauth)) {
+            throw new InvalidArgumentException('secretOauth is not a valid digest');
+        }
     }
     public function equals(?TrustedClientSecretOauthVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(?string $key): void
-    {
-        if (null !== $key &&  strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
+        if (null === $other) {
+            return false;
         }
+        return null === $this->secretOauth || null === $other->secretOauth
+          ? $this->secretOauth === $other->secretOauth
+          : hash_equals($this->secretOauth, $other->secretOauth);
     }
     public function value(): ?string
     {
         return null !== $this->secretOauth ? "****" . substr($this->secretOauth, -2) : null;
     }
-    public function cypheredValueWith(AesCypherService $cypher): ?string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): ?string
     {
-        return null === $this->secretOauth ? null : substr($this->secretOauth, 11);
+        return $this->secretOauth;
     }
-    public function plainValueWith(AesCypherService $cypher): ?string
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
     {
-        return null === $this->secretOauth ? null : $this->decrypt($cypher, $this->secretOauth);
+        return null !== $this->secretOauth && $digester->verify($plain, $this->secretOauth);
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsRehash(SecretDigester $digester): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return null !== $this->secretOauth && $digester->needsRehash($this->secretOauth);
     }
 }

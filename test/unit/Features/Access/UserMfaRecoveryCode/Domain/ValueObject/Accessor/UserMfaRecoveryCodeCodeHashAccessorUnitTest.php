@@ -24,11 +24,11 @@ class UserMfaRecoveryCodeCodeHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserMfaRecoveryCodeCodeHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withCodeHash('one');
+        $result = $holder->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getCodeHash());
+        $this->assertEquals('****er', $result->getCodeHash());
     }
     /**
      * Asserts that withcodeHash has access to the value object
@@ -40,19 +40,19 @@ class UserMfaRecoveryCodeCodeHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserMfaRecoveryCodeCodeHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withCodeHash('one');
+        $result = $holder->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->codeHash()->value());
+        $this->assertEquals('****er', $result->codeHash()->value());
     }
     public function testChangedCodeHash(): void
     {
         // Arrange
-        $holder = new ImplWithUserMfaRecoveryCodeCodeHashAccessorUnitTest()->withCodeHash('one');
-        $original = $holder->withCodeHash('one');
-        $same = $holder->withCodeHash('one');
-        $modified = $holder->withCodeHash('other');
+        $holder = new ImplWithUserMfaRecoveryCodeCodeHashAccessorUnitTest()->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $original = $holder->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $same = $holder->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $modified = $holder->withCodeHash('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
 
         // Act
         $withSame = $original->isCodeHashChanged($same);

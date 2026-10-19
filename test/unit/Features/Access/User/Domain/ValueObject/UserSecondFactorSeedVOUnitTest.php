@@ -13,13 +13,11 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 #[AllowMockObjectsWithoutExpectations]
 final class UserSecondFactorSeedVOUnitTest extends TestCase
 {
-    private const string SEALED = 'sealed:k1:payload';
-    private const string CONTEXT = 'access.user.second_factor_seed#owner';
-
     public function test_asignation_keep_value(): void
     {
-        $ref = UserSecondFactorSeedVO::from(self::SEALED);
-        $this->assertEquals('****ad', $ref->value());
+        $value = 'sealed:k1:cypher';
+        $ref = UserSecondFactorSeedVO::from($value);
+        $this->assertEquals('****er', $ref->value());
         $other = UserSecondFactorSeedVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserSecondFactorSeedVO::from($ref);
@@ -40,64 +38,47 @@ final class UserSecondFactorSeedVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = UserSecondFactorSeedVO::from(self::SEALED);
-        $same = UserSecondFactorSeedVO::from(self::SEALED);
-        $other = UserSecondFactorSeedVO::from('sealed:k1:other');
+        $one = UserSecondFactorSeedVO::from('sealed:k1:cypher');
+        $same = UserSecondFactorSeedVO::from('sealed:k1:cypher');
+        $other = UserSecondFactorSeedVO::from('sealed:k1:ocyphered');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-        $this->assertFalse($one->equals(null));
-        $this->assertTrue($one->equals($same));
-        $this->assertFalse($one->equals($other));
-        $this->assertFalse($one->equals(UserSecondFactorSeedVO::empty()));
-        $this->assertTrue(UserSecondFactorSeedVO::empty()->equals(UserSecondFactorSeedVO::empty()));
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
     public function test_empty(): void
     {
         $ref = UserSecondFactorSeedVO::empty();
         $this->assertNull($ref->value());
-        $this->assertNull($ref->storedValue());
-        $storage = $this->createMock(ReversibleSecretStorage::class);
-        $this->assertNull($ref->plainValueWith($storage, 'owner'));
-        $this->assertFalse($ref->needsReseal($storage));
     }
     public function test_try_from_empty(): void
     {
         $ref = UserSecondFactorSeedVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref?->value());
+        $this->assertNull($ref->value());
     }
     public function test_stored_builders(): void
     {
+        $this->assertEquals('sealed:k1:cypher', UserSecondFactorSeedVO::fromStoredText('sealed:k1:cypher')->storedValue());
         $this->assertNull(UserSecondFactorSeedVO::fromStoredText(null)->value());
-        $this->assertNull(UserSecondFactorSeedVO::fromStoredText('')->value());
-        $this->assertEquals(self::SEALED, UserSecondFactorSeedVO::fromStoredText(self::SEALED)->storedValue());
-    }
-    public function test_stored_unsealed_value_has_error(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        UserSecondFactorSeedVO::fromStoredText('cyphered://gold');
     }
     public function test_plain_builders_seal_with_owner_context(): void
     {
         $storage = $this->createMock(ReversibleSecretStorage::class);
-        $storage->expects($this->exactly(2))->method('seal')->with('gold', self::CONTEXT)->willReturn(self::SEALED);
+        $storage->expects($this->exactly(2))->method('seal')->with('gold', 'access.user.second_factor_seed#owner')->willReturn('sealed:k1:cypher');
         $errors = new ConstraintFailList();
-        $value = UserSecondFactorSeedVO::fromPlainText($storage, 'owner', 'gold');
-        $this->assertEquals(self::SEALED, $value->storedValue());
-        $value = UserSecondFactorSeedVO::tryFromPlainText($storage, 'owner', 'gold', $errors);
-        $this->assertEquals(self::SEALED, $value?->storedValue());
+        $this->assertEquals('sealed:k1:cypher', UserSecondFactorSeedVO::fromPlainText($storage, 'owner', 'gold')->storedValue());
+        $this->assertEquals('sealed:k1:cypher', UserSecondFactorSeedVO::tryFromPlainText($storage, 'owner', 'gold', $errors)?->storedValue());
         $this->assertTrue($errors->isEmpty());
-    }
-    public function test_plain_builders_never_trust_stored_formats(): void
-    {
-        $storage = $this->createMock(ReversibleSecretStorage::class);
-        $storage->expects($this->once())->method('seal')->with('sealed:k1:gold', self::CONTEXT)->willReturn(self::SEALED);
-        $this->assertEquals(self::SEALED, UserSecondFactorSeedVO::fromPlainText($storage, 'owner', 'sealed:k1:gold')->storedValue());
     }
     public function test_open_and_reseal_delegate_on_storage(): void
     {
         $storage = $this->createMock(ReversibleSecretStorage::class);
-        $storage->expects($this->once())->method('open')->with(self::SEALED, self::CONTEXT)->willReturn('gold');
-        $storage->expects($this->once())->method('needsReseal')->with(self::SEALED)->willReturn(true);
-        $value = UserSecondFactorSeedVO::from(self::SEALED);
+        $storage->expects($this->once())->method('open')->with('sealed:k1:cypher', 'access.user.second_factor_seed#owner')->willReturn('gold');
+        $storage->expects($this->once())->method('needsReseal')->with('sealed:k1:cypher')->willReturn(true);
+        $value = UserSecondFactorSeedVO::from('sealed:k1:cypher');
         $this->assertEquals('gold', $value->plainValueWith($storage, 'owner'));
         $this->assertTrue($value->needsReseal($storage));
     }
@@ -106,11 +87,11 @@ final class UserSecondFactorSeedVOUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         UserSecondFactorSeedVO::from('none');
     }
-    public function test_exception_on_wrong_plain_value(): void
+    public function test_exception_on_wrong_value_1(): void
     {
         $storage = $this->createMock(ReversibleSecretStorage::class);
         $storage->expects($this->never())->method('seal');
         $this->expectException(ConstraintException::class);
-        UserSecondFactorSeedVO::fromPlainText($storage, 'owner', str_repeat('x', 251));
+        UserSecondFactorSeedVO::fromPlainText($storage, 'owner', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

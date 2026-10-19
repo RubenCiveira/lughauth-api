@@ -134,7 +134,6 @@ class UserPersonalApiKey extends UserPersonalApiKeyRef
         $data['uid'] = $this->uid();
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $data['name'] = $this->getName();
-        $data['keyHash'] = $this->getKeyHash();
         $data['scopes'] = $this->getScopes();
         $data['lastUsedAt'] = $this->getLastUsedAt();
         $data['expiresAt'] = $this->getExpiresAt();

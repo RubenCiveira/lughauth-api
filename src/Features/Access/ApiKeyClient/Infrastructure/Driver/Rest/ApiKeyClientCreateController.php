@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUidVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientCodeVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientScopesVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -30,6 +31,7 @@ class ApiKeyClientCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly ApiKeyClientCreateUsecase $createUsecase,
+        private readonly SecretDigester $digesterService,
     ) {
     }
     #[OA\Post(
@@ -82,7 +84,10 @@ class ApiKeyClientCreateController
             if (null !== $valueCode) {
                 $value->code($valueCode);
             }
-            $value->key(ApiKeyClientKeyVO::tryFrom($body['key'] ?? null, $errorsList));
+            $readKey = $body['key'] ?? '******';
+            if (null !== $readKey && '******' !== $readKey) {
+                $value->key(ApiKeyClientKeyVO::tryFromPlainText($this->digesterService, $readKey, $errorsList));
+            }
             $value->scopes(ApiKeyClientScopesVO::tryFrom($body['scopes'] ?? null, $errorsList));
             $value->version(ApiKeyClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
@@ -104,7 +109,7 @@ class ApiKeyClientCreateController
             $dto = new ApiKeyClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
-            $dto->key = $value->getKey();
+            $dto->key = '******';
             $dto->enabled = $value->isEnabled();
             $dto->scopes = $value->getScopes();
             $dto->version = $value->getVersion();

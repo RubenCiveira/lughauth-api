@@ -13,7 +13,6 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Retrieve\SmtpOutboundConfigRetrieveUsecase;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Retrieve\SmtpOutboundConfigRetrieveResult;
 
 class SmtpOutboundConfigRetrieveController
@@ -23,7 +22,6 @@ class SmtpOutboundConfigRetrieveController
 
     public function __construct(
         private readonly SmtpOutboundConfigRetrieveUsecase $retrieveUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

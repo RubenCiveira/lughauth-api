@@ -17,7 +17,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\List\DcrInitialAccessTokenListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class DcrInitialAccessTokenListController
 {
@@ -26,7 +25,6 @@ class DcrInitialAccessTokenListController
 
     public function __construct(
         private readonly DcrInitialAccessTokenListUsecase $listUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

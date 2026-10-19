@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait TrustedClientRegistrationAccessAccessor
 {
@@ -19,13 +19,17 @@ trait TrustedClientRegistrationAccessAccessor
     {
         return $this->_registrationAccess;
     }
-    public function getCypheredRegistrationAccess(AesCypherService $cypher): ?string
+    public function getStoredRegistrationAccess(): ?string
     {
-        return $this->_registrationAccess?->cypheredValueWith($cypher);
+        return $this->_registrationAccess?->storedValue();
     }
-    public function getPlainRegistrationAccess(AesCypherService $cypher): ?string
+    public function verifyRegistrationAccess(SecretDigester $digester, string $plain): bool
     {
-        return $this->_registrationAccess?->plainValueWith($cypher);
+        return true === $this->_registrationAccess?->verify($digester, $plain);
+    }
+    public function registrationAccessNeedsRehash(SecretDigester $digester): bool
+    {
+        return true === $this->_registrationAccess?->needsRehash($digester);
     }
     public function isRegistrationAccessChanged(?self $original = null): bool
     {

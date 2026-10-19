@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase;
 
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
@@ -71,7 +71,7 @@ class InstallUsecase
 {
     public function __construct(
         private readonly SqlTemplate $template,
-        private readonly AesCypherService $cypher,
+        private readonly ReversibleSecretStorage $secrets,
         private readonly PasswordHasher $hasher,
         private readonly RelyingPartyCommandRepositoryGateway $createReling,
         private readonly TrustedClientCommandRepositoryGateway $createTruted,
@@ -219,12 +219,13 @@ class InstallUsecase
         $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
         $this->apiKeys->update($created, $created->enable());
 
+        $smtpUid = Random::comb();
         $smtp = new SmtpOutboundConfigAttributes();
-        $smtp->uid(Random::comb());
+        $smtp->uid($smtpUid);
         $smtp->host($_ENV['MAILER_HOST'] ?? 'smtp.example.com');
         $smtp->port(intval($_ENV['MAILER_PORT'] ?? 587));
         $smtp->login($_ENV['MAILER_USERNAME'] ?? 'noreply@example.com');
-        $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->cypher, $_ENV['MAILER_PASSWORD'] ?? 'change-me'));
+        $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->secrets, $smtpUid, $_ENV['MAILER_PASSWORD'] ?? 'change-me'));
         $smtp->senderName($_ENV['MAILER_FROM_NAME'] ?? 'LughAuth');
         $smtp->senderEmail($_ENV['MAILER_FROM_EMAIL'] ?? 'noreply@example.com');
         $smtp->timeout(30);

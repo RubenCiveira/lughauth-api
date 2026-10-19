@@ -7,14 +7,17 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\UserMfaRecoveryCodeCodeHashVO;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 final class UserMfaRecoveryCodeCodeHashVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'one';
+        $value = '$argon2id$v=19$m=65536,t=4,p=1$cypher';
         $ref = UserMfaRecoveryCodeCodeHashVO::from($value);
-        $this->assertEquals('one', $ref->value());
+        $this->assertEquals('****er', $ref->value());
         $other = UserMfaRecoveryCodeCodeHashVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserMfaRecoveryCodeCodeHashVO::from($ref);
@@ -35,9 +38,9 @@ final class UserMfaRecoveryCodeCodeHashVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = UserMfaRecoveryCodeCodeHashVO::from('one');
-        $same = UserMfaRecoveryCodeCodeHashVO::from('one');
-        $other = UserMfaRecoveryCodeCodeHashVO::from('other');
+        $one = UserMfaRecoveryCodeCodeHashVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $same = UserMfaRecoveryCodeCodeHashVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $other = UserMfaRecoveryCodeCodeHashVO::from('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -46,9 +49,38 @@ final class UserMfaRecoveryCodeCodeHashVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
+    public function test_stored_builders(): void
+    {
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserMfaRecoveryCodeCodeHashVO::fromStoredText('$argon2id$v=19$m=65536,t=4,p=1$cypher')->storedValue());
+    }
+    public function test_plain_builders_hash_the_value(): void
+    {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->exactly(2))->method('hash')->with('gold')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $errors = new ConstraintFailList();
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserMfaRecoveryCodeCodeHashVO::fromPlainText($hasher, 'gold')->storedValue());
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserMfaRecoveryCodeCodeHashVO::tryFromPlainText($hasher, 'gold', $errors)?->storedValue());
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_verify_and_rehash_delegate_on_hasher(): void
+    {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->once())->method('verify')->with('gold', '$argon2id$v=19$m=65536,t=4,p=1$cypher')->willReturn(true);
+        $hasher->expects($this->once())->method('needsRehash')->with('$argon2id$v=19$m=65536,t=4,p=1$cypher')->willReturn(false);
+        $value = UserMfaRecoveryCodeCodeHashVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $this->assertTrue($value->verify($hasher, 'gold'));
+        $this->assertFalse($value->needsRehash($hasher));
+    }
+    public function test_unhashed_build_has_error(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        UserMfaRecoveryCodeCodeHashVO::from('none');
+    }
     public function test_exception_on_wrong_value_1(): void
     {
+        $hasher = $this->createMock(PasswordHasher::class);
+        $hasher->expects($this->never())->method('hash');
         $this->expectException(ConstraintException::class);
-        UserMfaRecoveryCodeCodeHashVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        UserMfaRecoveryCodeCodeHashVO::fromPlainText($hasher, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

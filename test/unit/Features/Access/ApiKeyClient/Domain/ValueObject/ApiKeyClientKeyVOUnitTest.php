@@ -7,14 +7,17 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 final class ApiKeyClientKeyVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'one';
+        $value = 'hmac-sha256:p1:cypher';
         $ref = ApiKeyClientKeyVO::from($value);
-        $this->assertEquals('one', $ref->value());
+        $this->assertEquals('****er', $ref->value());
         $other = ApiKeyClientKeyVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = ApiKeyClientKeyVO::from($ref);
@@ -35,9 +38,9 @@ final class ApiKeyClientKeyVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = ApiKeyClientKeyVO::from('one');
-        $same = ApiKeyClientKeyVO::from('one');
-        $other = ApiKeyClientKeyVO::from('other');
+        $one = ApiKeyClientKeyVO::from('hmac-sha256:p1:cypher');
+        $same = ApiKeyClientKeyVO::from('hmac-sha256:p1:cypher');
+        $other = ApiKeyClientKeyVO::from('hmac-sha256:p1:ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -56,9 +59,40 @@ final class ApiKeyClientKeyVOUnitTest extends TestCase
         $ref = ApiKeyClientKeyVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
+    public function test_stored_builders(): void
+    {
+        $this->assertEquals('hmac-sha256:p1:cypher', ApiKeyClientKeyVO::fromStoredText('hmac-sha256:p1:cypher')->storedValue());
+        $this->assertNull(ApiKeyClientKeyVO::fromStoredText(null)->value());
+    }
+    public function test_plain_builders_digest_the_value(): void
+    {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->exactly(3))->method('digest')->with('gold')->willReturn('hmac-sha256:p1:cypher');
+        $errors = new ConstraintFailList();
+        $this->assertEquals('hmac-sha256:p1:cypher', ApiKeyClientKeyVO::fromPlainText($digester, 'gold')->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', ApiKeyClientKeyVO::tryFromPlainText($digester, 'gold', $errors)?->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', ApiKeyClientKeyVO::digestOf($digester, 'gold'));
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_verify_and_rehash_delegate_on_digester(): void
+    {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->once())->method('verify')->with('gold', 'hmac-sha256:p1:cypher')->willReturn(true);
+        $digester->expects($this->once())->method('needsRehash')->with('hmac-sha256:p1:cypher')->willReturn(false);
+        $value = ApiKeyClientKeyVO::from('hmac-sha256:p1:cypher');
+        $this->assertTrue($value->verify($digester, 'gold'));
+        $this->assertFalse($value->needsRehash($digester));
+    }
+    public function test_undigested_build_has_error(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        ApiKeyClientKeyVO::from('none');
+    }
     public function test_exception_on_wrong_value_1(): void
     {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->never())->method('digest');
         $this->expectException(ConstraintException::class);
-        ApiKeyClientKeyVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        ApiKeyClientKeyVO::fromPlainText($digester, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

@@ -27,7 +27,7 @@ class ApiKeyClientApiDTO
     #[OA\Property(
         property: "key",
         title: "key",
-        description:"The key for the api",
+        description:"The key for the api (only its digest is stored)",
         type: "string"
     )]
     public ?string $key = null;

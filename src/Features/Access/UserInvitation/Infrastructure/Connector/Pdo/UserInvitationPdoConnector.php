@@ -22,6 +22,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationTokenHashVO;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationStatusVO;
 
 class UserInvitationPdoConnector
@@ -143,7 +144,7 @@ class UserInvitationPdoConnector
                      new SqlParam(name: 'email', value: $entity->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'roles', value: $entity->getRoles(), type: SqlParam::STR),
                      new SqlParam(name: 'invitedBy', value: $entity->getInvitedBy()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenHash', value: $entity->getTokenHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenHash', value: $entity->getStoredTokenHash(), type: SqlParam::STR),
                      new SqlParam(name: 'metadataJson', value: $entity->getMetadataJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'status', value: $entity->getStatus()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'createdAt', value: $entity->getCreatedAt(), type: SqlParam::STR),
@@ -183,7 +184,7 @@ class UserInvitationPdoConnector
                      new SqlParam(name: 'email', value: $update->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'roles', value: $update->getRoles(), type: SqlParam::STR),
                      new SqlParam(name: 'invitedBy', value: $update->getInvitedBy()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenHash', value: $update->getTokenHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenHash', value: $update->getStoredTokenHash(), type: SqlParam::STR),
                      new SqlParam(name: 'metadataJson', value: $update->getMetadataJson(), type: SqlParam::TEXT),
                      new SqlParam(name: 'status', value: $update->getStatus()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'createdAt', value: $update->getCreatedAt(), type: SqlParam::STR),
@@ -446,10 +447,11 @@ class UserInvitationPdoConnector
                 throw ConstraintException::ofError('not-null', ['invitedBy'], [null]);
             }
             $invitedBy = new UserRef(uid: $rawInvitedBy);
-            $tokenHash = $row['token_hash'] ?? null;
-            if (null === $tokenHash) {
+            $rawTokenHash = $row['token_hash'] ?? null;
+            if (null === $rawTokenHash) {
                 throw ConstraintException::ofError('not-null', ['tokenHash'], [null]);
             }
+            $tokenHash = UserInvitationTokenHashVO::fromStoredText($rawTokenHash);
             $metadataJson = $row['metadata_json'] ?? null;
             $status = isset($row['status']) && $row['status'] ? UserInvitationStatusVO::fromString($row['status']) : UserInvitationStatusVO::empty();
             $createdAt = $row['created_at'] ? new \DateTimeImmutable($row['created_at']) : null;

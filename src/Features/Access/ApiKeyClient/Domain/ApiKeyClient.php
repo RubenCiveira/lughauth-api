@@ -102,7 +102,6 @@ class ApiKeyClient extends ApiKeyClientRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['code'] = $this->getCode();
-        $data['key'] = $this->getKey();
         $data['enabled'] = $this->isEnabled();
         $data['scopes'] = $this->getScopes();
         $data['version'] = $this->getVersion();

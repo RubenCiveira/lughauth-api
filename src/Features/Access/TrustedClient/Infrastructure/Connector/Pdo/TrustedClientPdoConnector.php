@@ -33,7 +33,6 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelTokenDeliveryModeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSubjectTypeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedAudiencesVO;
@@ -48,7 +47,6 @@ class TrustedClientPdoConnector
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
         private readonly SqlTemplate $db,
     ) {
     }
@@ -178,8 +176,8 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'userinfoEncryptedResponseEnc', value: $entity->getUserinfoEncryptedResponseEnc(), type: SqlParam::STR),
                      new SqlParam(name: 'authorizationDetailsTypes', value: $entity->getAuthorizationDetailsTypes(), type: SqlParam::TEXT),
                      new SqlParam(name: 'userinfoSignedResponseAlg', value: $entity->getUserinfoSignedResponseAlg(), type: SqlParam::STR),
-                     new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'registrationAccess', value: $entity->getCypheredRegistrationAccess($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'secretOauth', value: $entity->getStoredSecretOauth(), type: SqlParam::STR),
+                     new SqlParam(name: 'registrationAccess', value: $entity->getStoredRegistrationAccess(), type: SqlParam::STR),
                      new SqlParam(name: 'defaultAcrValues', value: $entity->getDefaultAcrValues(), type: SqlParam::STR),
                      new SqlParam(name: 'defaultMaxAge', value: $entity->getDefaultMaxAge(), type: SqlParam::INT),
                      new SqlParam(name: 'sectorIdentifierUri', value: $entity->getSectorIdentifierUri(), type: SqlParam::STR),
@@ -255,8 +253,8 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'userinfoEncryptedResponseEnc', value: $update->getUserinfoEncryptedResponseEnc(), type: SqlParam::STR),
                      new SqlParam(name: 'authorizationDetailsTypes', value: $update->getAuthorizationDetailsTypes(), type: SqlParam::TEXT),
                      new SqlParam(name: 'userinfoSignedResponseAlg', value: $update->getUserinfoSignedResponseAlg(), type: SqlParam::STR),
-                     new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'registrationAccess', value: $update->getCypheredRegistrationAccess($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'secretOauth', value: $update->getStoredSecretOauth(), type: SqlParam::STR),
+                     new SqlParam(name: 'registrationAccess', value: $update->getStoredRegistrationAccess(), type: SqlParam::STR),
                      new SqlParam(name: 'defaultAcrValues', value: $update->getDefaultAcrValues(), type: SqlParam::STR),
                      new SqlParam(name: 'defaultMaxAge', value: $update->getDefaultMaxAge(), type: SqlParam::INT),
                      new SqlParam(name: 'sectorIdentifierUri', value: $update->getSectorIdentifierUri(), type: SqlParam::STR),
@@ -737,8 +735,8 @@ class TrustedClientPdoConnector
             $userinfoEncryptedResponseEnc = $row['userinfo_encrypted_response_enc'] ?? null;
             $authorizationDetailsTypes = $row['authorization_details_types'] ?? null;
             $userinfoSignedResponseAlg = $row['userinfo_signed_response_alg'] ?? null;
-            $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
-            $registrationAccess = isset($row['registration_access']) && $row['registration_access'] ? TrustedClientRegistrationAccessVO::fromCypheredText($this->cypher, $row['registration_access']) : TrustedClientRegistrationAccessVO::empty();
+            $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromStoredText($row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
+            $registrationAccess = isset($row['registration_access']) && $row['registration_access'] ? TrustedClientRegistrationAccessVO::fromStoredText($row['registration_access']) : TrustedClientRegistrationAccessVO::empty();
             $defaultAcrValues = $row['default_acr_values'] ?? null;
             $defaultMaxAge = $row['default_max_age'] ?? null;
             $sectorIdentifierUri = $row['sector_identifier_uri'] ?? null;

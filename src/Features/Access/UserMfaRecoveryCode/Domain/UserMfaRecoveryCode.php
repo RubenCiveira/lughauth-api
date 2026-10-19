@@ -98,7 +98,6 @@ class UserMfaRecoveryCode extends UserMfaRecoveryCodeRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
-        $data['codeHash'] = $this->getCodeHash();
         $data['usedAt'] = $this->getUsedAt();
         $data['createdAt'] = $this->getCreatedAt();
         $data['version'] = $this->getVersion();

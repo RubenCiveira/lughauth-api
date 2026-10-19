@@ -5,12 +5,43 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserMfaRecoveryCodeCodeHashVO
 {
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): UserMfaRecoveryCodeCodeHashVO
+    {
+        return self::from($value);
+    }
+    public static function fromPlainText(PasswordHasher $hasher, string $value): UserMfaRecoveryCodeCodeHashVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($hasher, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserMfaRecoveryCodeCodeHashVO);
+        return $candidate;
+    }
+    public static function tryFromPlainText(PasswordHasher $hasher, string $value, ConstraintFailList $list): ?UserMfaRecoveryCodeCodeHashVO
+    {
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('codeHash', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserMfaRecoveryCodeCodeHashVO($hasher->hash($value)) : null;
+    }
     public static function from(UserMfaRecoveryCodeCodeHashVO|string $value): UserMfaRecoveryCodeCodeHashVO
     {
         return self::fromUnsafe($value);
@@ -21,15 +52,8 @@ class UserMfaRecoveryCodeCodeHashVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('codeHash', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserMfaRecoveryCodeCodeHashVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new UserMfaRecoveryCodeCodeHashVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['codeHash'], [$value], ['string']));
             return null;
@@ -63,13 +87,34 @@ class UserMfaRecoveryCodeCodeHashVO
     private function __construct(
         private readonly string $codeHash
     ) {
-    }
-    public function value(): string
-    {
-        return $this->codeHash;
+        if (!PasswordHasher::isSupported($this->codeHash)) {
+            throw new InvalidArgumentException('codeHash is not a valid hash');
+        }
     }
     public function equals(?UserMfaRecoveryCodeCodeHashVO $other): bool
     {
-        return $this->value() == $other?->value();
+        return null !== $other && hash_equals($this->codeHash, $other->codeHash);
+    }
+    public function value(): string
+    {
+        return "****" . substr($this->codeHash, -2);
+    }
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
+    {
+        return $this->codeHash;
+    }
+    /**
+     * Constant time comparation of a plain candidate with the stored hash.
+     */
+    public function verify(PasswordHasher $hasher, string $plain): bool
+    {
+        return $hasher->verify($plain, $this->codeHash);
+    }
+    public function needsRehash(PasswordHasher $hasher): bool
+    {
+        return $hasher->needsRehash($this->codeHash);
     }
 }

@@ -20,7 +20,7 @@ use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrIn
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenDescriptionVO;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenTokenHashVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenExpiresAtVO;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenMaxUsesVO;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenAllowedGrantTypesVO;
@@ -38,7 +38,7 @@ class DcrInitialAccessTokenUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly DcrInitialAccessTokenUpdateUsecase $updateUsecase,
-        private readonly AesCypherService $cypherService,
+        private readonly SecretDigester $digesterService,
     ) {
     }
     #[OA\Put(
@@ -106,7 +106,7 @@ class DcrInitialAccessTokenUpdateController
             $value->description(DcrInitialAccessTokenDescriptionVO::tryFrom($body['description'] ?? null, $errorsList));
             $readTokenHash = $body['tokenHash'] ?? '******';
             if (null !== $readTokenHash && '******' !== $readTokenHash) {
-                $valueTokenHash = DcrInitialAccessTokenTokenHashVO::tryFromPlainText($this->cypherService, $readTokenHash, $errorsList);
+                $valueTokenHash = DcrInitialAccessTokenTokenHashVO::tryFromPlainText($this->digesterService, $readTokenHash, $errorsList);
                 if (null !== $valueTokenHash) {
                     $value->tokenHash($valueTokenHash);
                 }

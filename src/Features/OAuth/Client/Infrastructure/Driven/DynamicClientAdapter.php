@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 
 use Override;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
@@ -18,6 +18,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
@@ -30,8 +31,8 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
  *
  * This adapter maps between the DynamicClient* domain value objects and the TrustedClient
  * aggregate, acting as the primary anti-corruption layer for RFC 7591/7592 operations. The
- * registration access token is stored as a SHA-256 hash so that a plain-text token is never
- * kept at rest. The client secret is encrypted at rest using AesCypherService.
+ * client secret and the registration access token are kept as SecretDigester digests (HMAC with
+ * pepper), so that no plain-text credential is kept at rest; they are verified in constant time.
  *
  * The registration policy is resolved by reading the tenant's TenantConfig record; when
  * neither the tenant nor the config is found, "disabled" is returned as a safe default.
@@ -44,13 +45,13 @@ final class DynamicClientAdapter implements DynamicClientGateway
         private readonly TrustedClientCommandRepositoryGateway $writer,
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly TenantConfigQueryRepositoryGateway $tenantConfigs,
-        private readonly AesCypherService $cypher,
+        private readonly SecretDigester $digester,
     ) {
     }
 
     /**
      * Creates a new TrustedClient entity with the dynamically_registered flag set, storing the
-     * hashed registration access token and the encrypted client secret, then returns the assigned
+     * digests of the registration access token and the client secret, then returns the assigned
      * client ID and issuance timestamp.
      */
     #[Override]
@@ -66,12 +67,12 @@ final class DynamicClientAdapter implements DynamicClientGateway
             ->withDefaults()
             ->uid($clientId)
             ->code($clientId)
-            ->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->cypher, $clientSecret))
+            ->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->digester, $clientSecret))
             ->publicAllow(true)
             ->enabled(true)
             ->allowAllScopes(false)
             ->allowedRedirects($this->buildRedirectsListRef($request->redirectUris))
-            ->registrationAccess(hash('sha256', $registrationAccessToken))
+            ->registrationAccess(TrustedClientRegistrationAccessVO::fromPlainText($this->digester, $registrationAccessToken))
             ->clientName($request->clientName)
             ->logoUri($request->logoUri)
             ->clientUri($request->clientUri)
@@ -110,7 +111,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
         if (!$client->isDynamicallyRegistered()) {
             return null;
         }
-        if ($client->getRegistrationAccess() !== hash('sha256', $registrationAccessToken)) {
+        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
             return null;
         }
 
@@ -132,7 +133,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
         if (!$client->isDynamicallyRegistered()) {
             return null;
         }
-        if ($client->getRegistrationAccess() !== hash('sha256', $registrationAccessToken)) {
+        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
             return null;
         }
 
@@ -170,7 +171,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
         if (!$client->isDynamicallyRegistered()) {
             return false;
         }
-        if ($client->getRegistrationAccess() !== hash('sha256', $registrationAccessToken)) {
+        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
             return false;
         }
 

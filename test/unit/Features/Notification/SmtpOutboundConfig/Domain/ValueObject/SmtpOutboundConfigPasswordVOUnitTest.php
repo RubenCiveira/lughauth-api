@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -15,7 +15,7 @@ final class SmtpOutboundConfigPasswordVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'cyphered://cypher';
+        $value = 'sealed:k1:cypher';
         $ref = SmtpOutboundConfigPasswordVO::from($value);
         $this->assertEquals('****er', $ref->value());
         $other = SmtpOutboundConfigPasswordVO::tryFrom($ref, new ConstraintFailList());
@@ -38,9 +38,9 @@ final class SmtpOutboundConfigPasswordVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = SmtpOutboundConfigPasswordVO::from('cyphered://cypher');
-        $same = SmtpOutboundConfigPasswordVO::from('cyphered://cypher');
-        $other = SmtpOutboundConfigPasswordVO::from('cyphered://ocyphered');
+        $one = SmtpOutboundConfigPasswordVO::from('sealed:k1:cypher');
+        $same = SmtpOutboundConfigPasswordVO::from('sealed:k1:cypher');
+        $other = SmtpOutboundConfigPasswordVO::from('sealed:k1:ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -49,62 +49,38 @@ final class SmtpOutboundConfigPasswordVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
-    public function test_cypher_builders(): void
+    public function test_stored_builders(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
+        $this->assertEquals('sealed:k1:cypher', SmtpOutboundConfigPasswordVO::fromStoredText('sealed:k1:cypher')->storedValue());
+    }
+    public function test_plain_builders_seal_with_owner_context(): void
+    {
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->exactly(2))->method('seal')->with('gold', 'notification.smtp_outbound_config.password#owner')->willReturn('sealed:k1:cypher');
         $errors = new ConstraintFailList();
-        $value = SmtpOutboundConfigPasswordVO::fromCypheredText($aes, 'gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = SmtpOutboundConfigPasswordVO::tryFromCypheredText($aes, 'gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertEquals('sealed:k1:cypher', SmtpOutboundConfigPasswordVO::fromPlainText($storage, 'owner', 'gold')->storedValue());
+        $this->assertEquals('sealed:k1:cypher', SmtpOutboundConfigPasswordVO::tryFromPlainText($storage, 'owner', 'gold', $errors)?->storedValue());
         $this->assertTrue($errors->isEmpty());
     }
-    public function test_plain_but_cypher_builders(): void
+    public function test_open_and_reseal_delegate_on_storage(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = SmtpOutboundConfigPasswordVO::fromPlainText($aes, 'cyphered://gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = SmtpOutboundConfigPasswordVO::tryFromPlainText($aes, 'cyphered://gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->once())->method('open')->with('sealed:k1:cypher', 'notification.smtp_outbound_config.password#owner')->willReturn('gold');
+        $storage->expects($this->once())->method('needsReseal')->with('sealed:k1:cypher')->willReturn(true);
+        $value = SmtpOutboundConfigPasswordVO::from('sealed:k1:cypher');
+        $this->assertEquals('gold', $value->plainValueWith($storage, 'owner'));
+        $this->assertTrue($value->needsReseal($storage));
     }
-    public function test_plain_builders(): void
-    {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = SmtpOutboundConfigPasswordVO::fromPlainText($aes, 'gold');
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = SmtpOutboundConfigPasswordVO::tryFromPlainText($aes, 'gold', $errors);
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
-    }
-    public function test_uncypgere_build_has_error(): void
+    public function test_unsealed_build_has_error(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         SmtpOutboundConfigPasswordVO::from('none');
     }
     public function test_exception_on_wrong_value_1(): void
     {
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->never())->method('seal');
         $this->expectException(ConstraintException::class);
-        SmtpOutboundConfigPasswordVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        SmtpOutboundConfigPasswordVO::fromPlainText($storage, 'owner', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

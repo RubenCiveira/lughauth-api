@@ -70,7 +70,7 @@ class UserPersonalApiKeyRetrieveController
             $dto->uid = $value->getUid();
             $dto->user = $user ? ['$ref' => $user->uid()] : null;
             $dto->name = $value->getName();
-            $dto->keyHash = $value->getKeyHash();
+            $dto->keyHash = '******';
             $dto->scopes = $value->getScopes();
             $dto->lastUsedAt = $value->getLastUsedAt()?->format(DateTime::ATOM);
             $dto->expiresAt = $value->getExpiresAt()?->format(DateTime::ATOM);

@@ -442,7 +442,7 @@ class UserPdoConnector
             $approve = isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty();
             $temporalPassword = isset($row['temporal_password']) ? !! $row['temporal_password'] : null;
             $useSecondFactors = isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null;
-            $secondFactorSeed = UserSecondFactorSeedVO::fromStoredText($row['second_factor_seed'] ?? null);
+            $secondFactorSeed = isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromStoredText($row['second_factor_seed']) : UserSecondFactorSeedVO::empty();
             $blockedUntil = $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null;
             $provider = $row['provider'] ?? null;
             $version = $row['version'] ?? null;

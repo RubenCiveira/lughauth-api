@@ -5,12 +5,50 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserAccessTemporalCodeRegisterCodeVO
 {
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(?string $value): UserAccessTemporalCodeRegisterCodeVO
+    {
+        return $value ? self::from($value) : self::empty();
+    }
+    public static function fromPlainText(SecretDigester $digester, string $value): UserAccessTemporalCodeRegisterCodeVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserAccessTemporalCodeRegisterCodeVO);
+        return $candidate;
+    }
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?UserAccessTemporalCodeRegisterCodeVO
+    {
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('registerCode', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserAccessTemporalCodeRegisterCodeVO($digester->digest($value)) : null;
+    }
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
+    {
+        return $digester->digest($plain);
+    }
     public static function empty(): UserAccessTemporalCodeRegisterCodeVO
     {
         return new UserAccessTemporalCodeRegisterCodeVO(null);
@@ -25,17 +63,10 @@ class UserAccessTemporalCodeRegisterCodeVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new UserAccessTemporalCodeRegisterCodeVO($value);
+            return new UserAccessTemporalCodeRegisterCodeVO(null);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('registerCode', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserAccessTemporalCodeRegisterCodeVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new UserAccessTemporalCodeRegisterCodeVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['registerCode'], [$value], ['string']));
             return null;
@@ -69,13 +100,39 @@ class UserAccessTemporalCodeRegisterCodeVO
     private function __construct(
         private readonly ?string $registerCode
     ) {
-    }
-    public function value(): ?string
-    {
-        return $this->registerCode;
+        if (null !== $this->registerCode && !SecretDigester::isSupported($this->registerCode)) {
+            throw new InvalidArgumentException('registerCode is not a valid digest');
+        }
     }
     public function equals(?UserAccessTemporalCodeRegisterCodeVO $other): bool
     {
-        return $this->value() == $other?->value();
+        if (null === $other) {
+            return false;
+        }
+        return null === $this->registerCode || null === $other->registerCode
+          ? $this->registerCode === $other->registerCode
+          : hash_equals($this->registerCode, $other->registerCode);
+    }
+    public function value(): ?string
+    {
+        return null !== $this->registerCode ? "****" . substr($this->registerCode, -2) : null;
+    }
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): ?string
+    {
+        return $this->registerCode;
+    }
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
+    {
+        return null !== $this->registerCode && $digester->verify($plain, $this->registerCode);
+    }
+    public function needsRehash(SecretDigester $digester): bool
+    {
+        return null !== $this->registerCode && $digester->needsRehash($this->registerCode);
     }
 }

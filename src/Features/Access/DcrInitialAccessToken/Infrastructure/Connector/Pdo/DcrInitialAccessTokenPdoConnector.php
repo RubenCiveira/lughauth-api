@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenTokenHashVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class DcrInitialAccessTokenPdoConnector
 {
@@ -30,7 +29,6 @@ class DcrInitialAccessTokenPdoConnector
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
         private readonly SqlTemplate $db,
     ) {
     }
@@ -142,7 +140,7 @@ class DcrInitialAccessTokenPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'description', value: $entity->getDescription(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenHash', value: $entity->getCypheredTokenHash($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenHash', value: $entity->getStoredTokenHash(), type: SqlParam::STR),
                      new SqlParam(name: 'expiresAt', value: $entity->getExpiresAt(), type: SqlParam::STR),
                      new SqlParam(name: 'maxUses', value: $entity->getMaxUses(), type: SqlParam::INT),
                      new SqlParam(name: 'uses', value: $entity->getUses(), type: SqlParam::INT),
@@ -179,7 +177,7 @@ class DcrInitialAccessTokenPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'description', value: $update->getDescription(), type: SqlParam::STR),
-                     new SqlParam(name: 'tokenHash', value: $update->getCypheredTokenHash($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenHash', value: $update->getStoredTokenHash(), type: SqlParam::STR),
                      new SqlParam(name: 'expiresAt', value: $update->getExpiresAt(), type: SqlParam::STR),
                      new SqlParam(name: 'maxUses', value: $update->getMaxUses(), type: SqlParam::INT),
                      new SqlParam(name: 'uses', value: $update->getUses(), type: SqlParam::INT),
@@ -411,7 +409,7 @@ class DcrInitialAccessTokenPdoConnector
             if (null === $rawTokenHash) {
                 throw ConstraintException::ofError('not-null', ['tokenHash'], [null]);
             }
-            $tokenHash = DcrInitialAccessTokenTokenHashVO::fromCypheredText($this->cypher, $rawTokenHash);
+            $tokenHash = DcrInitialAccessTokenTokenHashVO::fromStoredText($rawTokenHash);
             $expiresAt = $row['expires_at'] ? new \DateTimeImmutable($row['expires_at']) : null;
             if (null === $expiresAt) {
                 throw ConstraintException::ofError('not-null', ['expiresAt'], [null]);

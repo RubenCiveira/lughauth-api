@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\UserMfaRecoveryCodeCodeHashVO;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 
 trait UserMfaRecoveryCodeCodeHashAccessor
 {
@@ -17,6 +18,18 @@ trait UserMfaRecoveryCodeCodeHashAccessor
     public function codeHash(): UserMfaRecoveryCodeCodeHashVO
     {
         return $this->_codeHash;
+    }
+    public function getStoredCodeHash(): string
+    {
+        return $this->_codeHash->storedValue();
+    }
+    public function verifyCodeHash(PasswordHasher $hasher, string $plain): bool
+    {
+        return $this->_codeHash->verify($hasher, $plain);
+    }
+    public function codeHashNeedsRehash(PasswordHasher $hasher): bool
+    {
+        return $this->_codeHash->needsRehash($hasher);
     }
     public function isCodeHashChanged(?self $original = null): bool
     {

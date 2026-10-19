@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait ApiKeyClientKeyAccessor
 {
@@ -17,6 +18,18 @@ trait ApiKeyClientKeyAccessor
     public function key(): ?ApiKeyClientKeyVO
     {
         return $this->_key;
+    }
+    public function getStoredKey(): ?string
+    {
+        return $this->_key?->storedValue();
+    }
+    public function verifyKey(SecretDigester $digester, string $plain): bool
+    {
+        return true === $this->_key?->verify($digester, $plain);
+    }
+    public function keyNeedsRehash(SecretDigester $digester): bool
+    {
+        return true === $this->_key?->needsRehash($digester);
     }
     public function isKeyChanged(?self $original = null): bool
     {

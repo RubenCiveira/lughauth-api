@@ -24,7 +24,7 @@ class SmtpOutboundConfigPasswordAccessorUnitTest extends TestCase
         $holder = new ImplWithSmtpOutboundConfigPasswordAccessorUnitTest();
 
         // Act
-        $result = $holder->withPassword('cyphered://cypher');
+        $result = $holder->withPassword('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class SmtpOutboundConfigPasswordAccessorUnitTest extends TestCase
         $holder = new ImplWithSmtpOutboundConfigPasswordAccessorUnitTest();
 
         // Act
-        $result = $holder->withPassword('cyphered://cypher');
+        $result = $holder->withPassword('sealed:k1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -49,10 +49,10 @@ class SmtpOutboundConfigPasswordAccessorUnitTest extends TestCase
     public function testChangedPassword(): void
     {
         // Arrange
-        $holder = new ImplWithSmtpOutboundConfigPasswordAccessorUnitTest()->withPassword('cyphered://cypher');
-        $original = $holder->withPassword('cyphered://cypher');
-        $same = $holder->withPassword('cyphered://cypher');
-        $modified = $holder->withPassword('cyphered://ocyphered');
+        $holder = new ImplWithSmtpOutboundConfigPasswordAccessorUnitTest()->withPassword('sealed:k1:cypher');
+        $original = $holder->withPassword('sealed:k1:cypher');
+        $same = $holder->withPassword('sealed:k1:cypher');
+        $modified = $holder->withPassword('sealed:k1:ocyphered');
 
         // Act
         $withSame = $original->isPasswordChanged($same);

@@ -16,7 +16,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\List\SmtpOutboundConfigListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class SmtpOutboundConfigListController
 {
@@ -25,7 +24,6 @@ class SmtpOutboundConfigListController
 
     public function __construct(
         private readonly SmtpOutboundConfigListUsecase $listUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

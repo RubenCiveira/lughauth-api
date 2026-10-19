@@ -8,7 +8,9 @@ namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 use Override;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ApiKeyData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ApiKeyStoreGateway;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
 
 /**
  * Infrastructure adapter that implements ApiKeyStoreGateway by delegating to the Access
@@ -25,7 +27,8 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryR
 class ApiKeyStoreAdapter implements ApiKeyStoreGateway
 {
     public function __construct(
-        private readonly ApiKeyClientQueryRepositoryGateway $apiKeys
+        private readonly ApiKeyClientQueryRepositoryGateway $apiKeys,
+        private readonly SecretDigester $digester,
     ) {
     }
 
@@ -36,7 +39,7 @@ class ApiKeyStoreAdapter implements ApiKeyStoreGateway
     #[Override]
     public function apiKey(string $apiKey): ?ApiKeyData
     {
-        $response = $this->apiKeys->findOneByKey($apiKey);
+        $response = $this->apiKeys->findOneByKey(ApiKeyClientKeyVO::digestOf($this->digester, $apiKey));
         if ($response) {
             return new ApiKeyData($apiKey, explode(",", $response->getScopes() ?? ''));
         } else {

@@ -7,14 +7,17 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 final class UserAccessTemporalCodeRegisterCodeVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'one';
+        $value = 'hmac-sha256:p1:cypher';
         $ref = UserAccessTemporalCodeRegisterCodeVO::from($value);
-        $this->assertEquals('one', $ref->value());
+        $this->assertEquals('****er', $ref->value());
         $other = UserAccessTemporalCodeRegisterCodeVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserAccessTemporalCodeRegisterCodeVO::from($ref);
@@ -35,9 +38,9 @@ final class UserAccessTemporalCodeRegisterCodeVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = UserAccessTemporalCodeRegisterCodeVO::from('one');
-        $same = UserAccessTemporalCodeRegisterCodeVO::from('one');
-        $other = UserAccessTemporalCodeRegisterCodeVO::from('other');
+        $one = UserAccessTemporalCodeRegisterCodeVO::from('hmac-sha256:p1:cypher');
+        $same = UserAccessTemporalCodeRegisterCodeVO::from('hmac-sha256:p1:cypher');
+        $other = UserAccessTemporalCodeRegisterCodeVO::from('hmac-sha256:p1:ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -56,9 +59,40 @@ final class UserAccessTemporalCodeRegisterCodeVOUnitTest extends TestCase
         $ref = UserAccessTemporalCodeRegisterCodeVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
+    public function test_stored_builders(): void
+    {
+        $this->assertEquals('hmac-sha256:p1:cypher', UserAccessTemporalCodeRegisterCodeVO::fromStoredText('hmac-sha256:p1:cypher')->storedValue());
+        $this->assertNull(UserAccessTemporalCodeRegisterCodeVO::fromStoredText(null)->value());
+    }
+    public function test_plain_builders_digest_the_value(): void
+    {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->exactly(3))->method('digest')->with('gold')->willReturn('hmac-sha256:p1:cypher');
+        $errors = new ConstraintFailList();
+        $this->assertEquals('hmac-sha256:p1:cypher', UserAccessTemporalCodeRegisterCodeVO::fromPlainText($digester, 'gold')->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', UserAccessTemporalCodeRegisterCodeVO::tryFromPlainText($digester, 'gold', $errors)?->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', UserAccessTemporalCodeRegisterCodeVO::digestOf($digester, 'gold'));
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_verify_and_rehash_delegate_on_digester(): void
+    {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->once())->method('verify')->with('gold', 'hmac-sha256:p1:cypher')->willReturn(true);
+        $digester->expects($this->once())->method('needsRehash')->with('hmac-sha256:p1:cypher')->willReturn(false);
+        $value = UserAccessTemporalCodeRegisterCodeVO::from('hmac-sha256:p1:cypher');
+        $this->assertTrue($value->verify($digester, 'gold'));
+        $this->assertFalse($value->needsRehash($digester));
+    }
+    public function test_undigested_build_has_error(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        UserAccessTemporalCodeRegisterCodeVO::from('none');
+    }
     public function test_exception_on_wrong_value_1(): void
     {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->never())->method('digest');
         $this->expectException(ConstraintException::class);
-        UserAccessTemporalCodeRegisterCodeVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        UserAccessTemporalCodeRegisterCodeVO::fromPlainText($digester, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

@@ -56,8 +56,8 @@ use Civi\Lughauth\Features\Access\User\Domain\Event\UserSetMfaSeedEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserChangePasswordEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserVerifyEmailEvent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 
 class User extends UserRef
 {

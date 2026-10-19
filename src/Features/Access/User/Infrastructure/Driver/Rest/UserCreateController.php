@@ -36,7 +36,7 @@ class UserCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserCreateUsecase $createUsecase,
-        private readonly PasswordHasher $passwordHasher,
+        private readonly PasswordHasher $hasherService,
     ) {
     }
     #[OA\Post(
@@ -97,7 +97,7 @@ class UserCreateController
             }
             $readPassword = $body['password'] ?? '******';
             if (null !== $readPassword && '******' !== $readPassword) {
-                $valuePassword = UserPasswordVO::tryFromPlainText($this->passwordHasher, $readPassword, $errorsList);
+                $valuePassword = UserPasswordVO::tryFromPlainText($this->hasherService, $readPassword, $errorsList);
                 if (null !== $valuePassword) {
                     $value->password($valuePassword);
                 }

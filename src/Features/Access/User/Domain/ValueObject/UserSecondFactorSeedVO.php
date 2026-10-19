@@ -11,10 +11,6 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
-/**
- * private-content="sealed": the value is kept sealed by a ReversibleSecretStorage, bound to these
- * field and to the owner entity, and can be opened only through the storage.
- */
 class UserSecondFactorSeedVO
 {
     /**
@@ -41,7 +37,7 @@ class UserSecondFactorSeedVO
     }
     public static function tryFromPlainText(ReversibleSecretStorage $storage, string $owner, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
-        // The rules are checked against the plain text, never against the sealed value
+        // The rules are checked against the plain text, never against the protected value
         $valid = true;
         foreach (self::rules() as $rule) {
             if ($fail = $rule->check($value)) {
@@ -51,6 +47,14 @@ class UserSecondFactorSeedVO
         }
         return $valid ? new UserSecondFactorSeedVO($storage->seal($value, self::context($owner))) : null;
     }
+    private static function isSealed(string $value): bool
+    {
+        return str_starts_with($value, ReversibleSecretStorage::SEALED_PREFIX);
+    }
+    private static function context(string $owner): string
+    {
+        return self::CONTEXT . '#' . $owner;
+    }
     public static function empty(): UserSecondFactorSeedVO
     {
         return new UserSecondFactorSeedVO(null);
@@ -59,9 +63,6 @@ class UserSecondFactorSeedVO
     {
         return self::fromUnsafe($value);
     }
-    /**
-     * A string value must be an already sealed value, never a plain one.
-     */
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
         if ($value instanceof UserSecondFactorSeedVO) {
@@ -70,6 +71,7 @@ class UserSecondFactorSeedVO
         } elseif (!$value) {
             return new UserSecondFactorSeedVO(null);
         } elseif (is_string($value)) {
+            // A string is the stored (protected) value: the rules only apply to the plain text
             return new UserSecondFactorSeedVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['secondFactorSeed'], [$value], ['string']));
@@ -98,14 +100,6 @@ class UserSecondFactorSeedVO
             return $candidate;
         }
     }
-    private static function isSealed(string $value): bool
-    {
-        return str_starts_with($value, ReversibleSecretStorage::SEALED_PREFIX);
-    }
-    private static function context(string $owner): string
-    {
-        return self::CONTEXT . '#' . $owner;
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -122,8 +116,8 @@ class UserSecondFactorSeedVO
             return false;
         }
         return null === $this->secondFactorSeed || null === $other->secondFactorSeed
-            ? $this->secondFactorSeed === $other->secondFactorSeed
-            : hash_equals($this->secondFactorSeed, $other->secondFactorSeed);
+          ? $this->secondFactorSeed === $other->secondFactorSeed
+          : hash_equals($this->secondFactorSeed, $other->secondFactorSeed);
     }
     public function value(): ?string
     {

@@ -17,7 +17,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class UserListController
 {
@@ -26,7 +25,6 @@ class UserListController
 
     public function __construct(
         private readonly UserListUsecase $listUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

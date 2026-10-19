@@ -5,12 +5,50 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserPersonalApiKeyKeyHashVO
 {
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): UserPersonalApiKeyKeyHashVO
+    {
+        return self::from($value);
+    }
+    public static function fromPlainText(SecretDigester $digester, string $value): UserPersonalApiKeyKeyHashVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserPersonalApiKeyKeyHashVO);
+        return $candidate;
+    }
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?UserPersonalApiKeyKeyHashVO
+    {
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('keyHash', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserPersonalApiKeyKeyHashVO($digester->digest($value)) : null;
+    }
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
+    {
+        return $digester->digest($plain);
+    }
     public static function from(UserPersonalApiKeyKeyHashVO|string $value): UserPersonalApiKeyKeyHashVO
     {
         return self::fromUnsafe($value);
@@ -21,15 +59,8 @@ class UserPersonalApiKeyKeyHashVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('keyHash', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserPersonalApiKeyKeyHashVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new UserPersonalApiKeyKeyHashVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['keyHash'], [$value], ['string']));
             return null;
@@ -63,13 +94,34 @@ class UserPersonalApiKeyKeyHashVO
     private function __construct(
         private readonly string $keyHash
     ) {
-    }
-    public function value(): string
-    {
-        return $this->keyHash;
+        if (!SecretDigester::isSupported($this->keyHash)) {
+            throw new InvalidArgumentException('keyHash is not a valid digest');
+        }
     }
     public function equals(?UserPersonalApiKeyKeyHashVO $other): bool
     {
-        return $this->value() == $other?->value();
+        return null !== $other && hash_equals($this->keyHash, $other->keyHash);
+    }
+    public function value(): string
+    {
+        return "****" . substr($this->keyHash, -2);
+    }
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
+    {
+        return $this->keyHash;
+    }
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
+    {
+        return $digester->verify($plain, $this->keyHash);
+    }
+    public function needsRehash(SecretDigester $digester): bool
+    {
+        return $digester->needsRehash($this->keyHash);
     }
 }

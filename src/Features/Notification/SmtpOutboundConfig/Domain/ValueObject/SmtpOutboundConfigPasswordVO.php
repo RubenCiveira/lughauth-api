@@ -6,32 +6,54 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class SmtpOutboundConfigPasswordVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): SmtpOutboundConfigPasswordVO
+    /**
+     * Context bound to the sealed value: module.entity.field
+     */
+    private const string CONTEXT = 'notification.smtp_outbound_config.password';
+
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): SmtpOutboundConfigPasswordVO
     {
-        return self::from('cyphered://' . $value);
+        return self::from($value);
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): SmtpOutboundConfigPasswordVO
+    public static function fromPlainText(ReversibleSecretStorage $storage, string $owner, string $value): SmtpOutboundConfigPasswordVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($storage, $owner, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof SmtpOutboundConfigPasswordVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?SmtpOutboundConfigPasswordVO
+    public static function tryFromPlainText(ReversibleSecretStorage $storage, string $owner, string $value, ConstraintFailList $list): ?SmtpOutboundConfigPasswordVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('password', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new SmtpOutboundConfigPasswordVO($storage->seal($value, self::context($owner))) : null;
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?SmtpOutboundConfigPasswordVO
+    private static function isSealed(string $value): bool
     {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
+        return str_starts_with($value, ReversibleSecretStorage::SEALED_PREFIX);
     }
-    private static function isCyphered(string $value): bool
+    private static function context(string $owner): string
     {
-        return strpos($value, 'cyphered://') === 0;
+        return self::CONTEXT . '#' . $owner;
     }
     public static function from(SmtpOutboundConfigPasswordVO|string $value): SmtpOutboundConfigPasswordVO
     {
@@ -43,15 +65,8 @@ class SmtpOutboundConfigPasswordVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('password', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new SmtpOutboundConfigPasswordVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new SmtpOutboundConfigPasswordVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['password'], [$value], ['string']));
             return null;
@@ -85,37 +100,34 @@ class SmtpOutboundConfigPasswordVO
     private function __construct(
         private readonly string $password
     ) {
-        $this->validateCyphered($this->password);
+        if (!self::isSealed($this->password)) {
+            throw new InvalidArgumentException('password is not a valid sealed text');
+        }
     }
     public function equals(?SmtpOutboundConfigPasswordVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(string $key): void
-    {
-        if (strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
-        }
+        return null !== $other && hash_equals($this->password, $other->password);
     }
     public function value(): string
     {
         return "****" . substr($this->password, -2);
     }
-    public function cypheredValueWith(AesCypherService $cypher): string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
     {
-        return substr($this->password, 11);
+        return $this->password;
     }
-    public function plainValueWith(AesCypherService $cypher): string
+    /**
+     * @param string $owner The identifier of the entity that owns the value (it is part of the sealed context).
+     */
+    public function plainValueWith(ReversibleSecretStorage $storage, string $owner): string
     {
-        return $this->decrypt($cypher, $this->password);
+        return $storage->open($this->password, self::context($owner));
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsReseal(ReversibleSecretStorage $storage): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return $storage->needsReseal($this->password);
     }
 }

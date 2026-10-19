@@ -14,7 +14,6 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\Retrieve\DcrInitialAccessTokenRetrieveUsecase;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\Retrieve\DcrInitialAccessTokenRetrieveResult;
 
 class DcrInitialAccessTokenRetrieveController
@@ -24,7 +23,6 @@ class DcrInitialAccessTokenRetrieveController
 
     public function __construct(
         private readonly DcrInitialAccessTokenRetrieveUsecase $retrieveUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

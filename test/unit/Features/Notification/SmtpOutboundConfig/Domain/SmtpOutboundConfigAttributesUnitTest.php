@@ -69,12 +69,12 @@ final class SmtpOutboundConfigAttributesUnitTest extends TestCase
         $value->unsetLogin();
         $this->assertEquals('other', $value->getLoginOrCurrent(SmtpOutboundConfigLoginVO::from($loginOtherValue))->value());
         $this->assertNotEquals('one', $value->getLoginOrCurrent(SmtpOutboundConfigLoginVO::from($loginOtherValue))->value());
-        $passwordOneValue = 'cyphered://cypher';
-        $passwordOtherValue = 'cyphered://ocyphered';
+        $passwordOneValue = 'sealed:k1:cypher';
+        $passwordOtherValue = 'sealed:k1:ocyphered';
         $copy = $value->password($passwordOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals('cyphered://cypher', $value->getPassword());
-        $this->assertNotEquals('cyphered://ocyphered', $value->getPassword());
+        $this->assertEquals('sealed:k1:cypher', $value->getPassword());
+        $this->assertNotEquals('sealed:k1:ocyphered', $value->getPassword());
         $this->assertEquals('****er', $value->getPasswordOrCurrent(SmtpOutboundConfigPasswordVO::from($passwordOtherValue))->value());
         $this->assertNotEquals('****ed', $value->getPasswordOrCurrent(SmtpOutboundConfigPasswordVO::from($passwordOtherValue))->value());
         $value->unsetPassword();

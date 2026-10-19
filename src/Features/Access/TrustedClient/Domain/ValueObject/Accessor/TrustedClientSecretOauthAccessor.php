@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait TrustedClientSecretOauthAccessor
 {
@@ -19,13 +19,17 @@ trait TrustedClientSecretOauthAccessor
     {
         return $this->_secretOauth;
     }
-    public function getCypheredSecretOauth(AesCypherService $cypher): ?string
+    public function getStoredSecretOauth(): ?string
     {
-        return $this->_secretOauth?->cypheredValueWith($cypher);
+        return $this->_secretOauth?->storedValue();
     }
-    public function getPlainSecretOauth(AesCypherService $cypher): ?string
+    public function verifySecretOauth(SecretDigester $digester, string $plain): bool
     {
-        return $this->_secretOauth?->plainValueWith($cypher);
+        return true === $this->_secretOauth?->verify($digester, $plain);
+    }
+    public function secretOauthNeedsRehash(SecretDigester $digester): bool
+    {
+        return true === $this->_secretOauth?->needsRehash($digester);
     }
     public function isSecretOauthChanged(?self $original = null): bool
     {

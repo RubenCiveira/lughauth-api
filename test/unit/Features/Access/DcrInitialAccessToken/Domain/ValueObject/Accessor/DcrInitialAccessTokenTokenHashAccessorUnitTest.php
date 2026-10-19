@@ -24,7 +24,7 @@ class DcrInitialAccessTokenTokenHashAccessorUnitTest extends TestCase
         $holder = new ImplWithDcrInitialAccessTokenTokenHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withTokenHash('cyphered://cypher');
+        $result = $holder->withTokenHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class DcrInitialAccessTokenTokenHashAccessorUnitTest extends TestCase
         $holder = new ImplWithDcrInitialAccessTokenTokenHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withTokenHash('cyphered://cypher');
+        $result = $holder->withTokenHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -49,10 +49,10 @@ class DcrInitialAccessTokenTokenHashAccessorUnitTest extends TestCase
     public function testChangedTokenHash(): void
     {
         // Arrange
-        $holder = new ImplWithDcrInitialAccessTokenTokenHashAccessorUnitTest()->withTokenHash('cyphered://cypher');
-        $original = $holder->withTokenHash('cyphered://cypher');
-        $same = $holder->withTokenHash('cyphered://cypher');
-        $modified = $holder->withTokenHash('cyphered://ocyphered');
+        $holder = new ImplWithDcrInitialAccessTokenTokenHashAccessorUnitTest()->withTokenHash('hmac-sha256:p1:cypher');
+        $original = $holder->withTokenHash('hmac-sha256:p1:cypher');
+        $same = $holder->withTokenHash('hmac-sha256:p1:cypher');
+        $modified = $holder->withTokenHash('hmac-sha256:p1:ocyphered');
 
         // Act
         $withSame = $original->isTokenHashChanged($same);

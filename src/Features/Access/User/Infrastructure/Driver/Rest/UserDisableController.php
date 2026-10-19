@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableUs
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Batch\UserTaskDisable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableResult;
 
 class UserDisableController
@@ -32,7 +31,6 @@ class UserDisableController
         private readonly Runner $runner,
         private readonly SqlTemplate $sql,
         private readonly UserDisableUsecase $disableUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Patch(

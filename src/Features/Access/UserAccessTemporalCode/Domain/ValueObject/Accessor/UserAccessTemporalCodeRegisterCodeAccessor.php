@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait UserAccessTemporalCodeRegisterCodeAccessor
 {
@@ -17,6 +18,18 @@ trait UserAccessTemporalCodeRegisterCodeAccessor
     public function registerCode(): ?UserAccessTemporalCodeRegisterCodeVO
     {
         return $this->_registerCode;
+    }
+    public function getStoredRegisterCode(): ?string
+    {
+        return $this->_registerCode?->storedValue();
+    }
+    public function verifyRegisterCode(SecretDigester $digester, string $plain): bool
+    {
+        return true === $this->_registerCode?->verify($digester, $plain);
+    }
+    public function registerCodeNeedsRehash(SecretDigester $digester): bool
+    {
+        return true === $this->_registerCode?->needsRehash($digester);
     }
     public function isRegisterCodeChanged(?self $original = null): bool
     {

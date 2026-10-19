@@ -11,8 +11,9 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientTokenEndpointAuthMethodOptions;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\ClientStoreAdapter;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -81,11 +82,33 @@ final class ClientStoreAdapterUnitTest extends TestCase
         self::assertSame($expected, $store->findEnabledClient('angular-client')?->tokenEndpointAuthMethod);
     }
 
+    public function testClientSecretIsVerifiedAgainstTheDigest(): void
+    {
+        $store = $this->storeWithRedirect(
+            'https://app.example.com/callback',
+            TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC,
+            's3cret'
+        );
+
+        self::assertSame('angular-client', $store->clientData('angular-client', 's3cret')?->id);
+        self::assertNull($store->clientData('angular-client', 'S3cret'));
+        self::assertNull($store->clientData('angular-client', ''));
+    }
+
+    public function testClientWithoutSecretNeverVerifies(): void
+    {
+        $store = $this->storeWithRedirect('https://app.example.com/callback');
+
+        self::assertNull($store->clientData('angular-client', 's3cret'));
+    }
+
     private function storeWithRedirect(
         string $url,
-        TrustedClientTokenEndpointAuthMethodOptions $method = TrustedClientTokenEndpointAuthMethodOptions::NONE
+        TrustedClientTokenEndpointAuthMethodOptions $method = TrustedClientTokenEndpointAuthMethodOptions::NONE,
+        ?string $secret = null,
     ): ClientStoreAdapter {
-        $client = TrustedClient::create((new TrustedClientAttributes())
+        $digester = new SecretDigester(['p1' => 'pepper-one'], 'p1');
+        $attributes = (new TrustedClientAttributes())
             ->withDefaults()
             ->uid('client-uid')
             ->code('angular-client')
@@ -96,11 +119,15 @@ final class ClientStoreAdapterUnitTest extends TestCase
                 null,
                 TrustedClientAllowedRedirectsUrlVO::from($url),
                 null,
-            )]))->enable();
+            )]);
+        if (null !== $secret) {
+            $attributes->secretOauth(TrustedClientSecretOauthVO::fromPlainText($digester, $secret));
+        }
+        $client = TrustedClient::create($attributes)->enable();
         $clients = $this->createStub(TrustedClientQueryRepositoryGateway::class);
         $clients->method('findOneByTenantAndCode')->willReturn($client);
 
-        $store = new ClientStoreAdapter($this->createStub(AesCypherService::class), $clients);
+        $store = new ClientStoreAdapter($digester, $clients);
         $store->setLogger(new NullLogger());
         return $store;
     }

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationTokenHashVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait UserInvitationTokenHashAccessor
 {
@@ -17,6 +18,18 @@ trait UserInvitationTokenHashAccessor
     public function tokenHash(): UserInvitationTokenHashVO
     {
         return $this->_tokenHash;
+    }
+    public function getStoredTokenHash(): string
+    {
+        return $this->_tokenHash->storedValue();
+    }
+    public function verifyTokenHash(SecretDigester $digester, string $plain): bool
+    {
+        return $this->_tokenHash->verify($digester, $plain);
+    }
+    public function tokenHashNeedsRehash(SecretDigester $digester): bool
+    {
+        return $this->_tokenHash->needsRehash($digester);
     }
     public function isTokenHashChanged(?self $original = null): bool
     {

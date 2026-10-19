@@ -22,7 +22,8 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
 
 class UserAccessTemporalCodePdoConnector
 {
@@ -30,7 +31,6 @@ class UserAccessTemporalCodePdoConnector
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
         private readonly SqlTemplate $db,
     ) {
     }
@@ -141,13 +141,13 @@ class UserAccessTemporalCodePdoConnector
                 $this->db->execute('INSERT INTO "access_user_access_temporal_code" ( "uid", "user", "temp_second_factor_seed", "temp_second_factor_seed_expiration", "failed_login_attempts", "register_code", "register_code_url", "register_code_expiration", "recovery_code", "recovery_code_expiration", "version") VALUES ( :uid, :user, :tempSecondFactorSeed, :tempSecondFactorSeedExpiration, :failedLoginAttempts, :registerCode, :registerCodeUrl, :registerCodeExpiration, :recoveryCode, :recoveryCodeExpiration, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tempSecondFactorSeed', value: $entity->getCypheredTempSecondFactorSeed($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'tempSecondFactorSeed', value: $entity->getStoredTempSecondFactorSeed(), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeedExpiration', value: $entity->getTempSecondFactorSeedExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'failedLoginAttempts', value: $entity->getFailedLoginAttempts(), type: SqlParam::INT),
-                     new SqlParam(name: 'registerCode', value: $entity->getRegisterCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'registerCode', value: $entity->getStoredRegisterCode(), type: SqlParam::STR),
                      new SqlParam(name: 'registerCodeUrl', value: $entity->getRegisterCodeUrl(), type: SqlParam::TEXT),
                      new SqlParam(name: 'registerCodeExpiration', value: $entity->getRegisterCodeExpiration(), type: SqlParam::STR),
-                     new SqlParam(name: 'recoveryCode', value: $entity->getRecoveryCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'recoveryCode', value: $entity->getStoredRecoveryCode(), type: SqlParam::STR),
                      new SqlParam(name: 'recoveryCodeExpiration', value: $entity->getRecoveryCodeExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -179,13 +179,13 @@ class UserAccessTemporalCodePdoConnector
                 $result = $this->db->execute('UPDATE "access_user_access_temporal_code" SET "user" = :user , "temp_second_factor_seed" = :tempSecondFactorSeed , "temp_second_factor_seed_expiration" = :tempSecondFactorSeedExpiration , "failed_login_attempts" = :failedLoginAttempts , "register_code" = :registerCode , "register_code_url" = :registerCodeUrl , "register_code_expiration" = :registerCodeExpiration , "recovery_code" = :recoveryCode , "recovery_code_expiration" = :recoveryCodeExpiration , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tempSecondFactorSeed', value: $update->getCypheredTempSecondFactorSeed($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'tempSecondFactorSeed', value: $update->getStoredTempSecondFactorSeed(), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeedExpiration', value: $update->getTempSecondFactorSeedExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'failedLoginAttempts', value: $update->getFailedLoginAttempts(), type: SqlParam::INT),
-                     new SqlParam(name: 'registerCode', value: $update->getRegisterCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'registerCode', value: $update->getStoredRegisterCode(), type: SqlParam::STR),
                      new SqlParam(name: 'registerCodeUrl', value: $update->getRegisterCodeUrl(), type: SqlParam::TEXT),
                      new SqlParam(name: 'registerCodeExpiration', value: $update->getRegisterCodeExpiration(), type: SqlParam::STR),
-                     new SqlParam(name: 'recoveryCode', value: $update->getRecoveryCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'recoveryCode', value: $update->getStoredRecoveryCode(), type: SqlParam::STR),
                      new SqlParam(name: 'recoveryCodeExpiration', value: $update->getRecoveryCodeExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
@@ -410,13 +410,13 @@ class UserAccessTemporalCodePdoConnector
                 throw ConstraintException::ofError('not-null', ['user'], [null]);
             }
             $user = new UserRef(uid: $rawUser);
-            $tempSecondFactorSeed = isset($row['temp_second_factor_seed']) && $row['temp_second_factor_seed'] ? UserAccessTemporalCodeTempSecondFactorSeedVO::fromCypheredText($this->cypher, $row['temp_second_factor_seed']) : UserAccessTemporalCodeTempSecondFactorSeedVO::empty();
+            $tempSecondFactorSeed = isset($row['temp_second_factor_seed']) && $row['temp_second_factor_seed'] ? UserAccessTemporalCodeTempSecondFactorSeedVO::fromStoredText($row['temp_second_factor_seed']) : UserAccessTemporalCodeTempSecondFactorSeedVO::empty();
             $tempSecondFactorSeedExpiration = $row['temp_second_factor_seed_expiration'] ? new \DateTimeImmutable($row['temp_second_factor_seed_expiration']) : null;
             $failedLoginAttempts = $row['failed_login_attempts'] ?? null;
-            $registerCode = $row['register_code'] ?? null;
+            $registerCode = isset($row['register_code']) && $row['register_code'] ? UserAccessTemporalCodeRegisterCodeVO::fromStoredText($row['register_code']) : UserAccessTemporalCodeRegisterCodeVO::empty();
             $registerCodeUrl = $row['register_code_url'] ?? null;
             $registerCodeExpiration = $row['register_code_expiration'] ? new \DateTimeImmutable($row['register_code_expiration']) : null;
-            $recoveryCode = $row['recovery_code'] ?? null;
+            $recoveryCode = isset($row['recovery_code']) && $row['recovery_code'] ? UserAccessTemporalCodeRecoveryCodeVO::fromStoredText($row['recovery_code']) : UserAccessTemporalCodeRecoveryCodeVO::empty();
             $recoveryCodeExpiration = $row['recovery_code_expiration'] ? new \DateTimeImmutable($row['recovery_code_expiration']) : null;
             $version = $row['version'] ?? null;
             return new UserAccessTemporalCode(

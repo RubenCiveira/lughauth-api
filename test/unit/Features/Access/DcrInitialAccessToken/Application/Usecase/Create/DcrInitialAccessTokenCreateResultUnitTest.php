@@ -43,12 +43,12 @@ final class DcrInitialAccessTokenCreateResultUnitTest extends TestCase
         $value->unsetDescription();
         $this->assertEquals('other', $value->getDescriptionOrCurrent(DcrInitialAccessTokenDescriptionVO::from($descriptionOtherValue))->value());
         $this->assertNotEquals('one', $value->getDescriptionOrCurrent(DcrInitialAccessTokenDescriptionVO::from($descriptionOtherValue))->value());
-        $tokenHashOneValue = 'cyphered://cypher';
-        $tokenHashOtherValue = 'cyphered://ocyphered';
+        $tokenHashOneValue = 'hmac-sha256:p1:cypher';
+        $tokenHashOtherValue = 'hmac-sha256:p1:ocyphered';
         $copy = $value->tokenHash($tokenHashOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals('cyphered://cypher', $value->getTokenHash());
-        $this->assertNotEquals('cyphered://ocyphered', $value->getTokenHash());
+        $this->assertEquals('hmac-sha256:p1:cypher', $value->getTokenHash());
+        $this->assertNotEquals('hmac-sha256:p1:ocyphered', $value->getTokenHash());
         $this->assertEquals('****er', $value->getTokenHashOrCurrent(DcrInitialAccessTokenTokenHashVO::from($tokenHashOtherValue))->value());
         $this->assertNotEquals('****ed', $value->getTokenHashOrCurrent(DcrInitialAccessTokenTokenHashVO::from($tokenHashOtherValue))->value());
         $value->unsetTokenHash();

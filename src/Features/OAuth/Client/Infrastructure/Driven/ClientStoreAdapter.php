@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 
 use Override;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
@@ -32,13 +32,13 @@ class ClientStoreAdapter implements ClientStoreGateway
     use LoggerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
+        private readonly SecretDigester $digester,
         private readonly TrustedClientQueryRepositoryGateway $clients,
     ) {
     }
 
     /**
-     * Looks up the client by ID and verifies the decrypted secret matches the provided value.
+     * Looks up the client by ID and verifies, in constant time, the provided secret against the stored digest.
      * Returns null if the client is not found, disabled, or the secret is wrong.
      */
     #[Override]
@@ -50,7 +50,7 @@ class ClientStoreAdapter implements ClientStoreGateway
                 // Not enabled
                 $this->notEnabled($clientId);
                 return null;
-            } elseif ($clientSecret !== $existent->getPlainSecretOauth($this->cypher)) {
+            } elseif (!$existent->verifySecretOauth($this->digester, $clientSecret)) {
                 // Wrong passwrod
                 $this->wrongPassword($clientId);
                 return null;

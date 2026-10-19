@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -15,7 +15,7 @@ final class TrustedClientSecretOauthVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'cyphered://cypher';
+        $value = 'hmac-sha256:p1:cypher';
         $ref = TrustedClientSecretOauthVO::from($value);
         $this->assertEquals('****er', $ref->value());
         $other = TrustedClientSecretOauthVO::tryFrom($ref, new ConstraintFailList());
@@ -38,9 +38,9 @@ final class TrustedClientSecretOauthVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = TrustedClientSecretOauthVO::from('cyphered://cypher');
-        $same = TrustedClientSecretOauthVO::from('cyphered://cypher');
-        $other = TrustedClientSecretOauthVO::from('cyphered://ocyphered');
+        $one = TrustedClientSecretOauthVO::from('hmac-sha256:p1:cypher');
+        $same = TrustedClientSecretOauthVO::from('hmac-sha256:p1:cypher');
+        $other = TrustedClientSecretOauthVO::from('hmac-sha256:p1:ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -59,62 +59,40 @@ final class TrustedClientSecretOauthVOUnitTest extends TestCase
         $ref = TrustedClientSecretOauthVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
-    public function test_cypher_builders(): void
+    public function test_stored_builders(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
+        $this->assertEquals('hmac-sha256:p1:cypher', TrustedClientSecretOauthVO::fromStoredText('hmac-sha256:p1:cypher')->storedValue());
+        $this->assertNull(TrustedClientSecretOauthVO::fromStoredText(null)->value());
+    }
+    public function test_plain_builders_digest_the_value(): void
+    {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->exactly(3))->method('digest')->with('gold')->willReturn('hmac-sha256:p1:cypher');
         $errors = new ConstraintFailList();
-        $value = TrustedClientSecretOauthVO::fromCypheredText($aes, 'gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = TrustedClientSecretOauthVO::tryFromCypheredText($aes, 'gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertEquals('hmac-sha256:p1:cypher', TrustedClientSecretOauthVO::fromPlainText($digester, 'gold')->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', TrustedClientSecretOauthVO::tryFromPlainText($digester, 'gold', $errors)?->storedValue());
+        $this->assertEquals('hmac-sha256:p1:cypher', TrustedClientSecretOauthVO::digestOf($digester, 'gold'));
         $this->assertTrue($errors->isEmpty());
     }
-    public function test_plain_but_cypher_builders(): void
+    public function test_verify_and_rehash_delegate_on_digester(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = TrustedClientSecretOauthVO::fromPlainText($aes, 'cyphered://gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = TrustedClientSecretOauthVO::tryFromPlainText($aes, 'cyphered://gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->once())->method('verify')->with('gold', 'hmac-sha256:p1:cypher')->willReturn(true);
+        $digester->expects($this->once())->method('needsRehash')->with('hmac-sha256:p1:cypher')->willReturn(false);
+        $value = TrustedClientSecretOauthVO::from('hmac-sha256:p1:cypher');
+        $this->assertTrue($value->verify($digester, 'gold'));
+        $this->assertFalse($value->needsRehash($digester));
     }
-    public function test_plain_builders(): void
-    {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = TrustedClientSecretOauthVO::fromPlainText($aes, 'gold');
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = TrustedClientSecretOauthVO::tryFromPlainText($aes, 'gold', $errors);
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
-    }
-    public function test_uncypgere_build_has_error(): void
+    public function test_undigested_build_has_error(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         TrustedClientSecretOauthVO::from('none');
     }
     public function test_exception_on_wrong_value_1(): void
     {
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->never())->method('digest');
         $this->expectException(ConstraintException::class);
-        TrustedClientSecretOauthVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        TrustedClientSecretOauthVO::fromPlainText($digester, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

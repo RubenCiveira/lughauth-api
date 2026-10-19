@@ -21,6 +21,7 @@ use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\UserMfaRecoveryCodeCodeHashVO;
 
 class UserMfaRecoveryCodePdoConnector
 {
@@ -138,7 +139,7 @@ class UserMfaRecoveryCodePdoConnector
                 $this->db->execute('INSERT INTO "access_user_mfa_recovery_code" ( "uid", "user", "code_hash", "used_at", "created_at", "version") VALUES ( :uid, :user, :codeHash, :usedAt, :createdAt, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'codeHash', value: $entity->getCodeHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'codeHash', value: $entity->getStoredCodeHash(), type: SqlParam::STR),
                      new SqlParam(name: 'usedAt', value: $entity->getUsedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'createdAt', value: $entity->getCreatedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -171,7 +172,7 @@ class UserMfaRecoveryCodePdoConnector
                 $result = $this->db->execute('UPDATE "access_user_mfa_recovery_code" SET "user" = :user , "code_hash" = :codeHash , "used_at" = :usedAt , "created_at" = :createdAt , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'codeHash', value: $update->getCodeHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'codeHash', value: $update->getStoredCodeHash(), type: SqlParam::STR),
                      new SqlParam(name: 'usedAt', value: $update->getUsedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'createdAt', value: $update->getCreatedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
@@ -375,10 +376,11 @@ class UserMfaRecoveryCodePdoConnector
                 throw ConstraintException::ofError('not-null', ['user'], [null]);
             }
             $user = new UserRef(uid: $rawUser);
-            $codeHash = $row['code_hash'] ?? null;
-            if (null === $codeHash) {
+            $rawCodeHash = $row['code_hash'] ?? null;
+            if (null === $rawCodeHash) {
                 throw ConstraintException::ofError('not-null', ['codeHash'], [null]);
             }
+            $codeHash = UserMfaRecoveryCodeCodeHashVO::fromStoredText($rawCodeHash);
             $usedAt = $row['used_at'] ? new \DateTimeImmutable($row['used_at']) : null;
             $createdAt = $row['created_at'] ? new \DateTimeImmutable($row['created_at']) : null;
             if (null === $createdAt) {

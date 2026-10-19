@@ -5,12 +5,50 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserAccessTemporalCodeRecoveryCodeVO
 {
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(?string $value): UserAccessTemporalCodeRecoveryCodeVO
+    {
+        return $value ? self::from($value) : self::empty();
+    }
+    public static function fromPlainText(SecretDigester $digester, string $value): UserAccessTemporalCodeRecoveryCodeVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserAccessTemporalCodeRecoveryCodeVO);
+        return $candidate;
+    }
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?UserAccessTemporalCodeRecoveryCodeVO
+    {
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('recoveryCode', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserAccessTemporalCodeRecoveryCodeVO($digester->digest($value)) : null;
+    }
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
+    {
+        return $digester->digest($plain);
+    }
     public static function empty(): UserAccessTemporalCodeRecoveryCodeVO
     {
         return new UserAccessTemporalCodeRecoveryCodeVO(null);
@@ -25,17 +63,10 @@ class UserAccessTemporalCodeRecoveryCodeVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new UserAccessTemporalCodeRecoveryCodeVO($value);
+            return new UserAccessTemporalCodeRecoveryCodeVO(null);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('recoveryCode', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserAccessTemporalCodeRecoveryCodeVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new UserAccessTemporalCodeRecoveryCodeVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['recoveryCode'], [$value], ['string']));
             return null;
@@ -69,13 +100,39 @@ class UserAccessTemporalCodeRecoveryCodeVO
     private function __construct(
         private readonly ?string $recoveryCode
     ) {
-    }
-    public function value(): ?string
-    {
-        return $this->recoveryCode;
+        if (null !== $this->recoveryCode && !SecretDigester::isSupported($this->recoveryCode)) {
+            throw new InvalidArgumentException('recoveryCode is not a valid digest');
+        }
     }
     public function equals(?UserAccessTemporalCodeRecoveryCodeVO $other): bool
     {
-        return $this->value() == $other?->value();
+        if (null === $other) {
+            return false;
+        }
+        return null === $this->recoveryCode || null === $other->recoveryCode
+          ? $this->recoveryCode === $other->recoveryCode
+          : hash_equals($this->recoveryCode, $other->recoveryCode);
+    }
+    public function value(): ?string
+    {
+        return null !== $this->recoveryCode ? "****" . substr($this->recoveryCode, -2) : null;
+    }
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): ?string
+    {
+        return $this->recoveryCode;
+    }
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
+    {
+        return null !== $this->recoveryCode && $digester->verify($plain, $this->recoveryCode);
+    }
+    public function needsRehash(SecretDigester $digester): bool
+    {
+        return null !== $this->recoveryCode && $digester->needsRehash($this->recoveryCode);
     }
 }

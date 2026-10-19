@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait UserAccessTemporalCodeRecoveryCodeAccessor
 {
@@ -17,6 +18,18 @@ trait UserAccessTemporalCodeRecoveryCodeAccessor
     public function recoveryCode(): ?UserAccessTemporalCodeRecoveryCodeVO
     {
         return $this->_recoveryCode;
+    }
+    public function getStoredRecoveryCode(): ?string
+    {
+        return $this->_recoveryCode?->storedValue();
+    }
+    public function verifyRecoveryCode(SecretDigester $digester, string $plain): bool
+    {
+        return true === $this->_recoveryCode?->verify($digester, $plain);
+    }
+    public function recoveryCodeNeedsRehash(SecretDigester $digester): bool
+    {
+        return true === $this->_recoveryCode?->needsRehash($digester);
     }
     public function isRecoveryCodeChanged(?self $original = null): bool
     {

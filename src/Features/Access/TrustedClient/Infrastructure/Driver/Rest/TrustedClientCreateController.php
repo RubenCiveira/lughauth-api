@@ -37,7 +37,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAuthorizationDetailsTypesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUserinfoSignedResponseAlgVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDefaultAcrValuesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDefaultMaxAgeVO;
@@ -89,7 +89,7 @@ class TrustedClientCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly TrustedClientCreateUsecase $createUsecase,
-        private readonly AesCypherService $cypherService,
+        private readonly SecretDigester $digesterService,
     ) {
     }
     #[OA\Post(
@@ -180,11 +180,11 @@ class TrustedClientCreateController
             $value->userinfoSignedResponseAlg(TrustedClientUserinfoSignedResponseAlgVO::tryFrom($body['userinfoSignedResponseAlg'] ?? null, $errorsList));
             $readSecretOauth = $body['secretOauth'] ?? '******';
             if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
-                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
+                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->digesterService, $readSecretOauth, $errorsList));
             }
             $readRegistrationAccess = $body['registrationAccess'] ?? '******';
             if (null !== $readRegistrationAccess && '******' !== $readRegistrationAccess) {
-                $value->registrationAccess(TrustedClientRegistrationAccessVO::tryFromPlainText($this->cypherService, $readRegistrationAccess, $errorsList));
+                $value->registrationAccess(TrustedClientRegistrationAccessVO::tryFromPlainText($this->digesterService, $readRegistrationAccess, $errorsList));
             }
             $value->defaultAcrValues(TrustedClientDefaultAcrValuesVO::tryFrom($body['defaultAcrValues'] ?? null, $errorsList));
             $value->defaultMaxAge(TrustedClientDefaultMaxAgeVO::tryFrom($body['defaultMaxAge'] ?? null, $errorsList));

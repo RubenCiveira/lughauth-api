@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\Trus
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Batch\TrustedClientTaskDisable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableResult;
 
 class TrustedClientDisableController
@@ -32,7 +31,6 @@ class TrustedClientDisableController
         private readonly Runner $runner,
         private readonly SqlTemplate $sql,
         private readonly TrustedClientDisableUsecase $disableUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Patch(

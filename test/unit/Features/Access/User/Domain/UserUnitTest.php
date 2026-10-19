@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
-use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -304,8 +304,8 @@ final class UserUnitTest extends TestCase
         $targetName = 'other';
         $targetEmail = 'other@fakemail.net';
         $hasher = $this->createMock(PasswordHasher::class);
-        $hasher->expects($this->once())->method('hash')->with('plain-other')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
-        $targetPassword = 'plain-other';
+        $hasher->expects($this->once())->method('hash')->with('plain-password')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
+        $targetPassword = 'plain-password';
         $targetTenant = new TenantRef('other');
 
         // @Act
@@ -563,11 +563,9 @@ final class UserUnitTest extends TestCase
             version: 1,
         );
         $storage = $this->createMock(ReversibleSecretStorage::class);
-        $storage->expects($this->once())->method('seal')
-            ->with('plain-seed', 'access.user.second_factor_seed#one')
-            ->willReturn('sealed:k1:ocyphered');
+        $storage->expects($this->once())->method('seal')->with('plain-second-factor-seed', $this->anything())->willReturn('sealed:k1:ocyphered');
         $sourceSecondFactorSeed = 'sealed:k1:cypher';
-        $targetSecondFactorSeed = 'plain-seed';
+        $targetSecondFactorSeed = 'plain-second-factor-seed';
         $source = $source->withSecondFactorSeed($sourceSecondFactorSeed);
         $sourceUseSecondFactors = false;
         $targetUseSecondFactors = true;
@@ -605,9 +603,9 @@ final class UserUnitTest extends TestCase
             version: 1,
         );
         $hasher = $this->createMock(PasswordHasher::class);
-        $hasher->expects($this->once())->method('hash')->with('plain-other')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
+        $hasher->expects($this->once())->method('hash')->with('plain-password')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
         $sourcePassword = '$argon2id$v=19$m=65536,t=4,p=1$cypher';
-        $targetPassword = 'plain-other';
+        $targetPassword = 'plain-password';
         $source = $source->withPassword($sourcePassword);
         $sourceTemporalPassword = true;
         $targetTemporalPassword = false;

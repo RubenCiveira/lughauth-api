@@ -5,12 +5,50 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject;
 
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserInvitationTokenHashVO
 {
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): UserInvitationTokenHashVO
+    {
+        return self::from($value);
+    }
+    public static function fromPlainText(SecretDigester $digester, string $value): UserInvitationTokenHashVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof UserInvitationTokenHashVO);
+        return $candidate;
+    }
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?UserInvitationTokenHashVO
+    {
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('tokenHash', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new UserInvitationTokenHashVO($digester->digest($value)) : null;
+    }
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
+    {
+        return $digester->digest($plain);
+    }
     public static function from(UserInvitationTokenHashVO|string $value): UserInvitationTokenHashVO
     {
         return self::fromUnsafe($value);
@@ -21,15 +59,8 @@ class UserInvitationTokenHashVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('tokenHash', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserInvitationTokenHashVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new UserInvitationTokenHashVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['tokenHash'], [$value], ['string']));
             return null;
@@ -63,13 +94,34 @@ class UserInvitationTokenHashVO
     private function __construct(
         private readonly string $tokenHash
     ) {
-    }
-    public function value(): string
-    {
-        return $this->tokenHash;
+        if (!SecretDigester::isSupported($this->tokenHash)) {
+            throw new InvalidArgumentException('tokenHash is not a valid digest');
+        }
     }
     public function equals(?UserInvitationTokenHashVO $other): bool
     {
-        return $this->value() == $other?->value();
+        return null !== $other && hash_equals($this->tokenHash, $other->tokenHash);
+    }
+    public function value(): string
+    {
+        return "****" . substr($this->tokenHash, -2);
+    }
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
+    {
+        return $this->tokenHash;
+    }
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
+    {
+        return $digester->verify($plain, $this->tokenHash);
+    }
+    public function needsRehash(SecretDigester $digester): bool
+    {
+        return $digester->needsRehash($this->tokenHash);
     }
 }

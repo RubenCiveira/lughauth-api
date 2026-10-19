@@ -24,7 +24,7 @@ class TrustedClientRegistrationAccessAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegistrationAccess('cyphered://cypher');
+        $result = $holder->withRegistrationAccess('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class TrustedClientRegistrationAccessAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegistrationAccess('cyphered://cypher');
+        $result = $holder->withRegistrationAccess('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -50,9 +50,9 @@ class TrustedClientRegistrationAccessAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientRegistrationAccessAccessorUnitTest();
-        $original = $holder->withRegistrationAccess('cyphered://cypher');
-        $same = $holder->withRegistrationAccess('cyphered://cypher');
-        $modified = $holder->withRegistrationAccess('cyphered://ocyphered');
+        $original = $holder->withRegistrationAccess('hmac-sha256:p1:cypher');
+        $same = $holder->withRegistrationAccess('hmac-sha256:p1:cypher');
+        $modified = $holder->withRegistrationAccess('hmac-sha256:p1:ocyphered');
 
         // Act
         $unchanged = $holder->isRegistrationAccessChanged();

@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
 
 class ApiKeyClientPdoConnector
 {
@@ -137,7 +138,7 @@ class ApiKeyClientPdoConnector
                 $this->db->execute('INSERT INTO "access_api_key_client" ( "uid", "code", "key", "enabled", "scopes", "version") VALUES ( :uid, :code, :key, :enabled, :scopes, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
-                     new SqlParam(name: 'key', value: $entity->getKey(), type: SqlParam::STR),
+                     new SqlParam(name: 'key', value: $entity->getStoredKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'scopes', value: $entity->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -170,7 +171,7 @@ class ApiKeyClientPdoConnector
                 $result = $this->db->execute('UPDATE "access_api_key_client" SET "code" = :code , "key" = :key , "enabled" = :enabled , "scopes" = :scopes , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
-                     new SqlParam(name: 'key', value: $update->getKey(), type: SqlParam::STR),
+                     new SqlParam(name: 'key', value: $update->getStoredKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'scopes', value: $update->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
@@ -375,7 +376,7 @@ class ApiKeyClientPdoConnector
             if (null === $code) {
                 throw ConstraintException::ofError('not-null', ['code'], [null]);
             }
-            $key = $row['key'] ?? null;
+            $key = isset($row['key']) && $row['key'] ? ApiKeyClientKeyVO::fromStoredText($row['key']) : ApiKeyClientKeyVO::empty();
             $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
             if (null === $enabled) {
                 throw ConstraintException::ofError('not-null', ['enabled'], [null]);

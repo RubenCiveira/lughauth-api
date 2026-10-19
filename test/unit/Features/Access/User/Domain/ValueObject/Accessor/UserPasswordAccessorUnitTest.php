@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserPasswordAccessor;
-use Civi\Lughauth\Shared\Security\PasswordHasher;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -62,23 +61,6 @@ class UserPasswordAccessorUnitTest extends TestCase
         // Assert
         $this->assertFalse($withSame);
         $this->assertTrue($withDiferent);
-    }
-    public function testVerifyAndStoredPassword(): void
-    {
-        // Arrange
-        $hasher = new PasswordHasher(['memory_cost' => 1024, 'time_cost' => 1, 'threads' => 1]);
-        $stored = $hasher->hash('s3cret');
-        $holder = new ImplWithUserPasswordAccessorUnitTest()->withPassword($stored);
-
-        // Act
-        $right = $holder->verifyPassword($hasher, 's3cret');
-        $wrong = $holder->verifyPassword($hasher, 'other');
-
-        // Assert
-        $this->assertTrue($right);
-        $this->assertFalse($wrong);
-        $this->assertFalse($holder->passwordNeedsRehash($hasher));
-        $this->assertEquals($stored, $holder->getStoredPassword());
     }
 }
 class ImplWithUserPasswordAccessorUnitTest

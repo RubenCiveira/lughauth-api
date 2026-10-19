@@ -24,11 +24,11 @@ class UserInvitationTokenHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserInvitationTokenHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withTokenHash('one');
+        $result = $holder->withTokenHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getTokenHash());
+        $this->assertEquals('****er', $result->getTokenHash());
     }
     /**
      * Asserts that withtokenHash has access to the value object
@@ -40,19 +40,19 @@ class UserInvitationTokenHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserInvitationTokenHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withTokenHash('one');
+        $result = $holder->withTokenHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->tokenHash()->value());
+        $this->assertEquals('****er', $result->tokenHash()->value());
     }
     public function testChangedTokenHash(): void
     {
         // Arrange
-        $holder = new ImplWithUserInvitationTokenHashAccessorUnitTest()->withTokenHash('one');
-        $original = $holder->withTokenHash('one');
-        $same = $holder->withTokenHash('one');
-        $modified = $holder->withTokenHash('other');
+        $holder = new ImplWithUserInvitationTokenHashAccessorUnitTest()->withTokenHash('hmac-sha256:p1:cypher');
+        $original = $holder->withTokenHash('hmac-sha256:p1:cypher');
+        $same = $holder->withTokenHash('hmac-sha256:p1:cypher');
+        $modified = $holder->withTokenHash('hmac-sha256:p1:ocyphered');
 
         // Act
         $withSame = $original->isTokenHashChanged($same);

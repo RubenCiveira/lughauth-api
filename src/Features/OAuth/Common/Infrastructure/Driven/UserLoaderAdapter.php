@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
@@ -20,6 +21,8 @@ use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 
@@ -46,7 +49,8 @@ class UserLoaderAdapter
         private readonly UserAccessTemporalCodeCommandRepositoryGateway $codeWriter,
         private readonly UserCommandRepositoryGateway $usersWriter,
         private readonly TenantTermsOfUseQueryRepositoryGateway $terms,
-        private readonly RelyingPartyQueryRepositoryGateway $parties
+        private readonly RelyingPartyQueryRepositoryGateway $parties,
+        private readonly SecretDigester $digester,
     ) {
     }
 
@@ -148,7 +152,7 @@ class UserLoaderAdapter
      */
     public function checkUserByRecoveryCode(Tenant $tenant, string $code): array
     {
-        if ($recover = $this->codeWriter->findOneForUpdateByRecoveryCode($code)) {
+        if ($recover = $this->codeWriter->findOneForUpdateByRecoveryCode(UserAccessTemporalCodeRecoveryCodeVO::digestOf($this->digester, $code))) {
             if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid() ?? '')) {
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();
@@ -171,7 +175,7 @@ class UserLoaderAdapter
      */
     public function checkUserByRegisterCode(Tenant $tenant, string $code): array
     {
-        if ($recover = $this->codeWriter->findOneForUpdateByRegisterCode($code)) {
+        if ($recover = $this->codeWriter->findOneForUpdateByRegisterCode(UserAccessTemporalCodeRegisterCodeVO::digestOf($this->digester, $code))) {
             if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid() ?? '')) {
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();

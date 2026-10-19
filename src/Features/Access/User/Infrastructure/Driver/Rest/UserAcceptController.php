@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptUsec
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Batch\UserTaskAccept;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptResult;
 
 class UserAcceptController
@@ -32,7 +31,6 @@ class UserAcceptController
         private readonly Runner $runner,
         private readonly SqlTemplate $sql,
         private readonly UserAcceptUsecase $acceptUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Patch(

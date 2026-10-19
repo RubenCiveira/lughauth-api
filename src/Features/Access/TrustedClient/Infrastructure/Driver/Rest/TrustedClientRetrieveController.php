@@ -14,7 +14,6 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveUsecase;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveResult;
 
 class TrustedClientRetrieveController
@@ -24,7 +23,6 @@ class TrustedClientRetrieveController
 
     public function __construct(
         private readonly TrustedClientRetrieveUsecase $retrieveUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

@@ -21,6 +21,7 @@ use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\UserPersonalApiKeyRe
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyKeyHashVO;
 
 class UserPersonalApiKeyPdoConnector
 {
@@ -139,7 +140,7 @@ class UserPersonalApiKeyPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'keyHash', value: $entity->getKeyHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'keyHash', value: $entity->getStoredKeyHash(), type: SqlParam::STR),
                      new SqlParam(name: 'scopes', value: $entity->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'lastUsedAt', value: $entity->getLastUsedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'expiresAt', value: $entity->getExpiresAt(), type: SqlParam::STR),
@@ -176,7 +177,7 @@ class UserPersonalApiKeyPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'keyHash', value: $update->getKeyHash(), type: SqlParam::STR),
+                     new SqlParam(name: 'keyHash', value: $update->getStoredKeyHash(), type: SqlParam::STR),
                      new SqlParam(name: 'scopes', value: $update->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'lastUsedAt', value: $update->getLastUsedAt(), type: SqlParam::STR),
                      new SqlParam(name: 'expiresAt', value: $update->getExpiresAt(), type: SqlParam::STR),
@@ -407,10 +408,11 @@ class UserPersonalApiKeyPdoConnector
             if (null === $name) {
                 throw ConstraintException::ofError('not-null', ['name'], [null]);
             }
-            $keyHash = $row['key_hash'] ?? null;
-            if (null === $keyHash) {
+            $rawKeyHash = $row['key_hash'] ?? null;
+            if (null === $rawKeyHash) {
                 throw ConstraintException::ofError('not-null', ['keyHash'], [null]);
             }
+            $keyHash = UserPersonalApiKeyKeyHashVO::fromStoredText($rawKeyHash);
             $scopes = $row['scopes'] ?? null;
             if (null === $scopes) {
                 throw ConstraintException::ofError('not-null', ['scopes'], [null]);

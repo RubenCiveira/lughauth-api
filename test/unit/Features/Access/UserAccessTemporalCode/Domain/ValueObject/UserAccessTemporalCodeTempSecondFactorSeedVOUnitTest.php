@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -15,7 +15,7 @@ final class UserAccessTemporalCodeTempSecondFactorSeedVOUnitTest extends TestCas
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'cyphered://cypher';
+        $value = 'sealed:k1:cypher';
         $ref = UserAccessTemporalCodeTempSecondFactorSeedVO::from($value);
         $this->assertEquals('****er', $ref->value());
         $other = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFrom($ref, new ConstraintFailList());
@@ -38,9 +38,9 @@ final class UserAccessTemporalCodeTempSecondFactorSeedVOUnitTest extends TestCas
     }
     public function test_equals(): void
     {
-        $one = UserAccessTemporalCodeTempSecondFactorSeedVO::from('cyphered://cypher');
-        $same = UserAccessTemporalCodeTempSecondFactorSeedVO::from('cyphered://cypher');
-        $other = UserAccessTemporalCodeTempSecondFactorSeedVO::from('cyphered://ocyphered');
+        $one = UserAccessTemporalCodeTempSecondFactorSeedVO::from('sealed:k1:cypher');
+        $same = UserAccessTemporalCodeTempSecondFactorSeedVO::from('sealed:k1:cypher');
+        $other = UserAccessTemporalCodeTempSecondFactorSeedVO::from('sealed:k1:ocyphered');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -59,62 +59,39 @@ final class UserAccessTemporalCodeTempSecondFactorSeedVOUnitTest extends TestCas
         $ref = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
-    public function test_cypher_builders(): void
+    public function test_stored_builders(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
+        $this->assertEquals('sealed:k1:cypher', UserAccessTemporalCodeTempSecondFactorSeedVO::fromStoredText('sealed:k1:cypher')->storedValue());
+        $this->assertNull(UserAccessTemporalCodeTempSecondFactorSeedVO::fromStoredText(null)->value());
+    }
+    public function test_plain_builders_seal_with_owner_context(): void
+    {
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->exactly(2))->method('seal')->with('gold', 'access.user_access_temporal_code.temp_second_factor_seed#owner')->willReturn('sealed:k1:cypher');
         $errors = new ConstraintFailList();
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::fromCypheredText($aes, 'gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFromCypheredText($aes, 'gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
+        $this->assertEquals('sealed:k1:cypher', UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($storage, 'owner', 'gold')->storedValue());
+        $this->assertEquals('sealed:k1:cypher', UserAccessTemporalCodeTempSecondFactorSeedVO::tryFromPlainText($storage, 'owner', 'gold', $errors)?->storedValue());
         $this->assertTrue($errors->isEmpty());
     }
-    public function test_plain_but_cypher_builders(): void
+    public function test_open_and_reseal_delegate_on_storage(): void
     {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($aes, 'cyphered://gold');
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFromPlainText($aes, 'cyphered://gold', $errors);
-        $this->assertEquals('****ld', $value->value());
-        $this->assertEquals('gold', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->once())->method('open')->with('sealed:k1:cypher', 'access.user_access_temporal_code.temp_second_factor_seed#owner')->willReturn('gold');
+        $storage->expects($this->once())->method('needsReseal')->with('sealed:k1:cypher')->willReturn(true);
+        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::from('sealed:k1:cypher');
+        $this->assertEquals('gold', $value->plainValueWith($storage, 'owner'));
+        $this->assertTrue($value->needsReseal($storage));
     }
-    public function test_plain_builders(): void
-    {
-        $aes = $this->createMock(AesCypherService::class);
-        $aes->method('encryptForAll')->willReturn('encripted');
-        $aes->method('decryptForAll')->willReturn('decript');
-        $errors = new ConstraintFailList();
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($aes, 'gold');
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $value = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFromPlainText($aes, 'gold', $errors);
-        $this->assertEquals('****ed', $value->value());
-        $this->assertEquals('encripted', $value->cypheredValueWith($aes));
-        $this->assertEquals('decript', $value->plainValueWith($aes));
-        $this->assertTrue($errors->isEmpty());
-    }
-    public function test_uncypgere_build_has_error(): void
+    public function test_unsealed_build_has_error(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         UserAccessTemporalCodeTempSecondFactorSeedVO::from('none');
     }
     public function test_exception_on_wrong_value_1(): void
     {
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->never())->method('seal');
         $this->expectException(ConstraintException::class);
-        UserAccessTemporalCodeTempSecondFactorSeedVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($storage, 'owner', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

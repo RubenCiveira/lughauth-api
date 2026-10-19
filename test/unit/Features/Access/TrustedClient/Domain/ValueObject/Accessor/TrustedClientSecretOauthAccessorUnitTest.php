@@ -24,7 +24,7 @@ class TrustedClientSecretOauthAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientSecretOauthAccessorUnitTest();
 
         // Act
-        $result = $holder->withSecretOauth('cyphered://cypher');
+        $result = $holder->withSecretOauth('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -40,7 +40,7 @@ class TrustedClientSecretOauthAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientSecretOauthAccessorUnitTest();
 
         // Act
-        $result = $holder->withSecretOauth('cyphered://cypher');
+        $result = $holder->withSecretOauth('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
@@ -50,9 +50,9 @@ class TrustedClientSecretOauthAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientSecretOauthAccessorUnitTest();
-        $original = $holder->withSecretOauth('cyphered://cypher');
-        $same = $holder->withSecretOauth('cyphered://cypher');
-        $modified = $holder->withSecretOauth('cyphered://ocyphered');
+        $original = $holder->withSecretOauth('hmac-sha256:p1:cypher');
+        $same = $holder->withSecretOauth('hmac-sha256:p1:cypher');
+        $modified = $holder->withSecretOauth('hmac-sha256:p1:ocyphered');
 
         // Act
         $unchanged = $holder->isSecretOauthChanged();

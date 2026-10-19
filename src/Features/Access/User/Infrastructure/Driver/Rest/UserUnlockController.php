@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockUsec
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Batch\UserTaskUnlock;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockResult;
 
 class UserUnlockController
@@ -32,7 +31,6 @@ class UserUnlockController
         private readonly Runner $runner,
         private readonly SqlTemplate $sql,
         private readonly UserUnlockUsecase $unlockUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Patch(

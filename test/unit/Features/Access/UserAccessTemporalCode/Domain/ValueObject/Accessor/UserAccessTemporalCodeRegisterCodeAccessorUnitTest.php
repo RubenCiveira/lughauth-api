@@ -24,11 +24,11 @@ class UserAccessTemporalCodeRegisterCodeAccessorUnitTest extends TestCase
         $holder = new ImplWithUserAccessTemporalCodeRegisterCodeAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegisterCode('one');
+        $result = $holder->withRegisterCode('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getRegisterCode());
+        $this->assertEquals('****er', $result->getRegisterCode());
     }
     /**
      * Asserts that withregisterCode has access to the value object
@@ -40,19 +40,19 @@ class UserAccessTemporalCodeRegisterCodeAccessorUnitTest extends TestCase
         $holder = new ImplWithUserAccessTemporalCodeRegisterCodeAccessorUnitTest();
 
         // Act
-        $result = $holder->withRegisterCode('one');
+        $result = $holder->withRegisterCode('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->registerCode()->value());
+        $this->assertEquals('****er', $result->registerCode()->value());
     }
     public function testChangedRegisterCode(): void
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRegisterCodeAccessorUnitTest();
-        $original = $holder->withRegisterCode('one');
-        $same = $holder->withRegisterCode('one');
-        $modified = $holder->withRegisterCode('other');
+        $original = $holder->withRegisterCode('hmac-sha256:p1:cypher');
+        $same = $holder->withRegisterCode('hmac-sha256:p1:cypher');
+        $modified = $holder->withRegisterCode('hmac-sha256:p1:ocyphered');
 
         // Act
         $unchanged = $holder->isRegisterCodeChanged();

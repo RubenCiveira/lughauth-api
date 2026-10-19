@@ -101,7 +101,7 @@ class ApiKeyClientListController
             $dto = new ApiKeyClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
-            $dto->key = $value->getKey();
+            $dto->key = '******';
             $dto->enabled = $value->isEnabled();
             $dto->scopes = $value->getScopes();
             $dto->version = $value->getVersion();

@@ -40,7 +40,8 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccess
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetPasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 class UserAccessTemporalCode extends UserAccessTemporalCodeRef
 {
@@ -143,13 +144,13 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->recordedEvents[] = new UserAccessTemporalCodeMarkLoginOkEvent($value, original: $this);
         return $value;
     }
-    public function generateMfaTemporalCode(AesCypherService $cypher, string|null $tempSecondFactorSeed, \DateTimeImmutable|null $tempSecondFactorSeedExpiration): UserAccessTemporalCode
+    public function generateMfaTemporalCode(ReversibleSecretStorage $storage, string|null $tempSecondFactorSeed, \DateTimeImmutable|null $tempSecondFactorSeedExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
         if (null === $tempSecondFactorSeed) {
             $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::empty();
         } else {
-            $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($cypher, $tempSecondFactorSeed);
+            $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($storage, (string) $this->uid(), $tempSecondFactorSeed);
         }    $value->_tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($tempSecondFactorSeedExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGenerateMfaTemporalCodeEvent($value, original: $this);
         return $value;
@@ -162,10 +163,10 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->recordedEvents[] = new UserAccessTemporalCodeResetMfaTemporalCodeEvent($value, original: $this);
         return $value;
     }
-    public function generatedRegisterVerification(string|null $registerCode, string|null $registerCodeUrl, \DateTimeImmutable|null $registerCodeExpiration): UserAccessTemporalCode
+    public function generatedRegisterVerification(SecretDigester $digester, string|null $registerCode, string|null $registerCodeUrl, \DateTimeImmutable|null $registerCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_registerCode = UserAccessTemporalCodeRegisterCodeVO::from($registerCode);
+        $value->_registerCode = UserAccessTemporalCodeRegisterCodeVO::fromPlainText($digester, $registerCode);
         $value->_registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::from($registerCodeUrl);
         $value->_registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::from($registerCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratedRegisterVerificationEvent($value, original: $this);
@@ -180,10 +181,10 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->recordedEvents[] = new UserAccessTemporalCodeResetRegisterVerificationEvent($value, original: $this);
         return $value;
     }
-    public function generatePasswordRecover(string|null $recoveryLink, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
+    public function generatePasswordRecover(string|null $recoveryLink, SecretDigester $digester, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::from($recoveryCode);
+        $value->_recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::fromPlainText($digester, $recoveryCode);
         $value->_recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratePasswordRecoverEvent($value, original: $this, recoveryLink: $recoveryLink);
         return $value;
@@ -203,10 +204,8 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $data['tempSecondFactorSeedExpiration'] = $this->getTempSecondFactorSeedExpiration();
         $data['failedLoginAttempts'] = $this->getFailedLoginAttempts();
-        $data['registerCode'] = $this->getRegisterCode();
         $data['registerCodeUrl'] = $this->getRegisterCodeUrl();
         $data['registerCodeExpiration'] = $this->getRegisterCodeExpiration();
-        $data['recoveryCode'] = $this->getRecoveryCode();
         $data['recoveryCodeExpiration'] = $this->getRecoveryCodeExpiration();
         $data['version'] = $this->getVersion();
         return $data;

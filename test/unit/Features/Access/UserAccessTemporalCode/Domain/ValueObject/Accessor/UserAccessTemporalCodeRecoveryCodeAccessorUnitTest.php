@@ -24,11 +24,11 @@ class UserAccessTemporalCodeRecoveryCodeAccessorUnitTest extends TestCase
         $holder = new ImplWithUserAccessTemporalCodeRecoveryCodeAccessorUnitTest();
 
         // Act
-        $result = $holder->withRecoveryCode('one');
+        $result = $holder->withRecoveryCode('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getRecoveryCode());
+        $this->assertEquals('****er', $result->getRecoveryCode());
     }
     /**
      * Asserts that withrecoveryCode has access to the value object
@@ -40,19 +40,19 @@ class UserAccessTemporalCodeRecoveryCodeAccessorUnitTest extends TestCase
         $holder = new ImplWithUserAccessTemporalCodeRecoveryCodeAccessorUnitTest();
 
         // Act
-        $result = $holder->withRecoveryCode('one');
+        $result = $holder->withRecoveryCode('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->recoveryCode()->value());
+        $this->assertEquals('****er', $result->recoveryCode()->value());
     }
     public function testChangedRecoveryCode(): void
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRecoveryCodeAccessorUnitTest();
-        $original = $holder->withRecoveryCode('one');
-        $same = $holder->withRecoveryCode('one');
-        $modified = $holder->withRecoveryCode('other');
+        $original = $holder->withRecoveryCode('hmac-sha256:p1:cypher');
+        $same = $holder->withRecoveryCode('hmac-sha256:p1:cypher');
+        $modified = $holder->withRecoveryCode('hmac-sha256:p1:ocyphered');
 
         // Act
         $unchanged = $holder->isRecoveryCodeChanged();

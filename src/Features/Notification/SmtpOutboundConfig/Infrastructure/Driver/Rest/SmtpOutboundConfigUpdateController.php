@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPortVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigLoginVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigSenderNameVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigSenderEmailVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigTimeoutVO;
@@ -42,7 +42,7 @@ class SmtpOutboundConfigUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly SmtpOutboundConfigUpdateUsecase $updateUsecase,
-        private readonly AesCypherService $cypherService,
+        private readonly ReversibleSecretStorage $secretsStorage,
     ) {
     }
     #[OA\Put(
@@ -71,7 +71,7 @@ class SmtpOutboundConfigUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->readSmtpOutboundConfig($request);
+            $value = $this->readSmtpOutboundConfig($request, $uid);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
             $value = $this->mapSmtpOutboundConfig($request, $result);
@@ -88,7 +88,7 @@ class SmtpOutboundConfigUpdateController
         }
     }
 
-    private function readSmtpOutboundConfig(ServerRequestInterface $request): SmtpOutboundConfigUpdateParams
+    private function readSmtpOutboundConfig(ServerRequestInterface $request, ?string $ownerUid = null): SmtpOutboundConfigUpdateParams
     {
         $this->logDebug("Read entity for Smtp outbound config");
         $span = $this->startSpan("Read entity for Smtp outbound config");
@@ -116,13 +116,6 @@ class SmtpOutboundConfigUpdateController
             if (null !== $valueLogin) {
                 $value->login($valueLogin);
             }
-            $readPassword = $body['password'] ?? '******';
-            if (null !== $readPassword && '******' !== $readPassword) {
-                $valuePassword = SmtpOutboundConfigPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList);
-                if (null !== $valuePassword) {
-                    $value->password($valuePassword);
-                }
-            }
             $value->senderName(SmtpOutboundConfigSenderNameVO::tryFrom($body['senderName'] ?? null, $errorsList));
             $valueSenderEmail = SmtpOutboundConfigSenderEmailVO::tryFrom($body['senderEmail'] ?? null, $errorsList);
             if (null !== $valueSenderEmail) {
@@ -149,6 +142,15 @@ class SmtpOutboundConfigUpdateController
                 $value->rateLimit($valueRateLimit);
             }
             $value->version(SmtpOutboundConfigVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            // The sealed values are bound to the uid of the owner (from the path on update, from the body on create)
+            $owner = $ownerUid ?? $value->getUid();
+            $readPassword = $body['password'] ?? '******';
+            if (null !== $owner && null !== $readPassword && '******' !== $readPassword) {
+                $valuePassword = SmtpOutboundConfigPasswordVO::tryFromPlainText($this->secretsStorage, (string) $owner, $readPassword, $errorsList);
+                if (null !== $valuePassword) {
+                    $value->password($valuePassword);
+                }
+            }
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }

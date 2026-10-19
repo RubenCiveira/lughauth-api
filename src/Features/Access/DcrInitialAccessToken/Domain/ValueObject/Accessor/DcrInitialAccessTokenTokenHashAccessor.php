@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenTokenHashVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait DcrInitialAccessTokenTokenHashAccessor
 {
@@ -19,13 +19,17 @@ trait DcrInitialAccessTokenTokenHashAccessor
     {
         return $this->_tokenHash;
     }
-    public function getCypheredTokenHash(AesCypherService $cypher): string
+    public function getStoredTokenHash(): string
     {
-        return $this->_tokenHash->cypheredValueWith($cypher);
+        return $this->_tokenHash->storedValue();
     }
-    public function getPlainTokenHash(AesCypherService $cypher): string
+    public function verifyTokenHash(SecretDigester $digester, string $plain): bool
     {
-        return $this->_tokenHash->plainValueWith($cypher);
+        return $this->_tokenHash->verify($digester, $plain);
+    }
+    public function tokenHashNeedsRehash(SecretDigester $digester): bool
+    {
+        return $this->_tokenHash->needsRehash($digester);
     }
     public function isTokenHashChanged(?self $original = null): bool
     {

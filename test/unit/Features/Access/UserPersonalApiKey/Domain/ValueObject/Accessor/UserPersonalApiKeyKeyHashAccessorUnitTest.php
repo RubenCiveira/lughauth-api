@@ -24,11 +24,11 @@ class UserPersonalApiKeyKeyHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserPersonalApiKeyKeyHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withKeyHash('one');
+        $result = $holder->withKeyHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->getKeyHash());
+        $this->assertEquals('****er', $result->getKeyHash());
     }
     /**
      * Asserts that withkeyHash has access to the value object
@@ -40,19 +40,19 @@ class UserPersonalApiKeyKeyHashAccessorUnitTest extends TestCase
         $holder = new ImplWithUserPersonalApiKeyKeyHashAccessorUnitTest();
 
         // Act
-        $result = $holder->withKeyHash('one');
+        $result = $holder->withKeyHash('hmac-sha256:p1:cypher');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals('one', $result->keyHash()->value());
+        $this->assertEquals('****er', $result->keyHash()->value());
     }
     public function testChangedKeyHash(): void
     {
         // Arrange
-        $holder = new ImplWithUserPersonalApiKeyKeyHashAccessorUnitTest()->withKeyHash('one');
-        $original = $holder->withKeyHash('one');
-        $same = $holder->withKeyHash('one');
-        $modified = $holder->withKeyHash('other');
+        $holder = new ImplWithUserPersonalApiKeyKeyHashAccessorUnitTest()->withKeyHash('hmac-sha256:p1:cypher');
+        $original = $holder->withKeyHash('hmac-sha256:p1:cypher');
+        $same = $holder->withKeyHash('hmac-sha256:p1:cypher');
+        $modified = $holder->withKeyHash('hmac-sha256:p1:ocyphered');
 
         // Act
         $withSame = $original->isKeyHashChanged($same);

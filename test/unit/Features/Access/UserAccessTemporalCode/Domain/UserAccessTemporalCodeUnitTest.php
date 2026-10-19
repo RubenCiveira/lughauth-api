@@ -4,7 +4,8 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
@@ -18,13 +19,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $one = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -61,26 +62,26 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $base = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new UserAccessTemporalCode(
             uid: 'other',
             user: new UserRef('other'),
-            tempSecondFactorSeed: 'cyphered://ocyphered',
+            tempSecondFactorSeed: 'sealed:k1:ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
-            registerCode: 'other',
+            registerCode: 'hmac-sha256:p1:ocyphered',
             registerCodeUrl: 'other',
             registerCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-            recoveryCode: 'other',
+            recoveryCode: 'hmac-sha256:p1:ocyphered',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
@@ -115,13 +116,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $one = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -134,9 +135,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertEquals('one', $json['user']['$ref']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['tempSecondFactorSeedExpiration']);
         $this->assertEquals(1, $json['failedLoginAttempts']);
-        $this->assertEquals('one', $json['registerCode']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['registerCodeExpiration']);
-        $this->assertEquals('one', $json['recoveryCode']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['recoveryCodeExpiration']);
         $this->assertEquals(1, $json['version']);
     }
@@ -146,13 +145,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $one = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -188,26 +187,26 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $base = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new UserAccessTemporalCode(
             uid: 'other',
             user: new UserRef('other'),
-            tempSecondFactorSeed: 'cyphered://ocyphered',
+            tempSecondFactorSeed: 'sealed:k1:ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
-            registerCode: 'other',
+            registerCode: 'hmac-sha256:p1:ocyphered',
             registerCodeUrl: 'other',
             registerCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-            recoveryCode: 'other',
+            recoveryCode: 'hmac-sha256:p1:ocyphered',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
@@ -244,13 +243,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $one = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -285,13 +284,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -313,13 +312,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -341,13 +340,13 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -369,26 +368,27 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $cypher = $this->createMock(AesCypherService::class);
-        $sourceTempSecondFactorSeed = 'cyphered://cypher';
-        $targetTempSecondFactorSeed = 'cyphered://ocyphered';
+        $storage = $this->createMock(ReversibleSecretStorage::class);
+        $storage->expects($this->once())->method('seal')->with('plain-temp-second-factor-seed', $this->anything())->willReturn('sealed:k1:ocyphered');
+        $sourceTempSecondFactorSeed = 'sealed:k1:cypher';
+        $targetTempSecondFactorSeed = 'plain-temp-second-factor-seed';
         $source = $source->withTempSecondFactorSeed($sourceTempSecondFactorSeed);
         $sourceTempSecondFactorSeedExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
         $targetTempSecondFactorSeedExpiration = (new \DateTimeImmutable('1981-09-06T14:32:45.123Z'));
         $source = $source->withTempSecondFactorSeedExpiration($sourceTempSecondFactorSeedExpiration);
 
         // @Act
-        $target = $source->generateMfaTemporalCode($cypher, $targetTempSecondFactorSeed, $targetTempSecondFactorSeedExpiration);
+        $target = $source->generateMfaTemporalCode($storage, $targetTempSecondFactorSeed, $targetTempSecondFactorSeedExpiration);
 
         // @Assert
         $this->assertEquals('****er', $source->getTempSecondFactorSeed());
@@ -404,17 +404,17 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $sourceTempSecondFactorSeed = 'cyphered://cypher';
+        $sourceTempSecondFactorSeed = 'sealed:k1:cypher';
         $targetTempSecondFactorSeed = null;
         $source = $source->withTempSecondFactorSeed($sourceTempSecondFactorSeed);
         $sourceTempSecondFactorSeedExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
@@ -438,18 +438,20 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $sourceRegisterCode = 'one';
-        $targetRegisterCode = 'other';
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->once())->method('digest')->with('plain-register-code')->willReturn('hmac-sha256:p1:ocyphered');
+        $sourceRegisterCode = 'hmac-sha256:p1:cypher';
+        $targetRegisterCode = 'plain-register-code';
         $source = $source->withRegisterCode($sourceRegisterCode);
         $sourceRegisterCodeUrl = 'one';
         $targetRegisterCodeUrl = 'other';
@@ -459,11 +461,11 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = $source->withRegisterCodeExpiration($sourceRegisterCodeExpiration);
 
         // @Act
-        $target = $source->generatedRegisterVerification($targetRegisterCode, $targetRegisterCodeUrl, $targetRegisterCodeExpiration);
+        $target = $source->generatedRegisterVerification($digester, $targetRegisterCode, $targetRegisterCodeUrl, $targetRegisterCodeExpiration);
 
         // @Assert
-        $this->assertEquals('one', $source->getRegisterCode());
-        $this->assertEquals('other', $target->getRegisterCode());
+        $this->assertEquals('****er', $source->getRegisterCode());
+        $this->assertEquals('****ed', $target->getRegisterCode());
         $this->assertNotEquals($sourceRegisterCode, $target->getRegisterCode());
         $this->assertEquals('one', $source->getRegisterCodeUrl());
         $this->assertEquals('other', $target->getRegisterCodeUrl());
@@ -478,17 +480,17 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $sourceRegisterCode = 'one';
+        $sourceRegisterCode = 'hmac-sha256:p1:cypher';
         $targetRegisterCode = null;
         $source = $source->withRegisterCode($sourceRegisterCode);
         $sourceRegisterCodeUrl = 'one';
@@ -502,7 +504,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $target = $source->resetRegisterVerification();
 
         // @Assert
-        $this->assertEquals('one', $source->getRegisterCode());
+        $this->assertEquals('****er', $source->getRegisterCode());
         $this->assertEquals($targetRegisterCode, $target->getRegisterCode());
         $this->assertNotEquals($sourceRegisterCode, $target->getRegisterCode());
         $this->assertEquals('one', $source->getRegisterCodeUrl());
@@ -518,29 +520,31 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $sourceRecoveryCode = 'one';
-        $targetRecoveryCode = 'other';
+        $digester = $this->createMock(SecretDigester::class);
+        $digester->expects($this->once())->method('digest')->with('plain-recovery-code')->willReturn('hmac-sha256:p1:ocyphered');
+        $sourceRecoveryCode = 'hmac-sha256:p1:cypher';
+        $targetRecoveryCode = 'plain-recovery-code';
         $source = $source->withRecoveryCode($sourceRecoveryCode);
         $sourceRecoveryCodeExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
         $targetRecoveryCodeExpiration = (new \DateTimeImmutable('1981-09-06T14:32:45.123Z'));
         $source = $source->withRecoveryCodeExpiration($sourceRecoveryCodeExpiration);
 
         // @Act
-        $target = $source->generatePasswordRecover('other', $targetRecoveryCode, $targetRecoveryCodeExpiration);
+        $target = $source->generatePasswordRecover('other', $digester, $targetRecoveryCode, $targetRecoveryCodeExpiration);
 
         // @Assert
-        $this->assertEquals('one', $source->getRecoveryCode());
-        $this->assertEquals('other', $target->getRecoveryCode());
+        $this->assertEquals('****er', $source->getRecoveryCode());
+        $this->assertEquals('****ed', $target->getRecoveryCode());
         $this->assertNotEquals($sourceRecoveryCode, $target->getRecoveryCode());
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $source->getRecoveryCodeExpiration());
         $this->assertEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $target->getRecoveryCodeExpiration());
@@ -552,17 +556,17 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = new UserAccessTemporalCode(
             uid: 'one',
             user: new UserRef('one'),
-            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeed: 'sealed:k1:cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
-            registerCode: 'one',
+            registerCode: 'hmac-sha256:p1:cypher',
             registerCodeUrl: 'one',
             registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-            recoveryCode: 'one',
+            recoveryCode: 'hmac-sha256:p1:cypher',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
-        $sourceTempSecondFactorSeed = 'cyphered://cypher';
+        $sourceTempSecondFactorSeed = 'sealed:k1:cypher';
         $targetTempSecondFactorSeed = null;
         $source = $source->withTempSecondFactorSeed($sourceTempSecondFactorSeed);
         $sourceTempSecondFactorSeedExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));

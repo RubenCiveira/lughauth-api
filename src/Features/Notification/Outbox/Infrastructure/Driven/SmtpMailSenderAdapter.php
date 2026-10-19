@@ -10,7 +10,7 @@ use Exception;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\PHPMailer;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Gateway\SmtpMailSenderGateway;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Model\OutboundMail;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
@@ -19,14 +19,14 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundCo
  * Adapts SmtpMailSenderGateway to PHPMailer.
  *
  * send()           — uses global SMTP settings from AppConfig (same source as MailSenderAdapter).
- * sendWithConfig() — uses a tenant-specific SmtpOutboundConfig, decrypting the stored password
- *                    via AesCypherService. Port is derived from isUseTls(): 465 (TLS) or 587.
+ * sendWithConfig() — uses a tenant-specific SmtpOutboundConfig, opening the sealed password
+ *                    with ReversibleSecretStorage. Port is derived from isUseTls(): 465 (TLS) or 587.
  */
 class SmtpMailSenderAdapter implements SmtpMailSenderGateway
 {
     public function __construct(
         private readonly AppConfig $config,
-        private readonly AesCypherService $cypher,
+        private readonly ReversibleSecretStorage $secrets,
     ) {
     }
 
@@ -67,7 +67,7 @@ class SmtpMailSenderAdapter implements SmtpMailSenderGateway
         $mailer->Host     = $config->getHost();
         $mailer->Port     = 587;
         $mailer->Username = $config->getLogin();
-        $mailer->Password = $config->getPlainPassword($this->cypher);
+        $mailer->Password = $config->getPlainPassword($this->secrets);
         $mailer->SMTPAuth = true;
 
         if ($config->isUseTls()) {

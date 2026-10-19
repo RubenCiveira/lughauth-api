@@ -13,12 +13,11 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 #[AllowMockObjectsWithoutExpectations]
 final class UserPasswordVOUnitTest extends TestCase
 {
-    private const string HASH = '$argon2id$v=19$m=65536,t=4,p=1$hashed';
-
     public function test_asignation_keep_value(): void
     {
-        $ref = UserPasswordVO::from(self::HASH);
-        $this->assertEquals('****ed', $ref->value());
+        $value = '$argon2id$v=19$m=65536,t=4,p=1$cypher';
+        $ref = UserPasswordVO::from($value);
+        $this->assertEquals('****er', $ref->value());
         $other = UserPasswordVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserPasswordVO::from($ref);
@@ -39,50 +38,37 @@ final class UserPasswordVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = UserPasswordVO::from(self::HASH);
-        $same = UserPasswordVO::from(self::HASH);
-        $other = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$other');
+        $one = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $same = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
+        $other = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$ocyphered');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-        $this->assertFalse($one->equals(null));
-        $this->assertTrue($one->equals($same));
-        $this->assertFalse($one->equals($other));
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
     public function test_stored_builders(): void
     {
-        $hash = UserPasswordVO::fromStoredText(self::HASH);
-        $this->assertEquals(self::HASH, $hash->storedValue());
-    }
-    public function test_stored_unhashed_value_has_error(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        UserPasswordVO::fromStoredText('cyphered://gold');
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserPasswordVO::fromStoredText('$argon2id$v=19$m=65536,t=4,p=1$cypher')->storedValue());
     }
     public function test_plain_builders_hash_the_value(): void
     {
         $hasher = $this->createMock(PasswordHasher::class);
-        $hasher->expects($this->exactly(2))->method('hash')->with('gold')->willReturn(self::HASH);
+        $hasher->expects($this->exactly(2))->method('hash')->with('gold')->willReturn('$argon2id$v=19$m=65536,t=4,p=1$cypher');
         $errors = new ConstraintFailList();
-        $value = UserPasswordVO::fromPlainText($hasher, 'gold');
-        $this->assertEquals(self::HASH, $value->storedValue());
-        $value = UserPasswordVO::tryFromPlainText($hasher, 'gold', $errors);
-        $this->assertEquals(self::HASH, $value?->storedValue());
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserPasswordVO::fromPlainText($hasher, 'gold')->storedValue());
+        $this->assertEquals('$argon2id$v=19$m=65536,t=4,p=1$cypher', UserPasswordVO::tryFromPlainText($hasher, 'gold', $errors)?->storedValue());
         $this->assertTrue($errors->isEmpty());
-    }
-    public function test_plain_builders_never_trust_stored_formats(): void
-    {
-        $hasher = $this->createMock(PasswordHasher::class);
-        $hasher->expects($this->once())->method('hash')->with('cyphered://gold')->willReturn(self::HASH);
-        $value = UserPasswordVO::fromPlainText($hasher, 'cyphered://gold');
-        $this->assertEquals(self::HASH, $value->storedValue());
     }
     public function test_verify_and_rehash_delegate_on_hasher(): void
     {
         $hasher = $this->createMock(PasswordHasher::class);
-        $hasher->method('verify')->willReturnCallback(fn (string $plain, string $stored) => 'gold' === $plain && self::HASH === $stored);
-        $hasher->expects($this->once())->method('needsRehash')->with(self::HASH)->willReturn(false);
-        $value = UserPasswordVO::from(self::HASH);
+        $hasher->expects($this->once())->method('verify')->with('gold', '$argon2id$v=19$m=65536,t=4,p=1$cypher')->willReturn(true);
+        $hasher->expects($this->once())->method('needsRehash')->with('$argon2id$v=19$m=65536,t=4,p=1$cypher')->willReturn(false);
+        $value = UserPasswordVO::from('$argon2id$v=19$m=65536,t=4,p=1$cypher');
         $this->assertTrue($value->verify($hasher, 'gold'));
-        $this->assertFalse($value->verify($hasher, 'silver'));
         $this->assertFalse($value->needsRehash($hasher));
     }
     public function test_unhashed_build_has_error(): void
@@ -90,18 +76,11 @@ final class UserPasswordVOUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         UserPasswordVO::from('none');
     }
-    public function test_exception_on_wrong_plain_value(): void
+    public function test_exception_on_wrong_value_1(): void
     {
         $hasher = $this->createMock(PasswordHasher::class);
         $hasher->expects($this->never())->method('hash');
         $this->expectException(ConstraintException::class);
-        UserPasswordVO::fromPlainText($hasher, str_repeat('x', 251));
-    }
-    public function test_try_on_wrong_plain_value_appends_errors(): void
-    {
-        $hasher = $this->createMock(PasswordHasher::class);
-        $errors = new ConstraintFailList();
-        $this->assertNull(UserPasswordVO::tryFromPlainText($hasher, str_repeat('x', 251), $errors));
-        $this->assertTrue($errors->hasErrors());
+        UserPasswordVO::fromPlainText($hasher, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

@@ -6,32 +6,48 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class DcrInitialAccessTokenTokenHashVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): DcrInitialAccessTokenTokenHashVO
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(string $value): DcrInitialAccessTokenTokenHashVO
     {
-        return self::from('cyphered://' . $value);
+        return self::from($value);
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): DcrInitialAccessTokenTokenHashVO
+    public static function fromPlainText(SecretDigester $digester, string $value): DcrInitialAccessTokenTokenHashVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof DcrInitialAccessTokenTokenHashVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?DcrInitialAccessTokenTokenHashVO
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?DcrInitialAccessTokenTokenHashVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('tokenHash', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new DcrInitialAccessTokenTokenHashVO($digester->digest($value)) : null;
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?DcrInitialAccessTokenTokenHashVO
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
     {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
-    }
-    private static function isCyphered(string $value): bool
-    {
-        return strpos($value, 'cyphered://') === 0;
+        return $digester->digest($plain);
     }
     public static function from(DcrInitialAccessTokenTokenHashVO|string $value): DcrInitialAccessTokenTokenHashVO
     {
@@ -43,15 +59,8 @@ class DcrInitialAccessTokenTokenHashVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('tokenHash', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new DcrInitialAccessTokenTokenHashVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new DcrInitialAccessTokenTokenHashVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['tokenHash'], [$value], ['string']));
             return null;
@@ -85,37 +94,34 @@ class DcrInitialAccessTokenTokenHashVO
     private function __construct(
         private readonly string $tokenHash
     ) {
-        $this->validateCyphered($this->tokenHash);
+        if (!SecretDigester::isSupported($this->tokenHash)) {
+            throw new InvalidArgumentException('tokenHash is not a valid digest');
+        }
     }
     public function equals(?DcrInitialAccessTokenTokenHashVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(string $key): void
-    {
-        if (strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
-        }
+        return null !== $other && hash_equals($this->tokenHash, $other->tokenHash);
     }
     public function value(): string
     {
         return "****" . substr($this->tokenHash, -2);
     }
-    public function cypheredValueWith(AesCypherService $cypher): string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): string
     {
-        return substr($this->tokenHash, 11);
+        return $this->tokenHash;
     }
-    public function plainValueWith(AesCypherService $cypher): string
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
     {
-        return $this->decrypt($cypher, $this->tokenHash);
+        return $digester->verify($plain, $this->tokenHash);
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsRehash(SecretDigester $digester): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return $digester->needsRehash($this->tokenHash);
     }
 }

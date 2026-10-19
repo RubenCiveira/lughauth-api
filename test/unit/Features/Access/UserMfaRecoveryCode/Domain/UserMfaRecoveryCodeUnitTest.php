@@ -15,7 +15,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $one = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -41,7 +41,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $base = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -49,7 +49,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $other = new UserMfaRecoveryCode(
             uid: 'other',
             user: new UserRef('other'),
-            codeHash: 'other',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$ocyphered',
             usedAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -73,7 +73,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $one = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -85,7 +85,6 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['user']['$ref']);
-        $this->assertEquals('one', $json['codeHash']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['usedAt']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['createdAt']);
         $this->assertEquals(1, $json['version']);
@@ -96,7 +95,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $one = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -121,7 +120,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $base = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -129,7 +128,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $other = new UserMfaRecoveryCode(
             uid: 'other',
             user: new UserRef('other'),
-            codeHash: 'other',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$ocyphered',
             usedAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -155,7 +154,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $one = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -179,7 +178,7 @@ final class UserMfaRecoveryCodeUnitTest extends TestCase
         $source = new UserMfaRecoveryCode(
             uid: 'one',
             user: new UserRef('one'),
-            codeHash: 'one',
+            codeHash: '$argon2id$v=19$m=65536,t=4,p=1$cypher',
             usedAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,

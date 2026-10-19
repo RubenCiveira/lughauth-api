@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectUsec
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Batch\UserTaskReject;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectResult;
 
 class UserRejectController
@@ -32,7 +31,6 @@ class UserRejectController
         private readonly Runner $runner,
         private readonly SqlTemplate $sql,
         private readonly UserRejectUsecase $rejectUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Patch(

@@ -25,15 +25,16 @@ class SecurityPlugin extends MicroPlugin
     public const int STARTUP_ORDER = 1000;
 
     /**
-     * Binds the reversible secret storage port to the local key ring implementation.
+     * Binds the reversible secret storage port to the local key ring implementation, and the
+     * secret digester to its configured peppers.
      */
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
         $def[ReversibleSecretStorage::class] = \DI\factory([KeyRingSecretStorage::class, 'fromConfig']);
+        $def[SecretDigester::class] = \DI\factory([SecretDigester::class, 'fromConfig']);
         return $def;
     }
-
     /**
      * Registers RBAC listeners for allow and field access events.
      */

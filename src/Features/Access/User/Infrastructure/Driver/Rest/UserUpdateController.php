@@ -37,7 +37,7 @@ class UserUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserUpdateUsecase $updateUsecase,
-        private readonly PasswordHasher $passwordHasher,
+        private readonly PasswordHasher $hasherService,
     ) {
     }
     #[OA\Put(
@@ -108,7 +108,7 @@ class UserUpdateController
             }
             $readPassword = $body['password'] ?? '******';
             if (null !== $readPassword && '******' !== $readPassword) {
-                $valuePassword = UserPasswordVO::tryFromPlainText($this->passwordHasher, $readPassword, $errorsList);
+                $valuePassword = UserPasswordVO::tryFromPlainText($this->hasherService, $readPassword, $errorsList);
                 if (null !== $valuePassword) {
                     $value->password($valuePassword);
                 }

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\ValueObject\UserPersonalApiKeyKeyHashVO;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 
 trait UserPersonalApiKeyKeyHashAccessor
 {
@@ -17,6 +18,18 @@ trait UserPersonalApiKeyKeyHashAccessor
     public function keyHash(): UserPersonalApiKeyKeyHashVO
     {
         return $this->_keyHash;
+    }
+    public function getStoredKeyHash(): string
+    {
+        return $this->_keyHash->storedValue();
+    }
+    public function verifyKeyHash(SecretDigester $digester, string $plain): bool
+    {
+        return $this->_keyHash->verify($digester, $plain);
+    }
+    public function keyHashNeedsRehash(SecretDigester $digester): bool
+    {
+        return $this->_keyHash->needsRehash($digester);
     }
     public function isKeyHashChanged(?self $original = null): bool
     {

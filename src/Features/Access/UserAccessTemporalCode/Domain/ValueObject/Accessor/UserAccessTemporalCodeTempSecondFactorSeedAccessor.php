@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 
 trait UserAccessTemporalCodeTempSecondFactorSeedAccessor
 {
@@ -19,13 +19,17 @@ trait UserAccessTemporalCodeTempSecondFactorSeedAccessor
     {
         return $this->_tempSecondFactorSeed;
     }
-    public function getCypheredTempSecondFactorSeed(AesCypherService $cypher): ?string
+    public function getStoredTempSecondFactorSeed(): ?string
     {
-        return $this->_tempSecondFactorSeed?->cypheredValueWith($cypher);
+        return $this->_tempSecondFactorSeed?->storedValue();
     }
-    public function getPlainTempSecondFactorSeed(AesCypherService $cypher): ?string
+    public function getPlainTempSecondFactorSeed(ReversibleSecretStorage $storage): ?string
     {
-        return $this->_tempSecondFactorSeed?->plainValueWith($cypher);
+        return $this->_tempSecondFactorSeed?->plainValueWith($storage, (string) $this->uid());
+    }
+    public function tempSecondFactorSeedNeedsReseal(ReversibleSecretStorage $storage): bool
+    {
+        return true === $this->_tempSecondFactorSeed?->needsReseal($storage);
     }
     public function isTempSecondFactorSeedChanged(?self $original = null): bool
     {

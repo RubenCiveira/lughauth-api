@@ -14,7 +14,6 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveUsecase;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveResult;
 
 class UserRetrieveController
@@ -24,7 +23,6 @@ class UserRetrieveController
 
     public function __construct(
         private readonly UserRetrieveUsecase $retrieveUsecase,
-        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(

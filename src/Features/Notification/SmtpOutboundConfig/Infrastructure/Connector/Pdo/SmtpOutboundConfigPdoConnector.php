@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class SmtpOutboundConfigPdoConnector
 {
@@ -30,7 +29,6 @@ class SmtpOutboundConfigPdoConnector
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly AesCypherService $cypher,
         private readonly SqlTemplate $db,
     ) {
     }
@@ -144,7 +142,7 @@ class SmtpOutboundConfigPdoConnector
                      new SqlParam(name: 'host', value: $entity->getHost(), type: SqlParam::STR),
                      new SqlParam(name: 'port', value: $entity->getPort(), type: SqlParam::INT),
                      new SqlParam(name: 'login', value: $entity->getLogin(), type: SqlParam::STR),
-                     new SqlParam(name: 'password', value: $entity->getCypheredPassword($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'password', value: $entity->getStoredPassword(), type: SqlParam::STR),
                      new SqlParam(name: 'senderName', value: $entity->getSenderName(), type: SqlParam::STR),
                      new SqlParam(name: 'senderEmail', value: $entity->getSenderEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'timeout', value: $entity->getTimeout(), type: SqlParam::INT),
@@ -185,7 +183,7 @@ class SmtpOutboundConfigPdoConnector
                      new SqlParam(name: 'host', value: $update->getHost(), type: SqlParam::STR),
                      new SqlParam(name: 'port', value: $update->getPort(), type: SqlParam::INT),
                      new SqlParam(name: 'login', value: $update->getLogin(), type: SqlParam::STR),
-                     new SqlParam(name: 'password', value: $update->getCypheredPassword($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'password', value: $update->getStoredPassword(), type: SqlParam::STR),
                      new SqlParam(name: 'senderName', value: $update->getSenderName(), type: SqlParam::STR),
                      new SqlParam(name: 'senderEmail', value: $update->getSenderEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'timeout', value: $update->getTimeout(), type: SqlParam::INT),
@@ -410,7 +408,7 @@ class SmtpOutboundConfigPdoConnector
             if (null === $rawPassword) {
                 throw ConstraintException::ofError('not-null', ['password'], [null]);
             }
-            $password = SmtpOutboundConfigPasswordVO::fromCypheredText($this->cypher, $rawPassword);
+            $password = SmtpOutboundConfigPasswordVO::fromStoredText($rawPassword);
             $senderName = $row['sender_name'] ?? null;
             $senderEmail = $row['sender_email'] ?? null;
             if (null === $senderEmail) {

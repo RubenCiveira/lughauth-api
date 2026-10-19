@@ -6,32 +6,48 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
 use InvalidArgumentException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class TrustedClientRegistrationAccessVO
 {
-    public static function fromCypheredText(AesCypherService $cypher, string $value): TrustedClientRegistrationAccessVO
+    /**
+     * Builds the value from the column content.
+     */
+    public static function fromStoredText(?string $value): TrustedClientRegistrationAccessVO
     {
-        return self::from('cyphered://' . $value);
+        return $value ? self::from($value) : self::empty();
     }
-    public static function fromPlainText(AesCypherService $cypher, string $value): TrustedClientRegistrationAccessVO
+    public static function fromPlainText(SecretDigester $digester, string $value): TrustedClientRegistrationAccessVO
     {
-        return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFromPlainText($digester, $value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        \assert($candidate instanceof TrustedClientRegistrationAccessVO);
+        return $candidate;
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientRegistrationAccessVO
+    public static function tryFromPlainText(SecretDigester $digester, string $value, ConstraintFailList $list): ?TrustedClientRegistrationAccessVO
     {
-        return self::tryFrom('cyphered://' . $value, $list);
+        // The rules are checked against the plain text, never against the protected value
+        $valid = true;
+        foreach (self::rules() as $rule) {
+            if ($fail = $rule->check($value)) {
+                $list->add(ConstraintFail::fromRuleFail('registrationAccess', $fail));
+                $valid = false;
+            }
+        }
+        return $valid ? new TrustedClientRegistrationAccessVO($digester->digest($value)) : null;
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientRegistrationAccessVO
+    /**
+     * The stored form of a plain value: to search by it (filters, unique lookups).
+     */
+    public static function digestOf(SecretDigester $digester, string $plain): string
     {
-        return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
-    }
-    private static function isCyphered(string $value): bool
-    {
-        return strpos($value, 'cyphered://') === 0;
+        return $digester->digest($plain);
     }
     public static function empty(): TrustedClientRegistrationAccessVO
     {
@@ -47,17 +63,10 @@ class TrustedClientRegistrationAccessVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new TrustedClientRegistrationAccessVO($value);
+            return new TrustedClientRegistrationAccessVO(null);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('registrationAccess', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new TrustedClientRegistrationAccessVO($value) : null;
+            // A string is the stored (protected) value: the rules only apply to the plain text
+            return new TrustedClientRegistrationAccessVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['registrationAccess'], [$value], ['string']));
             return null;
@@ -91,37 +100,39 @@ class TrustedClientRegistrationAccessVO
     private function __construct(
         private readonly ?string $registrationAccess
     ) {
-        $this->validateCyphered($this->registrationAccess);
+        if (null !== $this->registrationAccess && !SecretDigester::isSupported($this->registrationAccess)) {
+            throw new InvalidArgumentException('registrationAccess is not a valid digest');
+        }
     }
     public function equals(?TrustedClientRegistrationAccessVO $other): bool
     {
-        return $this->value() == $other?->value();
-    }
-    private function validateCyphered(?string $key): void
-    {
-        if (null !== $key &&  strpos($key, 'cyphered://') !== 0) {
-            throw new InvalidArgumentException($key . ' is not a valid cypered text');
+        if (null === $other) {
+            return false;
         }
+        return null === $this->registrationAccess || null === $other->registrationAccess
+          ? $this->registrationAccess === $other->registrationAccess
+          : hash_equals($this->registrationAccess, $other->registrationAccess);
     }
     public function value(): ?string
     {
         return null !== $this->registrationAccess ? "****" . substr($this->registrationAccess, -2) : null;
     }
-    public function cypheredValueWith(AesCypherService $cypher): ?string
+    /**
+     * The content to persist on the column.
+     */
+    public function storedValue(): ?string
     {
-        return null === $this->registrationAccess ? null : substr($this->registrationAccess, 11);
+        return $this->registrationAccess;
     }
-    public function plainValueWith(AesCypherService $cypher): ?string
+    /**
+     * Constant time comparation of a plain candidate with the stored digest.
+     */
+    public function verify(SecretDigester $digester, string $plain): bool
     {
-        return null === $this->registrationAccess ? null : $this->decrypt($cypher, $this->registrationAccess);
+        return null !== $this->registrationAccess && $digester->verify($plain, $this->registrationAccess);
     }
-    public function decrypt(AesCypherService $cypher, string $str): string
+    public function needsRehash(SecretDigester $digester): bool
     {
-        $desc = $cypher->decryptForAll(substr($str, 11));
-        if (null == $desc) {
-            throw new InvalidArgumentException('Wrong cypher');
-        } else {
-            return $desc;
-        }
+        return null !== $this->registrationAccess && $digester->needsRehash($this->registrationAccess);
     }
 }
