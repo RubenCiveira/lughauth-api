@@ -16,7 +16,7 @@ class SnippetAssetEnrichForView
         private SnippetAssetAttributes $snippetAssetAttributes
     ) {
     }
-    public function getAttributes(): SnippetAssetAttributes
+    public function getEnrichedAttributes(): SnippetAssetAttributes
     {
         return $this->snippetAssetAttributes;
     }

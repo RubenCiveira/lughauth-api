@@ -12,13 +12,6 @@ class SmtpOutboundConfigCreateEnrich extends SmtpOutboundConfigEnrichForUpdate
 {
     public function __construct(public readonly SmtpOutboundConfigCreateParams $input, private SmtpOutboundConfigAttributes $result)
     {
-    }
-    public function getResult(): SmtpOutboundConfigAttributes
-    {
-        return $this->result;
-    }
-    public function with(SmtpOutboundConfigAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

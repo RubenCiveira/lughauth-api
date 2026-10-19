@@ -288,7 +288,7 @@ class SnippetAssetVisibilityService
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new SnippetAssetEnrichForView($content, $inlist, $attributes));
-            return $result->getAttributes();
+            return $result->getEnrichedAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

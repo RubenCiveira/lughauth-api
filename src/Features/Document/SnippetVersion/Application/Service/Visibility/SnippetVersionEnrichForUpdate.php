@@ -15,7 +15,7 @@ class SnippetVersionEnrichForUpdate
         private SnippetVersionAttributes $snippetVersionAttributes
     ) {
     }
-    public function getAttributes(): SnippetVersionAttributes
+    public function getEnrichedAttributes(): SnippetVersionAttributes
     {
         return $this->snippetVersionAttributes;
     }

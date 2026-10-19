@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driven\Templ
 use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driven\TemplateVariableQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCommandRepositoryGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableEnrichForUpdate;
+use Civi\Lughauth\Features\Document\TemplateVariable\Application\Policy\Formula\TenantFormula;
 
 class TemplateVariablePlugin extends MicroPlugin
 {
@@ -50,6 +52,7 @@ class TemplateVariablePlugin extends MicroPlugin
     {
         $listener->registerListener(TemplateVariableRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TemplateVariableCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TemplateVariableEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

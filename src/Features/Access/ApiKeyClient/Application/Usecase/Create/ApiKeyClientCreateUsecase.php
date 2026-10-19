@@ -51,9 +51,9 @@ class ApiKeyClientCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Api key client');
             }
             $this->dispatcher->dispatch(new ApiKeyClientCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new ApiKeyClientCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new ApiKeyClientCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = ApiKeyClient::create($input);
             $result = $this->writer->create(
                 $entity,

@@ -16,7 +16,7 @@ class TemplateVersionEnrichForView
         private TemplateVersionAttributes $templateVersionAttributes
     ) {
     }
-    public function getAttributes(): TemplateVersionAttributes
+    public function getEnrichedAttributes(): TemplateVersionAttributes
     {
         return $this->templateVersionAttributes;
     }

@@ -15,7 +15,7 @@ class TemplateAssetEnrichForUpdate
         private TemplateAssetAttributes $templateAssetAttributes
     ) {
     }
-    public function getAttributes(): TemplateAssetAttributes
+    public function getEnrichedAttributes(): TemplateAssetAttributes
     {
         return $this->templateAssetAttributes;
     }

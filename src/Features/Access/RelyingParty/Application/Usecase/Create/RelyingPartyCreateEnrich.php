@@ -12,13 +12,6 @@ class RelyingPartyCreateEnrich extends RelyingPartyEnrichForUpdate
 {
     public function __construct(public readonly RelyingPartyCreateParams $input, private RelyingPartyAttributes $result)
     {
-    }
-    public function getResult(): RelyingPartyAttributes
-    {
-        return $this->result;
-    }
-    public function with(RelyingPartyAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateComma
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
+use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateEnrichForUpdate;
+use Civi\Lughauth\Features\Document\Template\Application\Policy\Formula\TenantFormula;
 
 class TemplatePlugin extends MicroPlugin
 {
@@ -50,6 +52,7 @@ class TemplatePlugin extends MicroPlugin
     {
         $listener->registerListener(TemplateRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TemplateCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TemplateEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

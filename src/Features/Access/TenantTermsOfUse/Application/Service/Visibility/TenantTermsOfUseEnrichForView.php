@@ -16,7 +16,7 @@ class TenantTermsOfUseEnrichForView
         private TenantTermsOfUseAttributes $tenantTermsOfUseAttributes
     ) {
     }
-    public function getAttributes(): TenantTermsOfUseAttributes
+    public function getEnrichedAttributes(): TenantTermsOfUseAttributes
     {
         return $this->tenantTermsOfUseAttributes;
     }

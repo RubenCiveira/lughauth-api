@@ -16,7 +16,7 @@ class MessageEnrichForView
         private MessageAttributes $messageAttributes
     ) {
     }
-    public function getAttributes(): MessageAttributes
+    public function getEnrichedAttributes(): MessageAttributes
     {
         return $this->messageAttributes;
     }

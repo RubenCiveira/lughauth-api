@@ -15,7 +15,7 @@ class SmtpOutboundConfigEnrichForUpdate
         private SmtpOutboundConfigAttributes $smtpOutboundConfigAttributes
     ) {
     }
-    public function getAttributes(): SmtpOutboundConfigAttributes
+    public function getEnrichedAttributes(): SmtpOutboundConfigAttributes
     {
         return $this->smtpOutboundConfigAttributes;
     }

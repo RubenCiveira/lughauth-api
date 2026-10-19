@@ -16,13 +16,6 @@ class TenantLoginProviderUpdateEnrich extends TenantLoginProviderEnrichForUpdate
         public readonly TenantLoginProvider $current,
         private TenantLoginProviderAttributes $result
     ) {
-    }
-    public function getResult(): TenantLoginProviderAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantLoginProviderAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

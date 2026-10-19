@@ -16,13 +16,6 @@ class UserRoleAssignmentUpdateEnrich extends UserRoleAssignmentEnrichForUpdate
         public readonly UserRoleAssignment $current,
         private UserRoleAssignmentAttributes $result
     ) {
-    }
-    public function getResult(): UserRoleAssignmentAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserRoleAssignmentAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

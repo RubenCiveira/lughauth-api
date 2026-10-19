@@ -12,13 +12,6 @@ class TenantConfigCreateEnrich extends TenantConfigEnrichForUpdate
 {
     public function __construct(public readonly TenantConfigCreateParams $input, private TenantConfigAttributes $result)
     {
-    }
-    public function getResult(): TenantConfigAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantConfigAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -288,7 +288,7 @@ class ThemeVersionVisibilityService
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new ThemeVersionEnrichForView($content, $inlist, $attributes));
-            return $result->getAttributes();
+            return $result->getEnrichedAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -16,13 +16,6 @@ class UserUpdateEnrich extends UserEnrichForUpdate
         public readonly User $current,
         private UserAttributes $result
     ) {
-    }
-    public function getResult(): UserAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

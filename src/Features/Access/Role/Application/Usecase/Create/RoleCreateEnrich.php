@@ -12,13 +12,6 @@ class RoleCreateEnrich extends RoleEnrichForUpdate
 {
     public function __construct(public readonly RoleCreateParams $input, private RoleAttributes $result)
     {
-    }
-    public function getResult(): RoleAttributes
-    {
-        return $this->result;
-    }
-    public function with(RoleAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -15,7 +15,7 @@ class UserGroupMembershipEnrichForUpdate
         private UserGroupMembershipAttributes $userGroupMembershipAttributes
     ) {
     }
-    public function getAttributes(): UserGroupMembershipAttributes
+    public function getEnrichedAttributes(): UserGroupMembershipAttributes
     {
         return $this->userGroupMembershipAttributes;
     }

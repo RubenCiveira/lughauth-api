@@ -69,9 +69,9 @@ class SnippetVersionUpdateUsecase
                 throw new NotFoundException($uid);
             }
             $this->dispatcher->dispatch(new SnippetVersionUpdateCheck($params, $original));
-            $enriched = $this->dispatcher->dispatch(new SnippetVersionUpdateEnrich($params, $original, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new SnippetVersionUpdateEnrich($params, $original, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $modified = $original->update($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

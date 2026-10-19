@@ -12,13 +12,6 @@ class UserRoleAssignmentCreateEnrich extends UserRoleAssignmentEnrichForUpdate
 {
     public function __construct(public readonly UserRoleAssignmentCreateParams $input, private UserRoleAssignmentAttributes $result)
     {
-    }
-    public function getResult(): UserRoleAssignmentAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserRoleAssignmentAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfi
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigEnrichForUpdate;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Formula\TenantFormula;
 
 class TenantConfigPlugin extends MicroPlugin
 {
@@ -48,6 +50,7 @@ class TenantConfigPlugin extends MicroPlugin
     {
         $listener->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantConfigEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

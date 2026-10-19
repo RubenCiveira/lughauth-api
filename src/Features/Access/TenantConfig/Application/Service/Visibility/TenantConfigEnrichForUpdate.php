@@ -15,7 +15,7 @@ class TenantConfigEnrichForUpdate
         private TenantConfigAttributes $tenantConfigAttributes
     ) {
     }
-    public function getAttributes(): TenantConfigAttributes
+    public function getEnrichedAttributes(): TenantConfigAttributes
     {
         return $this->tenantConfigAttributes;
     }

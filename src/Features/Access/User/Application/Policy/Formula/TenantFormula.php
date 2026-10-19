@@ -25,11 +25,12 @@ class TenantFormula
         $span = $this->startSpan("Check TenantFormula User");
         try {
             $identity = $this->context->getIdentity();
-            $attr = $event->getAttributes();
+            $attr = $event->getEnrichedAttributes();
             if (!($identity->hasScope("platform:global_access"))) {
                 $attr->tenant(new TenantRef($identity->getTenant()))
                 ;
-            }      return $event;
+            }      $event->with($attr);
+            return $event;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

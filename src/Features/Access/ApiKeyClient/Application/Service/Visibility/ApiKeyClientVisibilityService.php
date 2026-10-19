@@ -281,7 +281,7 @@ class ApiKeyClientVisibilityService
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new ApiKeyClientEnrichForView($content, $inlist, $attributes));
-            return $result->getAttributes();
+            return $result->getEnrichedAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

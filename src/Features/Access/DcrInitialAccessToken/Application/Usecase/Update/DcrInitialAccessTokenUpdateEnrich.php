@@ -16,13 +16,6 @@ class DcrInitialAccessTokenUpdateEnrich extends DcrInitialAccessTokenEnrichForUp
         public readonly DcrInitialAccessToken $current,
         private DcrInitialAccessTokenAttributes $result
     ) {
-    }
-    public function getResult(): DcrInitialAccessTokenAttributes
-    {
-        return $this->result;
-    }
-    public function with(DcrInitialAccessTokenAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

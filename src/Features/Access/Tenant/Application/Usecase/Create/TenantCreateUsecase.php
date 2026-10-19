@@ -51,9 +51,9 @@ class TenantCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant');
             }
             $this->dispatcher->dispatch(new TenantCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new TenantCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new TenantCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = Tenant::create($input);
             $result = $this->writer->create(
                 $entity,

@@ -16,13 +16,6 @@ class ApiKeyClientUpdateEnrich extends ApiKeyClientEnrichForUpdate
         public readonly ApiKeyClient $current,
         private ApiKeyClientAttributes $result
     ) {
-    }
-    public function getResult(): ApiKeyClientAttributes
-    {
-        return $this->result;
-    }
-    public function with(ApiKeyClientAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

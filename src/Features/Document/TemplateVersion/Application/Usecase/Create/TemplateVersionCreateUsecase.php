@@ -51,9 +51,9 @@ class TemplateVersionCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Template version');
             }
             $this->dispatcher->dispatch(new TemplateVersionCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new TemplateVersionCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new TemplateVersionCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = TemplateVersion::create($input);
             $result = $this->writer->create(
                 $entity,

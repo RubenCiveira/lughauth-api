@@ -16,13 +16,6 @@ class TemplateAssetUpdateEnrich extends TemplateAssetEnrichForUpdate
         public readonly TemplateAsset $current,
         private TemplateAssetAttributes $result
     ) {
-    }
-    public function getResult(): TemplateAssetAttributes
-    {
-        return $this->result;
-    }
-    public function with(TemplateAssetAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

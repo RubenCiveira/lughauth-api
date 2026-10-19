@@ -16,13 +16,6 @@ class TemplateVariableUpdateEnrich extends TemplateVariableEnrichForUpdate
         public readonly TemplateVariable $current,
         private TemplateVariableAttributes $result
     ) {
-    }
-    public function getResult(): TemplateVariableAttributes
-    {
-        return $this->result;
-    }
-    public function with(TemplateVariableAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

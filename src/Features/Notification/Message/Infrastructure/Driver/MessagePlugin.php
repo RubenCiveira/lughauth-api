@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageCom
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageQueryRepositoryGateway;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
+use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageEnrichForUpdate;
+use Civi\Lughauth\Features\Notification\Message\Application\Policy\Formula\TenantFormula;
 
 class MessagePlugin extends MicroPlugin
 {
@@ -48,6 +50,7 @@ class MessagePlugin extends MicroPlugin
     {
         $listener->registerListener(MessageRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(MessageCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(MessageEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

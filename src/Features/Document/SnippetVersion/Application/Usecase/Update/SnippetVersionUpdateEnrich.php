@@ -16,13 +16,6 @@ class SnippetVersionUpdateEnrich extends SnippetVersionEnrichForUpdate
         public readonly SnippetVersion $current,
         private SnippetVersionAttributes $result
     ) {
-    }
-    public function getResult(): SnippetVersionAttributes
-    {
-        return $this->result;
-    }
-    public function with(SnippetVersionAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

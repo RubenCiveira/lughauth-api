@@ -12,13 +12,6 @@ class UserGroupMembershipCreateEnrich extends UserGroupMembershipEnrichForUpdate
 {
     public function __construct(public readonly UserGroupMembershipCreateParams $input, private UserGroupMembershipAttributes $result)
     {
-    }
-    public function getResult(): UserGroupMembershipAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserGroupMembershipAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

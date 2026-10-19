@@ -15,7 +15,7 @@ class ConsentPurposeEnrichForUpdate
         private ConsentPurposeAttributes $consentPurposeAttributes
     ) {
     }
-    public function getAttributes(): ConsentPurposeAttributes
+    public function getEnrichedAttributes(): ConsentPurposeAttributes
     {
         return $this->consentPurposeAttributes;
     }

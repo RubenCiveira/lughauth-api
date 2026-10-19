@@ -12,13 +12,6 @@ class ThemeAssetCreateEnrich extends ThemeAssetEnrichForUpdate
 {
     public function __construct(public readonly ThemeAssetCreateParams $input, private ThemeAssetAttributes $result)
     {
-    }
-    public function getResult(): ThemeAssetAttributes
-    {
-        return $this->result;
-    }
-    public function with(ThemeAssetAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

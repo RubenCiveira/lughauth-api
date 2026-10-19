@@ -15,7 +15,7 @@ class SnippetEnrichForUpdate
         private SnippetAttributes $snippetAttributes
     ) {
     }
-    public function getAttributes(): SnippetAttributes
+    public function getEnrichedAttributes(): SnippetAttributes
     {
         return $this->snippetAttributes;
     }

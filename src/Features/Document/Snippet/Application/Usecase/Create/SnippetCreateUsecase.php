@@ -51,9 +51,9 @@ class SnippetCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Snippet');
             }
             $this->dispatcher->dispatch(new SnippetCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new SnippetCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new SnippetCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = Snippet::create($input);
             $result = $this->writer->create(
                 $entity,

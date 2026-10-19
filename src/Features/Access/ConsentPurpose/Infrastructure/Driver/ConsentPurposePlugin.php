@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPu
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeEnrichForUpdate;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Formula\TenantFormula;
 
 class ConsentPurposePlugin extends MicroPlugin
 {
@@ -48,6 +50,7 @@ class ConsentPurposePlugin extends MicroPlugin
     {
         $listener->registerListener(ConsentPurposeRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(ConsentPurposeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(ConsentPurposeEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -16,7 +16,7 @@ class DcrInitialAccessTokenEnrichForView
         private DcrInitialAccessTokenAttributes $dcrInitialAccessTokenAttributes
     ) {
     }
-    public function getAttributes(): DcrInitialAccessTokenAttributes
+    public function getEnrichedAttributes(): DcrInitialAccessTokenAttributes
     {
         return $this->dcrInitialAccessTokenAttributes;
     }

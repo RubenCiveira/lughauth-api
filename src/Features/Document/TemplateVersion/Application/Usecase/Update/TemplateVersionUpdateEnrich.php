@@ -16,13 +16,6 @@ class TemplateVersionUpdateEnrich extends TemplateVersionEnrichForUpdate
         public readonly TemplateVersion $current,
         private TemplateVersionAttributes $result
     ) {
-    }
-    public function getResult(): TemplateVersionAttributes
-    {
-        return $this->result;
-    }
-    public function with(TemplateVersionAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

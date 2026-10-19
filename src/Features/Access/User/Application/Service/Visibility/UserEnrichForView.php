@@ -16,7 +16,7 @@ class UserEnrichForView
         private UserAttributes $userAttributes
     ) {
     }
-    public function getAttributes(): UserAttributes
+    public function getEnrichedAttributes(): UserAttributes
     {
         return $this->userAttributes;
     }

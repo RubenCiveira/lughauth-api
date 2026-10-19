@@ -16,13 +16,6 @@ class UserGroupMembershipUpdateEnrich extends UserGroupMembershipEnrichForUpdate
         public readonly UserGroupMembership $current,
         private UserGroupMembershipAttributes $result
     ) {
-    }
-    public function getResult(): UserGroupMembershipAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserGroupMembershipAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

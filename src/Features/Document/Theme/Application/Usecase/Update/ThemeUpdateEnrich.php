@@ -16,13 +16,6 @@ class ThemeUpdateEnrich extends ThemeEnrichForUpdate
         public readonly Theme $current,
         private ThemeAttributes $result
     ) {
-    }
-    public function getResult(): ThemeAttributes
-    {
-        return $this->result;
-    }
-    public function with(ThemeAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

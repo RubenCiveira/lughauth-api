@@ -12,13 +12,6 @@ class ApiKeyClientCreateEnrich extends ApiKeyClientEnrichForUpdate
 {
     public function __construct(public readonly ApiKeyClientCreateParams $input, private ApiKeyClientAttributes $result)
     {
-    }
-    public function getResult(): ApiKeyClientAttributes
-    {
-        return $this->result;
-    }
-    public function with(ApiKeyClientAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

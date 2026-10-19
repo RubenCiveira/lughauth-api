@@ -30,6 +30,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantT
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseEnrichForUpdate;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Formula\TenantFormula;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -51,6 +53,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     {
         $listener->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantTermsOfUseEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

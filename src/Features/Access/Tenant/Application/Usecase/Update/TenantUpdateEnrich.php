@@ -16,13 +16,6 @@ class TenantUpdateEnrich extends TenantEnrichForUpdate
         public readonly Tenant $current,
         private TenantAttributes $result
     ) {
-    }
-    public function getResult(): TenantAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

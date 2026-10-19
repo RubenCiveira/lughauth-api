@@ -294,7 +294,7 @@ class TemplateAssetVisibilityService
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new TemplateAssetEnrichForView($content, $inlist, $attributes));
-            return $result->getAttributes();
+            return $result->getEnrichedAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

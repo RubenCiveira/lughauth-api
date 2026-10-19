@@ -16,13 +16,6 @@ class TenantTermsOfUseUpdateEnrich extends TenantTermsOfUseEnrichForUpdate
         public readonly TenantTermsOfUse $current,
         private TenantTermsOfUseAttributes $result
     ) {
-    }
-    public function getResult(): TenantTermsOfUseAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantTermsOfUseAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

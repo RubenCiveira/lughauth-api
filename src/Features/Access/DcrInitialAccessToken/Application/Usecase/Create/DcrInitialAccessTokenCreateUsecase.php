@@ -51,9 +51,9 @@ class DcrInitialAccessTokenCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Dcr initial access token');
             }
             $this->dispatcher->dispatch(new DcrInitialAccessTokenCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new DcrInitialAccessTokenCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new DcrInitialAccessTokenCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = DcrInitialAccessToken::create($input);
             $result = $this->writer->create(
                 $entity,

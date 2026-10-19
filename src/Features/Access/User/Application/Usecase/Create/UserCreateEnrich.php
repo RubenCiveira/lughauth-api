@@ -12,13 +12,6 @@ class UserCreateEnrich extends UserEnrichForUpdate
 {
     public function __construct(public readonly UserCreateParams $input, private UserAttributes $result)
     {
-    }
-    public function getResult(): UserAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

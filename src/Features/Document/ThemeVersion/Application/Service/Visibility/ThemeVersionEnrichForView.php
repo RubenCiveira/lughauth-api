@@ -16,7 +16,7 @@ class ThemeVersionEnrichForView
         private ThemeVersionAttributes $themeVersionAttributes
     ) {
     }
-    public function getAttributes(): ThemeVersionAttributes
+    public function getEnrichedAttributes(): ThemeVersionAttributes
     {
         return $this->themeVersionAttributes;
     }

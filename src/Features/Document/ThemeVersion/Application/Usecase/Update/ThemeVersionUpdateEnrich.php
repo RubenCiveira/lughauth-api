@@ -16,13 +16,6 @@ class ThemeVersionUpdateEnrich extends ThemeVersionEnrichForUpdate
         public readonly ThemeVersion $current,
         private ThemeVersionAttributes $result
     ) {
-    }
-    public function getResult(): ThemeVersionAttributes
-    {
-        return $this->result;
-    }
-    public function with(ThemeVersionAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

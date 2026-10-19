@@ -16,13 +16,6 @@ class TemplateUpdateEnrich extends TemplateEnrichForUpdate
         public readonly Template $current,
         private TemplateAttributes $result
     ) {
-    }
-    public function getResult(): TemplateAttributes
-    {
-        return $this->result;
-    }
-    public function with(TemplateAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

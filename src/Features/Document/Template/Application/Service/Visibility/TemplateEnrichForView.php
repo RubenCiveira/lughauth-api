@@ -16,7 +16,7 @@ class TemplateEnrichForView
         private TemplateAttributes $templateAttributes
     ) {
     }
-    public function getAttributes(): TemplateAttributes
+    public function getEnrichedAttributes(): TemplateAttributes
     {
         return $this->templateAttributes;
     }

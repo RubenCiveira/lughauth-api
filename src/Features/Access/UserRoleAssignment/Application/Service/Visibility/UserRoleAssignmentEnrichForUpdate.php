@@ -15,7 +15,7 @@ class UserRoleAssignmentEnrichForUpdate
         private UserRoleAssignmentAttributes $userRoleAssignmentAttributes
     ) {
     }
-    public function getAttributes(): UserRoleAssignmentAttributes
+    public function getEnrichedAttributes(): UserRoleAssignmentAttributes
     {
         return $this->userRoleAssignmentAttributes;
     }

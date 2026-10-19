@@ -32,6 +32,8 @@ use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserCommandReposito
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserEnrichForUpdate;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Formula\TenantFormula;
 
 class UserPlugin extends MicroPlugin
 {
@@ -53,6 +55,7 @@ class UserPlugin extends MicroPlugin
     {
         $listener->registerListener(UserRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(UserEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

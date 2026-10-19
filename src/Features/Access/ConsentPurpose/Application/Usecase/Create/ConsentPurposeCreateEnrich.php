@@ -12,13 +12,6 @@ class ConsentPurposeCreateEnrich extends ConsentPurposeEnrichForUpdate
 {
     public function __construct(public readonly ConsentPurposeCreateParams $input, private ConsentPurposeAttributes $result)
     {
-    }
-    public function getResult(): ConsentPurposeAttributes
-    {
-        return $this->result;
-    }
-    public function with(ConsentPurposeAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

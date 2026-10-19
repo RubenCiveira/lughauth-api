@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeCommandRepo
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCommandRepositoryGateway;
+use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeEnrichForUpdate;
+use Civi\Lughauth\Features\Document\Theme\Application\Policy\Formula\TenantFormula;
 
 class ThemePlugin extends MicroPlugin
 {
@@ -50,6 +52,7 @@ class ThemePlugin extends MicroPlugin
     {
         $listener->registerListener(ThemeRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(ThemeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(ThemeEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

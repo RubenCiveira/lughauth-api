@@ -51,9 +51,9 @@ class UserCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create User');
             }
             $this->dispatcher->dispatch(new UserCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new UserCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new UserCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = User::create($input);
             $result = $this->writer->create(
                 $entity,

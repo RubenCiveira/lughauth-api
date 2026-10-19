@@ -12,13 +12,6 @@ class TenantTermsOfUseCreateEnrich extends TenantTermsOfUseEnrichForUpdate
 {
     public function __construct(public readonly TenantTermsOfUseCreateParams $input, private TenantTermsOfUseAttributes $result)
     {
-    }
-    public function getResult(): TenantTermsOfUseAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantTermsOfUseAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

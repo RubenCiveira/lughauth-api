@@ -12,13 +12,6 @@ class DcrInitialAccessTokenCreateEnrich extends DcrInitialAccessTokenEnrichForUp
 {
     public function __construct(public readonly DcrInitialAccessTokenCreateParams $input, private DcrInitialAccessTokenAttributes $result)
     {
-    }
-    public function getResult(): DcrInitialAccessTokenAttributes
-    {
-        return $this->result;
-    }
-    public function with(DcrInitialAccessTokenAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigEnrichForUpdate;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Formula\TenantFormula;
 
 class SmtpOutboundConfigPlugin extends MicroPlugin
 {
@@ -48,6 +50,7 @@ class SmtpOutboundConfigPlugin extends MicroPlugin
     {
         $listener->registerListener(SmtpOutboundConfigRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(SmtpOutboundConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(SmtpOutboundConfigEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

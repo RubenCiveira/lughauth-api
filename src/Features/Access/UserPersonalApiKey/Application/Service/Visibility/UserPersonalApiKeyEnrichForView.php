@@ -16,7 +16,7 @@ class UserPersonalApiKeyEnrichForView
         private UserPersonalApiKeyAttributes $userPersonalApiKeyAttributes
     ) {
     }
-    public function getAttributes(): UserPersonalApiKeyAttributes
+    public function getEnrichedAttributes(): UserPersonalApiKeyAttributes
     {
         return $this->userPersonalApiKeyAttributes;
     }

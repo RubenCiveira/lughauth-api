@@ -51,9 +51,9 @@ class RoleCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Role');
             }
             $this->dispatcher->dispatch(new RoleCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new RoleCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = Role::create($input);
             $result = $this->writer->create(
                 $entity,

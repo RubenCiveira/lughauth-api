@@ -31,6 +31,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\Tena
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderEnrichForUpdate;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Formula\TenantFormula;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -52,6 +54,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
     {
         $listener->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantLoginProviderEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

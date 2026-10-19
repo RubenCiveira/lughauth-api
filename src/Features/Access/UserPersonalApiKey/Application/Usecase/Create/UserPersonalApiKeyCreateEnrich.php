@@ -12,13 +12,6 @@ class UserPersonalApiKeyCreateEnrich extends UserPersonalApiKeyEnrichForUpdate
 {
     public function __construct(public readonly UserPersonalApiKeyCreateParams $input, private UserPersonalApiKeyAttributes $result)
     {
-    }
-    public function getResult(): UserPersonalApiKeyAttributes
-    {
-        return $this->result;
-    }
-    public function with(UserPersonalApiKeyAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

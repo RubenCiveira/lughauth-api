@@ -16,7 +16,7 @@ class TenantLoginProviderEnrichForView
         private TenantLoginProviderAttributes $tenantLoginProviderAttributes
     ) {
     }
-    public function getAttributes(): TenantLoginProviderAttributes
+    public function getEnrichedAttributes(): TenantLoginProviderAttributes
     {
         return $this->tenantLoginProviderAttributes;
     }

@@ -16,13 +16,6 @@ class TrustedClientUpdateEnrich extends TrustedClientEnrichForUpdate
         public readonly TrustedClient $current,
         private TrustedClientAttributes $result
     ) {
-    }
-    public function getResult(): TrustedClientAttributes
-    {
-        return $this->result;
-    }
-    public function with(TrustedClientAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

@@ -12,13 +12,6 @@ class TenantLoginProviderCreateEnrich extends TenantLoginProviderEnrichForUpdate
 {
     public function __construct(public readonly TenantLoginProviderCreateParams $input, private TenantLoginProviderAttributes $result)
     {
-    }
-    public function getResult(): TenantLoginProviderAttributes
-    {
-        return $this->result;
-    }
-    public function with(TenantLoginProviderAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

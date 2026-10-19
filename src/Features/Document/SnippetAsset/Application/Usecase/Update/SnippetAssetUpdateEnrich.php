@@ -16,13 +16,6 @@ class SnippetAssetUpdateEnrich extends SnippetAssetEnrichForUpdate
         public readonly SnippetAsset $current,
         private SnippetAssetAttributes $result
     ) {
-    }
-    public function getResult(): SnippetAssetAttributes
-    {
-        return $this->result;
-    }
-    public function with(SnippetAssetAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

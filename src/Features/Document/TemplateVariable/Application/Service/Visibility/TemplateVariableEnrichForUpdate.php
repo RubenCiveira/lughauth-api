@@ -15,7 +15,7 @@ class TemplateVariableEnrichForUpdate
         private TemplateVariableAttributes $templateVariableAttributes
     ) {
     }
-    public function getAttributes(): TemplateVariableAttributes
+    public function getEnrichedAttributes(): TemplateVariableAttributes
     {
         return $this->templateVariableAttributes;
     }

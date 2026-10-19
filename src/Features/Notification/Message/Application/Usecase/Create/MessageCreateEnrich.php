@@ -12,13 +12,6 @@ class MessageCreateEnrich extends MessageEnrichForUpdate
 {
     public function __construct(public readonly MessageCreateParams $input, private MessageAttributes $result)
     {
-    }
-    public function getResult(): MessageAttributes
-    {
-        return $this->result;
-    }
-    public function with(MessageAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

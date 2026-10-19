@@ -16,7 +16,7 @@ class TrustedClientEnrichForView
         private TrustedClientAttributes $trustedClientAttributes
     ) {
     }
-    public function getAttributes(): TrustedClientAttributes
+    public function getEnrichedAttributes(): TrustedClientAttributes
     {
         return $this->trustedClientAttributes;
     }

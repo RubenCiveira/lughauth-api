@@ -51,9 +51,9 @@ class TenantTermsOfUseCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant terms of use');
             }
             $this->dispatcher->dispatch(new TenantTermsOfUseCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new TenantTermsOfUseCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = TenantTermsOfUse::create($input);
             $result = $this->writer->create(
                 $entity,

@@ -15,7 +15,7 @@ class RelyingPartyEnrichForUpdate
         private RelyingPartyAttributes $relyingPartyAttributes
     ) {
     }
-    public function getAttributes(): RelyingPartyAttributes
+    public function getEnrichedAttributes(): RelyingPartyAttributes
     {
         return $this->relyingPartyAttributes;
     }

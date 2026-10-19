@@ -37,6 +37,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\T
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientCollectNonEditableFields;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientEnrichForUpdate;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Formula\TenantFormula;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -65,6 +67,7 @@ class TrustedClientPlugin extends MicroPlugin
         $listener->registerListener(TrustedClientDeleteAllowDecision::class, OnlyForRootAllow::class, 'checkDelete');
         $listener->registerListener(TrustedClientEnableAllowDecision::class, OnlyForRootAllow::class, 'checkEnable');
         $listener->registerListener(TrustedClientDisableAllowDecision::class, OnlyForRootAllow::class, 'checkDisable');
+        $listener->registerListener(TrustedClientEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

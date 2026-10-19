@@ -51,9 +51,9 @@ class TemplateCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Template');
             }
             $this->dispatcher->dispatch(new TemplateCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new TemplateCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new TemplateCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = Template::create($input);
             $result = $this->writer->create(
                 $entity,

@@ -51,9 +51,9 @@ class TrustedClientCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Trusted client');
             }
             $this->dispatcher->dispatch(new TrustedClientCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new TrustedClientCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new TrustedClientCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = TrustedClient::create($input);
             $result = $this->writer->create(
                 $entity,

@@ -16,7 +16,7 @@ class RoleEnrichForView
         private RoleAttributes $roleAttributes
     ) {
     }
-    public function getAttributes(): RoleAttributes
+    public function getEnrichedAttributes(): RoleAttributes
     {
         return $this->roleAttributes;
     }

@@ -15,7 +15,7 @@ class ThemeAssetEnrichForUpdate
         private ThemeAssetAttributes $themeAssetAttributes
     ) {
     }
-    public function getAttributes(): ThemeAssetAttributes
+    public function getEnrichedAttributes(): ThemeAssetAttributes
     {
         return $this->themeAssetAttributes;
     }

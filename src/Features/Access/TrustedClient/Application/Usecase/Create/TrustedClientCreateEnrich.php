@@ -12,13 +12,6 @@ class TrustedClientCreateEnrich extends TrustedClientEnrichForUpdate
 {
     public function __construct(public readonly TrustedClientCreateParams $input, private TrustedClientAttributes $result)
     {
-    }
-    public function getResult(): TrustedClientAttributes
-    {
-        return $this->result;
-    }
-    public function with(TrustedClientAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

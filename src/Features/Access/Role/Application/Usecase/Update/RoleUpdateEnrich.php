@@ -16,13 +16,6 @@ class RoleUpdateEnrich extends RoleEnrichForUpdate
         public readonly Role $current,
         private RoleAttributes $result
     ) {
-    }
-    public function getResult(): RoleAttributes
-    {
-        return $this->result;
-    }
-    public function with(RoleAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

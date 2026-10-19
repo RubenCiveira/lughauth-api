@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetCommand
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCommandRepositoryGateway;
+use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetEnrichForUpdate;
+use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Formula\TenantFormula;
 
 class SnippetPlugin extends MicroPlugin
 {
@@ -50,6 +52,7 @@ class SnippetPlugin extends MicroPlugin
     {
         $listener->registerListener(SnippetRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(SnippetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(SnippetEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

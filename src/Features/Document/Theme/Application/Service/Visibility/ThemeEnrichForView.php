@@ -16,7 +16,7 @@ class ThemeEnrichForView
         private ThemeAttributes $themeAttributes
     ) {
     }
-    public function getAttributes(): ThemeAttributes
+    public function getEnrichedAttributes(): ThemeAttributes
     {
         return $this->themeAttributes;
     }

@@ -16,13 +16,6 @@ class MessageUpdateEnrich extends MessageEnrichForUpdate
         public readonly Message $current,
         private MessageAttributes $result
     ) {
-    }
-    public function getResult(): MessageAttributes
-    {
-        return $this->result;
-    }
-    public function with(MessageAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct($current, $result);
     }
 }

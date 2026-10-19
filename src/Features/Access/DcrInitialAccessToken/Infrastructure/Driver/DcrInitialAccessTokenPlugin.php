@@ -33,6 +33,8 @@ use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Infrastructure\Driven\Dc
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Infrastructure\Driven\DcrInitialAccessTokenCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\Gateway\DcrInitialAccessTokenQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\Gateway\DcrInitialAccessTokenCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Service\Visibility\DcrInitialAccessTokenEnrichForUpdate;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Policy\Formula\TenantFormula;
 
 class DcrInitialAccessTokenPlugin extends MicroPlugin
 {
@@ -59,6 +61,7 @@ class DcrInitialAccessTokenPlugin extends MicroPlugin
         $listener->registerListener(DcrInitialAccessTokenListAllowDecision::class, TenantAdminAllow::class, 'checkList');
         $listener->registerListener(DcrInitialAccessTokenRetrieveAllowDecision::class, TenantAdminAllow::class, 'checkRetrieve');
         $listener->registerListener(DcrInitialAccessTokenDeleteAllowDecision::class, TenantAdminAllow::class, 'checkDelete');
+        $listener->registerListener(DcrInitialAccessTokenEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -15,7 +15,7 @@ class ApiKeyClientEnrichForUpdate
         private ApiKeyClientAttributes $apiKeyClientAttributes
     ) {
     }
-    public function getAttributes(): ApiKeyClientAttributes
+    public function getEnrichedAttributes(): ApiKeyClientAttributes
     {
         return $this->apiKeyClientAttributes;
     }

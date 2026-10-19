@@ -12,13 +12,6 @@ class SnippetVersionCreateEnrich extends SnippetVersionEnrichForUpdate
 {
     public function __construct(public readonly SnippetVersionCreateParams $input, private SnippetVersionAttributes $result)
     {
-    }
-    public function getResult(): SnippetVersionAttributes
-    {
-        return $this->result;
-    }
-    public function with(SnippetVersionAttributes $result): void
-    {
-        $this->result = $result;
+        parent::__construct(null, $result);
     }
 }

@@ -16,7 +16,7 @@ class TenantEnrichForView
         private TenantAttributes $tenantAttributes
     ) {
     }
-    public function getAttributes(): TenantAttributes
+    public function getEnrichedAttributes(): TenantAttributes
     {
         return $this->tenantAttributes;
     }

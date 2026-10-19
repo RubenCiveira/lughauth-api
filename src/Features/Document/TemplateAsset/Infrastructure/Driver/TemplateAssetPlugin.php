@@ -30,6 +30,8 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\Template
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCommandRepositoryGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetEnrichForUpdate;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Formula\TenantFormula;
 
 class TemplateAssetPlugin extends MicroPlugin
 {
@@ -51,6 +53,7 @@ class TemplateAssetPlugin extends MicroPlugin
     {
         $listener->registerListener(TemplateAssetRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TemplateAssetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TemplateAssetEnrichForUpdate::class, TenantFormula::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

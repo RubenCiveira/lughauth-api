@@ -51,9 +51,9 @@ class ConsentPurposeCreateUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Consent purpose');
             }
             $this->dispatcher->dispatch(new ConsentPurposeCreateCheck($params));
-            $enriched = $this->dispatcher->dispatch(new ConsentPurposeCreateEnrich($params, $params->toAttributes()));
-            $attributes = $enriched->getResult();
-            $input = $this->visibility->copyWithFixed($attributes);
+            $attributes = $this->visibility->copyWithFixed($params->toAttributes());
+            $enriched = $this->dispatcher->dispatch(new ConsentPurposeCreateEnrich($params, $attributes));
+            $input = $enriched->getEnrichedAttributes();
             $entity = ConsentPurpose::create($input);
             $result = $this->writer->create(
                 $entity,
