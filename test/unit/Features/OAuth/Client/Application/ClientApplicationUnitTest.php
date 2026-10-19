@@ -370,7 +370,7 @@ final class ClientApplicationUnitTest extends TestCase
                 return true;
             }
 
-            public function issue(string $token, ?string $tenantUid, ?string $description, \DateTimeImmutable $expiresAt, int $maxUses, ?array $allowedGrantTypes): string
+            public function issue(string $token, string $tenantUid, ?string $description, \DateTimeImmutable $expiresAt, int $maxUses, ?array $allowedGrantTypes): string
             {
                 return 'iat-' . $token;
             }

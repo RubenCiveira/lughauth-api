@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Tests\integration\Features\OAuth;
 
 use PDO;
-use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\Create\DcrInitialAccessTokenCreateUsecase;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\Gateway\DcrInitialAccessTokenCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
@@ -55,7 +55,8 @@ final class DcrInitialAccessTokenSqlAdapterTest extends TestCase
             $this->pdo,
             $this->digester,
             $finder,
-            $this->createStub(DcrInitialAccessTokenCreateUsecase::class),
+            $tenants,
+            $this->createStub(DcrInitialAccessTokenCommandRepositoryGateway::class),
         );
     }
 

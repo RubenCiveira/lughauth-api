@@ -13,7 +13,9 @@ use DateTimeImmutable;
 final class IssueInitialAccessTokenParams
 {
     public function __construct(
-        /** Uid of the tenant; null lets the access policies set the caller's own tenant. */
+        /** Identity issuing the token: decides whether it may and for which tenant. */
+        public readonly IssueInitialAccessTokenCaller $caller,
+        /** Uid of the tenant requested in the body; only root may name one, and must. */
         public readonly ?string $tenantUid,
         /** Moment the token stops being accepted. */
         public readonly DateTimeImmutable $expiresAt,

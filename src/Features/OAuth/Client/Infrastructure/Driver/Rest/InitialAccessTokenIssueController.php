@@ -11,7 +11,9 @@ use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
+use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenCaller;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenParams;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenUsecase;
 
@@ -20,8 +22,8 @@ use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessTo
  * clear, the only time it is available: the generated CRUD of dcr-initial-access-token keeps
  * listing and revoking the tokens, but only stores digests.
  *
- * Access is decided by the dcr-initial-access-token policies: a tenant admin issues tokens for
- * their own tenant; root must name the tenant.
+ * Only an admin may issue: a tenant admin always for their own tenant (naming another one is
+ * refused), root for the tenant named in the body, which is then required.
  */
 class InitialAccessTokenIssueController
 {
@@ -29,6 +31,7 @@ class InitialAccessTokenIssueController
     private const string DEFAULT_TTL = '+1 day';
 
     public function __construct(
+        private readonly Context $context,
         private readonly SqlTemplate $sql,
         private readonly IssueInitialAccessTokenUsecase $usecase,
     ) {
@@ -48,8 +51,8 @@ class InitialAccessTokenIssueController
         ])),
         responses: [
             new OA\Response(response: 201, description: 'Issued; the token is shown only in this response'),
-            new OA\Response(response: 400, description: 'Invalid request'),
-            new OA\Response(response: 403, description: 'Not allowed'),
+            new OA\Response(response: 400, description: 'Invalid request (also an unknown tenant, or root without tenant)'),
+            new OA\Response(response: 401, description: 'Not an admin, or a tenant admin naming another tenant'),
         ]
     )]
     public function issue(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
@@ -89,7 +92,13 @@ class InitialAccessTokenIssueController
         } catch (\Exception) {
             throw new InvalidArgumentException('expiresAt must be a date-time');
         }
+        $identity = $this->context->getIdentity();
         return new IssueInitialAccessTokenParams(
+            caller: new IssueInitialAccessTokenCaller(
+                tenantUid: $identity->getTenant(),
+                admin: $identity->hasRole('admin'),
+                globalAccess: $identity->hasScope('platform:global_access'),
+            ),
             tenantUid: is_string($tenant) && $tenant !== '' ? $tenant : null,
             expiresAt: $expiresAt,
             maxUses: is_numeric($body['maxUses'] ?? null) ? (int) $body['maxUses'] : 1,

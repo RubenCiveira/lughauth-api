@@ -8,18 +8,21 @@ namespace Tests\unit\Features\OAuth\Client\Application;
 use Closure;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenCaller;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenParams;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAccessToken\IssueInitialAccessTokenUsecase;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class IssueInitialAccessTokenUsecaseUnitTest extends TestCase
 {
-    public function testIssuesARandomTokenAndReturnsItOnce(): void
+    public function testTenantAdminIssuesARandomTokenForTheirOwnTenant(): void
     {
         $gateway = $this->gateway();
         $usecase = new IssueInitialAccessTokenUsecase($gateway);
-        $params = new IssueInitialAccessTokenParams('uid-a', new DateTimeImmutable('+1 hour'), 3, ['authorization_code'], 'partner');
+        $params = $this->params(self::tenantAdmin(), null, maxUses: 3, grants: ['authorization_code'], description: 'partner');
 
         $first = $usecase->issue($params);
         $second = $usecase->issue($params);
@@ -30,13 +33,59 @@ final class IssueInitialAccessTokenUsecaseUnitTest extends TestCase
         self::assertSame([$first->token, 'uid-a', 'partner', 3, ['authorization_code']], $gateway->issued[0]);
     }
 
+    public function testTenantAdminNamingTheirOwnTenantIsAccepted(): void
+    {
+        $gateway = $this->gateway();
+
+        (new IssueInitialAccessTokenUsecase($gateway))->issue($this->params(self::tenantAdmin(), 'uid-a'));
+
+        self::assertSame('uid-a', $gateway->issued[0][1]);
+    }
+
+    public function testRootIssuesForTheNamedTenant(): void
+    {
+        $gateway = $this->gateway();
+
+        (new IssueInitialAccessTokenUsecase($gateway))->issue($this->params(new IssueInitialAccessTokenCaller('uid-root', true, true), 'uid-b'));
+
+        self::assertSame('uid-b', $gateway->issued[0][1]);
+    }
+
+    /**
+     * @return iterable<string, array{IssueInitialAccessTokenCaller, ?string, class-string<\Throwable>}>
+     */
+    public static function refusedCallers(): iterable
+    {
+        yield 'not an admin' => [new IssueInitialAccessTokenCaller('uid-a', false, false), null, UnauthorizedException::class];
+        yield 'tenant admin naming another tenant' => [self::tenantAdmin(), 'uid-b', UnauthorizedException::class];
+        yield 'admin without tenant' => [new IssueInitialAccessTokenCaller('', true, false), null, UnauthorizedException::class];
+        yield 'root without tenant' => [new IssueInitialAccessTokenCaller('uid-root', true, true), null, InvalidArgumentException::class];
+    }
+
+    /**
+     * @param class-string<\Throwable> $exception
+     */
+    #[DataProvider('refusedCallers')]
+    public function testRefusedCallersIssueNothing(IssueInitialAccessTokenCaller $caller, ?string $tenant, string $exception): void
+    {
+        $gateway = $this->gateway();
+
+        try {
+            (new IssueInitialAccessTokenUsecase($gateway))->issue($this->params($caller, $tenant));
+            $this->fail('Expected ' . $exception);
+        } catch (\Throwable $ex) {
+            self::assertInstanceOf($exception, $ex);
+        }
+        self::assertSame([], $gateway->issued);
+    }
+
     public function testRejectsUselessTokens(): void
     {
         $usecase = new IssueInitialAccessTokenUsecase($this->gateway());
 
         foreach ([
-            new IssueInitialAccessTokenParams(null, new DateTimeImmutable('+1 hour'), 0),
-            new IssueInitialAccessTokenParams(null, new DateTimeImmutable('-1 second')),
+            $this->params(self::tenantAdmin(), null, maxUses: 0),
+            $this->params(self::tenantAdmin(), null, expiresAt: '-1 second'),
         ] as $params) {
             try {
                 $usecase->issue($params);
@@ -45,6 +94,22 @@ final class IssueInitialAccessTokenUsecaseUnitTest extends TestCase
                 $this->addToAssertionCount(1);
             }
         }
+    }
+
+    private static function tenantAdmin(): IssueInitialAccessTokenCaller
+    {
+        return new IssueInitialAccessTokenCaller('uid-a', true, false);
+    }
+
+    private function params(
+        IssueInitialAccessTokenCaller $caller,
+        ?string $tenant,
+        int $maxUses = 1,
+        ?array $grants = null,
+        ?string $description = null,
+        string $expiresAt = '+1 hour',
+    ): IssueInitialAccessTokenParams {
+        return new IssueInitialAccessTokenParams($caller, $tenant, new DateTimeImmutable($expiresAt), $maxUses, $grants, $description);
     }
 
     private function gateway(): DcrInitialAccessTokenGateway
@@ -57,7 +122,7 @@ final class IssueInitialAccessTokenUsecaseUnitTest extends TestCase
                 return false;
             }
 
-            public function issue(string $token, ?string $tenantUid, ?string $description, DateTimeImmutable $expiresAt, int $maxUses, ?array $allowedGrantTypes): string
+            public function issue(string $token, string $tenantUid, ?string $description, DateTimeImmutable $expiresAt, int $maxUses, ?array $allowedGrantTypes): string
             {
                 $this->issued[] = [$token, $tenantUid, $description, $maxUses, $allowedGrantTypes];
                 return 'iat-' . count($this->issued);

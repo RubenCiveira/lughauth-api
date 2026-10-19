@@ -31,14 +31,14 @@ interface DcrInitialAccessTokenGateway
     public function consume(string $tenant, string $token, Closure $validate): bool;
 
     /**
-     * Stores a new token for the tenant (a tenant uid; null lets the access policies set the one
-     * of the caller) and returns the uid of the record.
+     * Stores a new token for the tenant (an existing tenant uid, already authorised by the caller)
+     * and returns the uid of the record. Throws InvalidArgumentException for an unknown tenant.
      *
      * @param string[]|null $allowedGrantTypes
      */
     public function issue(
         string $token,
-        ?string $tenantUid,
+        string $tenantUid,
         ?string $description,
         DateTimeImmutable $expiresAt,
         int $maxUses,

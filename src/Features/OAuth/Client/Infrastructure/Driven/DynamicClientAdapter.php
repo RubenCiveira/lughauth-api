@@ -85,7 +85,6 @@ final class DynamicClientAdapter implements DynamicClientGateway
             ->tenant($tenantRef)
             ->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->digester, $clientSecret))
             ->publicAllow(true)
-            ->enabled(true)
             ->allowAllScopes(false)
             ->allowedRedirects($this->buildRedirectsListRef($request->redirectUris))
             ->registrationAccess(TrustedClientRegistrationAccessVO::fromPlainText($this->digester, $registrationAccessToken))
@@ -102,8 +101,8 @@ final class DynamicClientAdapter implements DynamicClientGateway
             ->backChannelLogoutUri($request->backchannelLogoutUri)
             ->frontChannelLogoutUri($request->frontchannelLogoutUri);
 
-        $entity = TrustedClient::create($attrs);
-        $this->writer->create($entity);
+        // "enabled" is calculated as false on create: a registered client is enabled explicitly.
+        $this->writer->create(TrustedClient::create($attrs)->enable());
 
         return [
             'clientId' => $clientId,

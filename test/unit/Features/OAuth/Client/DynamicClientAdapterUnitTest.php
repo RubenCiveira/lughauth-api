@@ -55,6 +55,7 @@ final class DynamicClientAdapterUnitTest extends TestCase
         $adapter->create('tenant-a', 'dyn-client', 'secret', 'reg-token', $request);
 
         self::assertSame('uid-a', $this->stored?->getTenant()?->uid());
+        self::assertTrue($this->stored->isEnabled(), 'A registered client must be usable');
         self::assertSame('["authorization_code","refresh_token"]', $this->stored->getGrantTypesJson());
         self::assertSame('dyn-client', $adapter->findByClientIdAndToken('tenant-a', 'dyn-client', 'reg-token')?->clientId);
         self::assertNull($adapter->findByClientIdAndToken('tenant-b', 'dyn-client', 'reg-token'));

@@ -13,8 +13,11 @@ use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\Create\DcrInitialAccessTokenCreateParams;
-use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Application\Usecase\Create\DcrInitialAccessTokenCreateUsecase;
+use InvalidArgumentException;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\DcrInitialAccessToken;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\DcrInitialAccessTokenAttributes;
+use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\Gateway\DcrInitialAccessTokenCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\DcrInitialAccessToken\Domain\ValueObject\DcrInitialAccessTokenTokenHashVO;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DcrInitialAccess;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
@@ -27,8 +30,10 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGate
  * validate the registration and then increments the uses with a guarded UPDATE in the same
  * transaction: tenant, expiration, revocation and remaining uses are checked by the database.
  *
- * Issuance goes through the generated create use case, so the tenant admin access policies and
- * the tenant formula of the entity apply.
+ * Issuance persists straight through the command repository: the caller and the tenant were
+ * already authorised by IssueInitialAccessTokenUsecase. The generated create use case is not used
+ * because, for a non-root caller, its visibility service drops the tenant field and the record
+ * could never be created.
  */
 final class DcrInitialAccessTokenSqlAdapter implements DcrInitialAccessTokenGateway
 {
@@ -39,7 +44,8 @@ final class DcrInitialAccessTokenSqlAdapter implements DcrInitialAccessTokenGate
         private readonly PDO $pdo,
         private readonly SecretDigester $digester,
         private readonly TrustedClientFinder $finder,
-        private readonly DcrInitialAccessTokenCreateUsecase $create,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly DcrInitialAccessTokenCommandRepositoryGateway $writer,
     ) {
     }
 
@@ -86,23 +92,23 @@ final class DcrInitialAccessTokenSqlAdapter implements DcrInitialAccessTokenGate
     #[Override]
     public function issue(
         string $token,
-        ?string $tenantUid,
+        string $tenantUid,
         ?string $description,
         DateTimeImmutable $expiresAt,
         int $maxUses,
         ?array $allowedGrantTypes,
     ): string {
-        $params = (new DcrInitialAccessTokenCreateParams())
+        if ($this->tenants->findOneByUid($tenantUid) === null) {
+            throw new InvalidArgumentException('Unknown tenant ' . $tenantUid);
+        }
+        $attributes = (new DcrInitialAccessTokenAttributes())
             ->uid(Random::uuid())
+            ->tenant(new TenantRef($tenantUid))
             ->description($description)
             ->tokenHash(DcrInitialAccessTokenTokenHashVO::fromPlainText($this->digester, $token))
             ->expiresAt($expiresAt)
             ->maxUses($maxUses)
-            ->uses(0)
             ->allowedGrantTypes($allowedGrantTypes === null ? null : (string) json_encode(array_values($allowedGrantTypes)));
-        if ($tenantUid !== null) {
-            $params->tenant(new TenantRef($tenantUid));
-        }
-        return $this->create->create($params)->getUid() ?? '';
+        return $this->writer->create(DcrInitialAccessToken::create($attributes))->uid() ?? '';
     }
 }

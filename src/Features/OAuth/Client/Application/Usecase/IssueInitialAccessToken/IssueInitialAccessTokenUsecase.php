@@ -7,12 +7,16 @@ namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\IssueInitialAc
 
 use InvalidArgumentException;
 use DateTimeImmutable;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
 
 /**
  * Issues a DCR initial access token (task 023): generates a 256-bit random token, stores it
- * through DcrInitialAccessTokenGateway (only its digest is kept; the gateway applies the tenant
- * admin access policies) and returns the plain value, which is never available again.
+ * through DcrInitialAccessTokenGateway (only its digest is kept) and returns the plain value,
+ * which is never available again.
+ *
+ * Only an admin may issue. A tenant admin always issues for their own tenant and cannot name
+ * another one; root must name the tenant.
  */
 final class IssueInitialAccessTokenUsecase
 {
@@ -32,7 +36,7 @@ final class IssueInitialAccessTokenUsecase
         $token = bin2hex(random_bytes(32));
         $uid = $this->gateway->issue(
             $token,
-            $params->tenantUid,
+            $this->tenantFor($params),
             $params->description,
             $params->expiresAt,
             $params->maxUses,
@@ -45,5 +49,23 @@ final class IssueInitialAccessTokenUsecase
             maxUses: $params->maxUses,
             allowedGrantTypes: $params->allowedGrantTypes,
         );
+    }
+
+    private function tenantFor(IssueInitialAccessTokenParams $params): string
+    {
+        $caller = $params->caller;
+        if (!$caller->admin) {
+            throw new UnauthorizedException('Only an admin can issue initial access tokens');
+        }
+        if ($caller->globalAccess) {
+            if ($params->tenantUid === null || $params->tenantUid === '') {
+                throw new InvalidArgumentException('tenant is required');
+            }
+            return $params->tenantUid;
+        }
+        if ($caller->tenantUid === '' || ($params->tenantUid !== null && $params->tenantUid !== $caller->tenantUid)) {
+            throw new UnauthorizedException('A tenant admin can only issue initial access tokens for their own tenant');
+        }
+        return $caller->tenantUid;
     }
 }
