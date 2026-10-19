@@ -145,7 +145,7 @@ final class TokenRevocationSqlAdapterTest extends TestCase
             $this->markTestSkipped('MySQL integration database not available');
         }
         if ($pdo->query("SHOW TABLES LIKE '_oauth_revoked_refresh_family'")->rowCount() === 0) {
-            $this->markTestSkipped('Migration 20261016200000 (_oauth_revoked_refresh_family) not applied');
+            $this->markTestSkipped('Table _oauth_revoked_refresh_family not found: apply the schema migrations');
         }
         return $pdo;
     }

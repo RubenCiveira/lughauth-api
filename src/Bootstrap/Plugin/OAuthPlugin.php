@@ -103,6 +103,7 @@ use Civi\Lughauth\Features\OAuth\UserInvitation\Infrastructure\Driver\Html\Invit
 use Civi\Lughauth\Features\OAuth\UserInvitation\Infrastructure\Driver\Rest\InvitationCreateController;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Infrastructure\Driver\Rest\InvitationCancelController;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Infrastructure\Driver\Rest\InvitationResendController;
+use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Resend\InvitationResendUsecase;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationSessionGateway;
@@ -154,6 +155,8 @@ class OAuthPlugin extends MicroPlugin
         $def[MagicLinkEnabledGateway::class] = \DI\autowire(MagicLinkEnabledAdapter::class);
         $def[MagicLinkSessionGateway::class] = \DI\autowire(MagicLinkSessionAdapter::class);
         $def[RequestMagicLinkUsecase::class] = \DI\autowire()
+            ->constructorParameter('baseUrl', \DI\factory(fn (Context $ctx): string => $ctx->getBaseUrl()));
+        $def[InvitationResendUsecase::class] = \DI\autowire()
             ->constructorParameter('baseUrl', \DI\factory(fn (Context $ctx): string => $ctx->getBaseUrl()));
         $def[UserInvitationQueryGateway::class] = \DI\autowire(UserInvitationQueryAdapter::class);
         $def[UserInvitationMailGateway::class] = \DI\autowire(UserInvitationMailAdapter::class);

@@ -11,6 +11,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
@@ -35,6 +36,7 @@ class ChangePasswordAdapter implements ChangePasswordGateway
         private readonly UserCommandRepositoryGateway $repository,
         private readonly UserAccessTemporalCodeCommandRepositoryGateway $codes,
         private readonly PasswordHasher $hasher,
+        private readonly SecretDigester $digester,
         private readonly Random $randomizer,
     ) {
     }
@@ -51,7 +53,7 @@ class ChangePasswordAdapter implements ChangePasswordGateway
             $expiresAt = new DateTimeImmutable()->add(new DateInterval("P1D"));
             $recoveryUrl = str_ends_with($url, '=') ? $url . $verify : $url;
             $code = $this->users->userCodeForUpdate($theUser);
-            $this->users->updateCode($code->generatePasswordRecover($recoveryUrl, $verify, $expiresAt));
+            $this->users->updateCode($code->generatePasswordRecover($url, $this->digester, $verify, $expiresAt));
             $this->logInfo('OIDC change-password recovery code generated', ['tenant' => $tenant]);
             $email = $theUser->getEmail();
             if ($email === null || $email === '') {
@@ -104,7 +106,7 @@ class ChangePasswordAdapter implements ChangePasswordGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $code);
             [$user, $userCode] = $this->users->checkUserByRecoveryCode($theTenant, $code);
-            if ($code !== $userCode->getRecoveryCode()) {
+            if (!$userCode->verifyRecoveryCode($this->digester, $code)) {
                 $this->logWarning('OIDC change-password recovery code mismatch', ['tenant' => $tenant]);
                 return null;
             }

@@ -176,6 +176,11 @@ class Micro
         if ($this->definition->withRate) {
             $this->withRate($defs);
         }
+        // The core plugins are registered before collect the definitions: their services
+        // (for example the SecurityPlugin secret storage and digester) must be on the container.
+        $this->register(new ErrorsPlugin());
+        $this->register(new ManagementPlugin());
+        $this->register(new SecurityPlugin());
         foreach ($this->plugins as $base) {
             $temp = $base->registerServiceDefinition($defs);
             $defs = [...$defs, ...$temp];
@@ -227,9 +232,6 @@ class Micro
         });
         $container->set(ErrorMiddleware::class, $this->errorHandler);
         $this->interfaces = [];
-        $this->register(new ErrorsPlugin());
-        $this->register(new ManagementPlugin());
-        $this->register(new SecurityPlugin());
 
         foreach ($this->plugins as $base) {
             $base->bindServices($container);

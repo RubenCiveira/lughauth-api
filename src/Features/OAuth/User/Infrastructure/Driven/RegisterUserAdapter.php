@@ -11,6 +11,7 @@ use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -33,6 +34,7 @@ class RegisterUserAdapter implements RegisterUserGateway
         private readonly UserCommandRepositoryGateway $repository,
         private readonly UserAccessTemporalCodeCommandRepositoryGateway $codes,
         private readonly PasswordHasher $hasher,
+        private readonly SecretDigester $digester,
         private readonly UserAcceptedTermsOfUseCommandRepositoryGateway $writerUserTerms,
         private readonly Random $randomizer,
     ) {
@@ -88,7 +90,7 @@ class RegisterUserAdapter implements RegisterUserGateway
             $verify = md5($this->randomizer->comb());
             $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;
             $code = $this->users->userCodeForUpdate($theUser);
-            $this->users->updateCode($code->generatedRegisterVerification($verify, $activateUrl, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            $this->users->updateCode($code->generatedRegisterVerification($this->digester, $verify, $url, new DateTimeImmutable()->add(new DateInterval("P1D"))));
             return new RegistrationNotificationData(
                 email: $email,
                 name: $email,
@@ -109,7 +111,7 @@ class RegisterUserAdapter implements RegisterUserGateway
             $verify = md5($this->randomizer->comb());
             $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;
             $code = $this->users->userCodeForUpdate($updated);
-            $this->users->updateCode($code->generatedRegisterVerification($verify, $activateUrl, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            $this->users->updateCode($code->generatedRegisterVerification($this->digester, $verify, $url, new DateTimeImmutable()->add(new DateInterval("P1D"))));
             return new RegistrationNotificationData(
                 email: $email,
                 name: $theUser->getName() ?? $email,
@@ -124,7 +126,7 @@ class RegisterUserAdapter implements RegisterUserGateway
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
         [$user, $userCode] = $this->users->checkUserByRegisterCode($theTenant, $code);
-        if ($code !== $userCode->getRegisterCode()) {
+        if (!$userCode->verifyRegisterCode($this->digester, $code)) {
             return null;
         }
         $conf = $this->configs->findOneByTenant($theTenant);

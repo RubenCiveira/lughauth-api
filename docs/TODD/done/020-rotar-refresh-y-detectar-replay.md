@@ -21,5 +21,5 @@
 - **Replay:** un JTI ya consumido (o revocado por `/revoke`) revoca la familia (`_oauth_revoked_refresh_family`, hasta `fexp`) y cierra la sesión `sid` (lo que corta también los refresh de otros clientes SSO de esa sesión). No se emiten tokens.
 - **Peticiones simultáneas:** sin periodo de gracia; la segunda se trata como replay. Los clientes deben serializar sus refresh.
 - **Tokens anteriores al cambio:** sin `jti`/`fid` se rechazan, así que hay que volver a iniciar sesión.
-- **Tablas `_oauth_session_grant` / `_oauth_session_token`:** no se usan porque exigen sesión (`session NOT NULL`) y los grants `password`/`device_code` no la tienen. Migración nueva: `20261016200000_SynchSchemaFor20261016200000`.
+- **Tablas `_oauth_session_grant` / `_oauth_session_token`:** no se usan porque exigen sesión (`session NOT NULL`) y los grants `password`/`device_code` no la tienen. La tabla `_oauth_revoked_refresh_family` se creó en la migración `20261016200000`, hoy integrada en la migración única del esquema (`20261019184158_SynchSchemaFor20261019184158`).
 - **Prueba de concurrencia:** `test/integration/Features/OAuth/TokenRevocationSqlAdapterTest.php` lanza 8 procesos PHP con conexiones propias contra MySQL y exige un único vencedor en 5 rondas. Se salta si no hay MySQL o falta la migración.

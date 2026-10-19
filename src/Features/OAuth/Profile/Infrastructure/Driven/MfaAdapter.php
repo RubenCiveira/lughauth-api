@@ -10,6 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Exception\BadRequestException;
+use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
@@ -17,6 +18,7 @@ use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaReco
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeAttributes;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\UserMfaRecoveryCodeCodeHashVO;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
@@ -51,6 +53,7 @@ class MfaAdapter implements MfaGateway
         private readonly UserMfaGateway $mfaGateway,
         private readonly UserMfaRecoveryCodeCommandRepositoryGateway $recoveryWrite,
         private readonly ReversibleSecretStorage $secrets,
+        private readonly PasswordHasher $hasher,
     ) {
     }
 
@@ -159,11 +162,10 @@ class MfaAdapter implements MfaGateway
             $plainCodes = [];
             for ($i = 0; $i < self::RECOVERY_CODE_COUNT; $i++) {
                 $plain = strtoupper(bin2hex(random_bytes(5)));
-                $hash  = password_hash($plain, PASSWORD_BCRYPT);
                 $attrs = (new UserMfaRecoveryCodeAttributes())
                     ->withDefaults()
                     ->user($userRef)
-                    ->codeHash($hash);
+                    ->codeHash(UserMfaRecoveryCodeCodeHashVO::fromPlainText($this->hasher, $plain));
                 $this->recoveryWrite->create(UserMfaRecoveryCode::create($attrs));
                 $plainCodes[] = $plain;
             }

@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
@@ -29,6 +30,7 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignment;
@@ -73,6 +75,7 @@ class InstallUsecase
         private readonly SqlTemplate $template,
         private readonly ReversibleSecretStorage $secrets,
         private readonly PasswordHasher $hasher,
+        private readonly SecretDigester $digester,
         private readonly RelyingPartyCommandRepositoryGateway $createReling,
         private readonly TrustedClientCommandRepositoryGateway $createTruted,
         private readonly TenantCommandRepositoryGateway $createTenant,
@@ -206,7 +209,7 @@ class InstallUsecase
         $apiKey = new ApiKeyClientAttributes();
         $apiKey->uid(Random::comb());
         $apiKey->code('Initial collector');
-        $apiKey->key('hcaik_01jtteh99vbsv4qrj22trvh3wg35g1n4tgkcxzgqv0034y2cby7dceaf43');
+        $apiKey->key(ApiKeyClientKeyVO::fromPlainText($this->digester, 'hcaik_01jtteh99vbsv4qrj22trvh3wg35g1n4tgkcxzgqv0034y2cby7dceaf43'));
         $apiKey->scopes('collect');
         $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
         $this->apiKeys->update($created, $created->enable());
@@ -214,7 +217,7 @@ class InstallUsecase
         $apiKey = new ApiKeyClientAttributes();
         $apiKey->uid(Random::comb());
         $apiKey->code('Initial syn client');
-        $apiKey->key('sck_01jtteh99vbsv4qrj22trvh3wg35g2n3tgkcxngqv0034y2cby7dceaf43');
+        $apiKey->key(ApiKeyClientKeyVO::fromPlainText($this->digester, 'sck_01jtteh99vbsv4qrj22trvh3wg35g2n3tgkcxngqv0034y2cby7dceaf43'));
         $apiKey->scopes('sync');
         $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
         $this->apiKeys->update($created, $created->enable());

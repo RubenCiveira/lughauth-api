@@ -6,9 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Resend;
 
 use DateTimeImmutable;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationTokenHashVO;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
 
@@ -18,6 +20,7 @@ class InvitationResendUsecase
         private readonly UserInvitationCommandRepositoryGateway $writeGateway,
         private readonly UserInvitationMailGateway $mailer,
         private readonly UserQueryRepositoryGateway $users,
+        private readonly SecretDigester $digester,
         private readonly string $baseUrl,
     ) {
     }
@@ -42,7 +45,7 @@ class InvitationResendUsecase
         }
 
         $rawToken  = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = UserInvitationTokenHashVO::fromPlainText($this->digester, $rawToken);
         $expiresAt = new DateTimeImmutable('+7 days');
 
         $attrs = $invitation->toAttributes()

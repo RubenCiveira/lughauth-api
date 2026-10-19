@@ -7,11 +7,13 @@ namespace Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create
 
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitation;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationAttributes;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationTokenHashVO;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
@@ -22,6 +24,7 @@ class InvitationCreateUsecase
         private readonly UserInvitationCommandRepositoryGateway $writeGateway,
         private readonly UserInvitationQueryGateway $queryGateway,
         private readonly UserInvitationMailGateway $mailer,
+        private readonly SecretDigester $digester,
     ) {
     }
 
@@ -33,7 +36,7 @@ class InvitationCreateUsecase
         }
 
         $rawToken  = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = UserInvitationTokenHashVO::fromPlainText($this->digester, $rawToken);
         $expiresAt = new DateTimeImmutable('+7 days');
 
         $attrs = new UserInvitationAttributes();

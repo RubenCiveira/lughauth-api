@@ -8,12 +8,14 @@ namespace Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Accept
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
+use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\ValueObject\UserInvitationTokenHashVO;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationSessionGateway;
@@ -27,12 +29,13 @@ class InvitationAcceptUsecase
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly UserCommandRepositoryGateway $userWriter,
         private readonly PasswordHasher $hasher,
+        private readonly SecretDigester $digester,
     ) {
     }
 
     public function accept(InvitationAcceptParams $params): InvitationAcceptResult
     {
-        $tokenHash = hash('sha256', $params->rawToken);
+        $tokenHash = UserInvitationTokenHashVO::digestOf($this->digester, $params->rawToken);
         $tenant    = $this->tenants->findOneByName($params->tenantName);
 
         $tenantUid = $tenant?->uid();

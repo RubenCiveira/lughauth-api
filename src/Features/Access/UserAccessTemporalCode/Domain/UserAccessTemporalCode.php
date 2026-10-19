@@ -166,7 +166,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function generatedRegisterVerification(SecretDigester $digester, string|null $registerCode, string|null $registerCodeUrl, \DateTimeImmutable|null $registerCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_registerCode = UserAccessTemporalCodeRegisterCodeVO::fromPlainText($digester, $registerCode);
+        $value->_registerCode = null === $registerCode ? UserAccessTemporalCodeRegisterCodeVO::empty() : UserAccessTemporalCodeRegisterCodeVO::fromPlainText($digester, $registerCode);
         $value->_registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::from($registerCodeUrl);
         $value->_registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::from($registerCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratedRegisterVerificationEvent($value, original: $this);
@@ -184,7 +184,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function generatePasswordRecover(string|null $recoveryLink, SecretDigester $digester, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::fromPlainText($digester, $recoveryCode);
+        $value->_recoveryCode = null === $recoveryCode ? UserAccessTemporalCodeRecoveryCodeVO::empty() : UserAccessTemporalCodeRecoveryCodeVO::fromPlainText($digester, $recoveryCode);
         $value->_recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratePasswordRecoverEvent($value, original: $this, recoveryLink: $recoveryLink);
         return $value;
