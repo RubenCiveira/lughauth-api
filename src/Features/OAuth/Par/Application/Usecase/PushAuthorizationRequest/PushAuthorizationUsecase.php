@@ -41,7 +41,7 @@ final class PushAuthorizationUsecase
      */
     public function push(PushAuthorizationParams $params): PushAuthorizationResult
     {
-        $client = $this->clients->clientData($params->clientId, $params->clientSecret);
+        $client = $this->clients->clientData($params->tenant, $params->clientId, $params->clientSecret);
         if ($client === null) {
             throw ParException::invalidClient();
         }

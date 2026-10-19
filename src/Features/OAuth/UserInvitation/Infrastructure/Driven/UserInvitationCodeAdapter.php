@@ -31,7 +31,7 @@ class UserInvitationCodeAdapter implements UserInvitationCodeGateway
         string $redirectUri,
         string $tenant,
     ): string {
-        $client = $this->clientStore->preValidatedClient($clientId);
+        $client = $this->clientStore->preValidatedClient($tenant, $clientId);
         if ($client === null) {
             throw new \DomainException('Client not found: ' . $clientId);
         }

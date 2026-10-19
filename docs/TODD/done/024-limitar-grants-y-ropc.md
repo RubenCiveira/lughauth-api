@@ -1,6 +1,6 @@
 # 024 — Restringir grants de DCR y eliminar ROPC por defecto
 
-- **Estado:** pendiente. **Prioridad:** alta.
+- **Estado:** hecho (EP-03). **Prioridad:** alta.
 - **Evidencia:** [DynamicClientAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/DynamicClientAdapter.php) persiste `grantTypes` sin lista permitida; [ClientStoreAdapter::mapClientData](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) elige `password` si falta configuración.
 - **Impacto:** DCR puede activar grants sensibles y un cliente sin metadatos obtiene ROPC.
 - **Por hacer:** política allowlist por tenant/tipo de cliente en create y update; default seguro (`authorization_code` cuando aplique), migración de clientes existentes y tests de grants rechazados.

@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 namespace Tests\unit\Features\OAuth\Client;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
@@ -13,6 +16,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\ClientStoreAdapter;
+use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
 use Civi\Lughauth\Shared\Security\SecretDigester;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -79,7 +83,7 @@ final class ClientStoreAdapterUnitTest extends TestCase
     {
         $store = $this->storeWithRedirect('https://app.example.com/callback', $method);
 
-        self::assertSame($expected, $store->findEnabledClient('angular-client')?->tokenEndpointAuthMethod);
+        self::assertSame($expected, $store->findEnabledClient('tenant1', 'angular-client')?->tokenEndpointAuthMethod);
     }
 
     public function testClientSecretIsVerifiedAgainstTheDigest(): void
@@ -90,16 +94,99 @@ final class ClientStoreAdapterUnitTest extends TestCase
             's3cret'
         );
 
-        self::assertSame('angular-client', $store->clientData('angular-client', 's3cret')?->id);
-        self::assertNull($store->clientData('angular-client', 'S3cret'));
-        self::assertNull($store->clientData('angular-client', ''));
+        self::assertSame('angular-client', $store->clientData('tenant1', 'angular-client', 's3cret')?->id);
+        self::assertNull($store->clientData('tenant1', 'angular-client', 'S3cret'));
+        self::assertNull($store->clientData('tenant1', 'angular-client', ''));
     }
 
     public function testClientWithoutSecretNeverVerifies(): void
     {
         $store = $this->storeWithRedirect('https://app.example.com/callback');
 
-        self::assertNull($store->clientData('angular-client', 's3cret'));
+        self::assertNull($store->clientData('tenant1', 'angular-client', 's3cret'));
+    }
+
+    public function testClientOfAnotherTenantIsNeverFound(): void
+    {
+        $store = $this->store(['uid-b' => [$this->client('foreign', 'uid-b')]]);
+
+        self::assertNull($store->findEnabledClient('tenant-a', 'foreign'));
+        self::assertNull($store->preValidatedClient('tenant-a', 'foreign'));
+        self::assertNull($store->publicClientData('foreign', 'tenant-a', 'https://app.example.com/callback', ''));
+        self::assertNull($store->defaultRedirectUri('tenant-a', 'foreign'));
+        self::assertSame('uid-b', $store->findEnabledClient('tenant-b', 'foreign')?->tenant);
+    }
+
+    public function testGlobalClientWorksInEveryTenant(): void
+    {
+        $store = $this->store(['' => [$this->client('shared', null)]]);
+
+        self::assertNotNull($store->findEnabledClient('tenant-a', 'shared'));
+        self::assertNotNull($store->findEnabledClient('tenant-b', 'shared'));
+        self::assertNotNull($store->findEnabledClient('unknown-tenant', 'shared'));
+        self::assertNull($store->findEnabledClient('tenant-a', 'shared')?->tenant);
+    }
+
+    public function testTenantClientWinsOverAGlobalOneWithTheSameCode(): void
+    {
+        $store = $this->store([
+            '' => [$this->client('app', null)],
+            'uid-a' => [$this->client('app', 'uid-a')],
+        ]);
+
+        self::assertSame('uid-a', $store->findEnabledClient('tenant-a', 'app')?->tenant);
+        self::assertNull($store->findEnabledClient('tenant-b', 'app')?->tenant);
+    }
+
+    public function testClientWithoutGrantTypesNeverGetsThePasswordGrant(): void
+    {
+        $attributes = $this->attributes('legacy')->grantTypesJson(null);
+        $store = $this->store(['' => [TrustedClient::create($attributes)->enable()]]);
+
+        $client = $store->findEnabledClient('tenant-a', 'legacy');
+
+        self::assertSame(['authorization_code', 'refresh_token'], $client?->grants);
+        self::assertFalse($client->allowsGrant('password'));
+    }
+
+    public function testSecurityMetadataIsMapped(): void
+    {
+        $attributes = $this->attributes('rich')
+            ->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC)
+            ->grantTypesJson('["authorization_code","password"]')
+            ->responseTypesJson('["code","code id_token"]')
+            ->requirePkce(true)
+            ->requirePushedAuthorizationRequests(true)
+            ->tokenEndpointAuthSigningAlg('RS256')
+            ->allowAllScopes(true)
+            ->isResourceServer(true)
+            ->backChannelLogoutSessionRequired(true)
+            ->frontChannelLogoutSessionRequired(true);
+        $store = $this->store(['' => [TrustedClient::create($attributes)->enable()]]);
+
+        $client = $store->findEnabledClient('tenant-a', 'rich');
+
+        self::assertNotNull($client);
+        self::assertSame(['authorization_code', 'password'], $client->grants);
+        self::assertSame(['code', 'code id_token'], $client->responseTypes);
+        self::assertTrue($client->requirePkce);
+        self::assertTrue($client->requirePar);
+        self::assertSame('RS256', $client->tokenEndpointAuthSigningAlg);
+        self::assertTrue($client->allowAllScopes);
+        self::assertTrue($client->isResourceServer);
+        self::assertTrue($client->backChannelLogoutSessionRequired);
+        self::assertTrue($client->frontChannelLogoutSessionRequired);
+    }
+
+    public function testPkceIsAlwaysRequiredForPublicClients(): void
+    {
+        $public = $this->attributes('spa')->requirePkce(false);
+        $confidential = $this->attributes('web')->requirePkce(false)
+            ->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC);
+        $store = $this->store(['' => [TrustedClient::create($public)->enable(), TrustedClient::create($confidential)->enable()]]);
+
+        self::assertTrue($store->findEnabledClient('tenant-a', 'spa')?->requirePkce);
+        self::assertFalse($store->findEnabledClient('tenant-a', 'web')?->requirePkce);
     }
 
     private function storeWithRedirect(
@@ -107,28 +194,74 @@ final class ClientStoreAdapterUnitTest extends TestCase
         TrustedClientTokenEndpointAuthMethodOptions $method = TrustedClientTokenEndpointAuthMethodOptions::NONE,
         ?string $secret = null,
     ): ClientStoreAdapter {
-        $digester = new SecretDigester(['p1' => 'pepper-one'], 'p1');
-        $attributes = (new TrustedClientAttributes())
+        $attributes = $this->attributes('angular-client', $url)->tokenEndpointAuthMethod($method);
+        if (null !== $secret) {
+            $attributes->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->digester(), $secret));
+        }
+        return $this->store(['' => [TrustedClient::create($attributes)->enable()]]);
+    }
+
+    private function client(string $code, ?string $tenantUid): TrustedClient
+    {
+        $attributes = $this->attributes($code);
+        if ($tenantUid !== null) {
+            $attributes->tenant(new TenantRef($tenantUid));
+        }
+        return TrustedClient::create($attributes)->enable();
+    }
+
+    private function attributes(string $code, string $url = 'https://app.example.com/callback'): TrustedClientAttributes
+    {
+        return (new TrustedClientAttributes())
             ->withDefaults()
-            ->uid('client-uid')
-            ->code('angular-client')
+            ->uid($code . '-uid')
+            ->code($code)
             ->enabled(true)
             ->publicAllow(true)
-            ->tokenEndpointAuthMethod($method)
+            ->tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodOptions::NONE)
             ->allowedRedirects([new TrustedClientAllowedRedirectsItem(
                 null,
                 TrustedClientAllowedRedirectsUrlVO::from($url),
                 null,
             )]);
-        if (null !== $secret) {
-            $attributes->secretOauth(TrustedClientSecretOauthVO::fromPlainText($digester, $secret));
-        }
-        $client = TrustedClient::create($attributes)->enable();
-        $clients = $this->createStub(TrustedClientQueryRepositoryGateway::class);
-        $clients->method('findOneByTenantAndCode')->willReturn($client);
+    }
 
-        $store = new ClientStoreAdapter($digester, $clients);
+    /**
+     * Tenants "tenant-a" and "tenant-b" exist with uids "uid-a" and "uid-b".
+     *
+     * @param array<string, TrustedClient[]> $clients clients by owner tenant uid ('' for global)
+     */
+    private function store(array $clients): ClientStoreAdapter
+    {
+        $repository = $this->createStub(TrustedClientQueryRepositoryGateway::class);
+        $repository->method('findOneByTenantAndCode')->willReturnCallback(
+            static function (?TenantRef $tenant, string $code) use ($clients): ?TrustedClient {
+                foreach ($clients[$tenant?->uid() ?? ''] ?? [] as $client) {
+                    if ($client->getCode() === $code) {
+                        return $client;
+                    }
+                }
+                return null;
+            }
+        );
+        $tenants = $this->createStub(TenantQueryRepositoryGateway::class);
+        $tenants->method('findOneByName')->willReturnCallback(function (string $name): ?Tenant {
+            $uid = ['tenant-a' => 'uid-a', 'tenant-b' => 'uid-b', 'tenant1' => 'uid-1'][$name] ?? null;
+            if ($uid === null) {
+                return null;
+            }
+            $tenant = $this->createStub(Tenant::class);
+            $tenant->method('uid')->willReturn($uid);
+            return $tenant;
+        });
+
+        $store = new ClientStoreAdapter($this->digester(), new TrustedClientFinder($repository, $tenants));
         $store->setLogger(new NullLogger());
         return $store;
+    }
+
+    private function digester(): SecretDigester
+    {
+        return new SecretDigester(['p1' => 'pepper-one'], 'p1');
     }
 }

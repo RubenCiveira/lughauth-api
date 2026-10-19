@@ -141,7 +141,10 @@ class TokenController
         $grant = $params['grant_type'] ?? '';
         $scopes = $params['scope'] ?? '';
         if ("authorization_code" == $grant) {
-            $client = $this->authenticateClient($request, $params, 'authorization_code');
+            $client = $this->authenticateClient($request, $tenant, $params);
+            if (!$client->allowsGrant('authorization_code')) {
+                throw OAuthTokenException::unauthorizedClient();
+            }
             $codeValue = $params['code'] ?? null;
             $redirectUri = $params['redirect_uri'] ?? null;
             if (!is_string($codeValue) || $codeValue === '' || !is_string($redirectUri) || $redirectUri === '') {
@@ -157,8 +160,8 @@ class TokenController
                     ) {
                         throw OAuthTokenException::invalidGrant('Invalid authorization code');
                     }
-                    if ($client->tokenEndpointAuthMethod === 'none' && $code->codeChallenge === null) {
-                        throw OAuthTokenException::invalidGrant('PKCE is required for public clients');
+                    if ($client->requiresPkce() && $code->codeChallenge === null) {
+                        throw OAuthTokenException::invalidGrant('PKCE is required for this client');
                     }
                     if ($code->codeChallenge !== null) {
                         $codeVerifier = $params['code_verifier'] ?? null;
@@ -185,7 +188,10 @@ class TokenController
             if ($refreshPayload === null) {
                 throw new UnauthorizedException("Invalid refresh token");
             }
-            $client = $this->authenticateClient($request, $params);
+            $client = $this->authenticateClient($request, $tenant, $params);
+            if (!$client->allowsGrant('refresh_token')) {
+                throw OAuthTokenException::unauthorizedClient();
+            }
             if (($refreshPayload['token_use'] ?? null) !== 'refresh'
                 || ($refreshPayload['azp'] ?? null) !== $client->id
                 || ($refreshPayload['iss'] ?? null) !== $issuer
@@ -209,17 +215,17 @@ class TokenController
             try {
                 $client = null;
                 if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
-                    $client = $this->clientDataGateway->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+                    $client = $this->clientDataGateway->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
                 } else {
                     $clientId = (string) ($params['client_id'] ?? '');
                     if ($clientId !== '') {
-                        $client = $this->clientDataGateway->preValidatedClient($clientId);
+                        $client = $this->clientDataGateway->preValidatedClient($tenant, $clientId);
                     }
                 }
                 if (!$client) {
                     throw DeviceAuthorizationException::invalidClient();
                 }
-                if (false === array_search($grant, $client->grants)) {
+                if (!$client->allowsGrant($grant)) {
                     throw DeviceAuthorizationException::invalidClient();
                 }
                 // The audiences were approved with the device code; the token request cannot change them.
@@ -245,11 +251,11 @@ class TokenController
                 throw OAuthTokenException::invalidClient();
             }
 
-            $client = $this->clientDataGateway->clientData($clientId, $clientSecret);
+            $client = $this->clientDataGateway->clientData($tenant, $clientId, $clientSecret);
             if (!$client) {
                 throw OAuthTokenException::invalidClient();
             }
-            if (false === array_search($grant, $client->grants, true)) {
+            if (!$client->allowsGrant($grant)) {
                 throw OAuthTokenException::unauthorizedClient();
             }
             $audiences = $this->grantedAudiences($params, $client);
@@ -308,7 +314,8 @@ class TokenController
         if ($grant !== 'client_credentials') {
             $data['id_token'] = $this->manager->sign($tenant, $identity, $expiration);
         }
-        if ($grant !== 'client_credentials' && ($grant !== 'authorization_code' || $sid !== null)) {
+        // Only a client registered for the refresh_token grant receives a refresh token it can use.
+        if ($grant !== 'client_credentials' && $client->allowsGrant('refresh_token') && ($grant !== 'authorization_code' || $sid !== null)) {
             // A rotated refresh token stays in its family and never outlives the family deadline.
             $family ??= [
                 'fid' => Uuid::uuid4()->toString(),
@@ -372,10 +379,9 @@ class TokenController
     }
 
     /**
-     * Authenticates the client with its registered token endpoint auth method; when $requiredGrant
-     * is given the client must also be registered for that grant.
+     * Authenticates the client of the tenant with its registered token endpoint auth method.
      */
-    private function authenticateClient(ServerRequestInterface $request, array $params, ?string $requiredGrant = null): ClientData
+    private function authenticateClient(ServerRequestInterface $request, string $tenant, array $params): ClientData
     {
         $basic = $this->basicCredentials($request);
         $bodyClientId = $params['client_id'] ?? null;
@@ -384,21 +390,21 @@ class TokenController
             throw OAuthTokenException::invalidClient();
         }
 
-        $registered = $this->clientDataGateway->findEnabledClient($clientId);
-        if ($registered === null || ($requiredGrant !== null && !in_array($requiredGrant, $registered->grants, true))) {
+        $registered = $this->clientDataGateway->findEnabledClient($tenant, $clientId);
+        if ($registered === null) {
             throw OAuthTokenException::invalidClient();
         }
 
         $secret = $params['client_secret'] ?? null;
         $client = match ($registered->tokenEndpointAuthMethod) {
             'none' => $basic === null && ($secret === null || $secret === '') && $bodyClientId !== null
-                ? $this->clientDataGateway->preValidatedClient($clientId)
+                ? $this->clientDataGateway->preValidatedClient($tenant, $clientId)
                 : null,
             'client_secret_basic' => $basic !== null && ($secret === null || $secret === '')
-                ? $this->clientDataGateway->clientData($clientId, $basic[1])
+                ? $this->clientDataGateway->clientData($tenant, $clientId, $basic[1])
                 : null,
             'client_secret_post' => $basic === null && is_string($secret) && $secret !== '' && $bodyClientId !== null
-                ? $this->clientDataGateway->clientData($clientId, $secret)
+                ? $this->clientDataGateway->clientData($tenant, $clientId, $secret)
                 : null,
             default => null,
         };

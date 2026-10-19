@@ -266,15 +266,15 @@ final class ParUnitTest extends TestCase
             public function __construct(private ?ClientData $client)
             {
             }
-            public function clientData(string $clientId, string $clientSecret): ?ClientData
+            public function clientData(string $tenant, string $clientId, string $clientSecret): ?ClientData
             {
                 return $this->client;
             }
-            public function findEnabledClient(string $clientId): ?ClientData
+            public function findEnabledClient(string $tenant, string $clientId): ?ClientData
             {
                 return null;
             }
-            public function preValidatedClient(string $clientId): ?ClientData
+            public function preValidatedClient(string $tenant, string $clientId): ?ClientData
             {
                 return null;
             }
@@ -282,7 +282,7 @@ final class ParUnitTest extends TestCase
             {
                 return null;
             }
-            public function defaultRedirectUri(string $clientId): ?string
+            public function defaultRedirectUri(string $tenant, string $clientId): ?string
             {
                 return null;
             }

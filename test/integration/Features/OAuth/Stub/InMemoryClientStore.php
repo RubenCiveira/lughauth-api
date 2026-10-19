@@ -12,39 +12,61 @@ class InMemoryClientStore implements ClientStoreGateway
 {
     /** @var array<string, array{secret: string, data: ClientData}> */
     private array $clients = [];
+    /** @var array<string, string> tenant uid of each tenant name */
+    private array $tenants = [];
 
     public function register(string $clientId, string $clientSecret, ClientData $data): void
     {
         $this->clients[$clientId] = ['secret' => $clientSecret, 'data' => $data];
     }
 
-    public function clientData(string $clientId, string $clientSecret): ?ClientData
+    /**
+     * Declares the uid of a tenant, so its clients (ClientData::$tenant) are hidden from others.
+     */
+    public function tenant(string $name, string $uid): void
     {
-        $entry = $this->clients[$clientId] ?? null;
+        $this->tenants[$name] = $uid;
+    }
+
+    public function clientData(string $tenant, string $clientId, string $clientSecret): ?ClientData
+    {
+        $entry = $this->visible($tenant, $clientId);
         if ($entry === null || $entry['secret'] !== $clientSecret) {
             return null;
         }
         return $entry['data'];
     }
 
-    public function findEnabledClient(string $clientId): ?ClientData
+    public function findEnabledClient(string $tenant, string $clientId): ?ClientData
     {
-        return $this->clients[$clientId]['data'] ?? null;
+        return $this->visible($tenant, $clientId)['data'] ?? null;
     }
 
-    public function defaultRedirectUri(string $clientId): ?string
+    public function defaultRedirectUri(string $tenant, string $clientId): ?string
     {
         return null;
     }
 
-    public function preValidatedClient(string $clientId): ?ClientData
+    public function preValidatedClient(string $tenant, string $clientId): ?ClientData
     {
-        return $this->clients[$clientId]['data'] ?? null;
+        return $this->visible($tenant, $clientId)['data'] ?? null;
     }
 
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
-        return $this->clients[$id]['data'] ?? null;
+        return $this->visible($tenant, $id)['data'] ?? null;
+    }
+
+    /**
+     * Global clients are visible from every tenant; owned ones only from their tenant.
+     *
+     * @return array{secret: string, data: ClientData}|null
+     */
+    private function visible(string $tenant, string $clientId): ?array
+    {
+        $entry = $this->clients[$clientId] ?? null;
+        $owner = $entry['data']->tenant ?? null;
+        return $owner === null || $owner === ($this->tenants[$tenant] ?? null) ? $entry : null;
     }
 
     public static function withDefaults(): self

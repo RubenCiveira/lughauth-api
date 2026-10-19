@@ -29,7 +29,8 @@ class ClientData
         public readonly string $id,
         /**
          * The OAuth 2.0 grant types this client is allowed to use, e.g. "authorization_code",
-         * "refresh_token", "client_credentials". Decoded from a JSON array stored on the entity.
+         * "refresh_token", "client_credentials". Decoded from a JSON array stored on the entity;
+         * "password" is never implied (task 024).
          */
         public readonly array $grants,
         /**
@@ -69,7 +70,50 @@ class ClientData
          * client's own id is always an accepted audience and does not need to be listed.
          */
         public readonly array $allowedAudiences = [],
+        /** Uid of the owner tenant; null for a global client, usable from every tenant (task 022). */
+        public readonly ?string $tenant = null,
+        /** OAuth 2.0 response types the client may use at the authorization endpoint (task 033). */
+        public readonly array $responseTypes = ['code'],
+        /** PKCE is mandatory for the client's authorization codes; always true for public clients. */
+        public readonly bool $requirePkce = false,
+        /** The client must push its authorization requests through PAR (task 046). */
+        public readonly bool $requirePar = false,
+        /** JWS algorithm the client signs its token endpoint assertions with (task 044). */
+        public readonly ?string $tokenEndpointAuthSigningAlg = null,
+        /** The client may request any scope, not only the consented or registered ones. */
+        public readonly bool $allowAllScopes = false,
+        /** The client is a resource server that other clients may request as token audience. */
+        public readonly bool $isResourceServer = false,
+        /** The back-channel logout token must carry the sid claim. */
+        public readonly bool $backChannelLogoutSessionRequired = false,
+        /** The front-channel logout URI must receive the iss and sid parameters. */
+        public readonly bool $frontChannelLogoutSessionRequired = false,
     ) {
+    }
+
+    /**
+     * True when the client is registered for the given grant type.
+     */
+    public function allowsGrant(string $grantType): bool
+    {
+        return in_array($grantType, $this->grants, true);
+    }
+
+    /**
+     * True when the client's authorization codes need PKCE: by configuration or because a public
+     * client has no secret to protect them.
+     */
+    public function requiresPkce(): bool
+    {
+        return $this->requirePkce || $this->isPublic();
+    }
+
+    /**
+     * True for a public client, which does not authenticate at the token endpoint.
+     */
+    public function isPublic(): bool
+    {
+        return $this->tokenEndpointAuthMethod === 'none';
     }
 
     /**

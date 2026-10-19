@@ -6,6 +6,9 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrInitialAccess;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrRegistrationRules;
+use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\RegisterClient\RegisterClientParams;
@@ -117,177 +120,218 @@ final class ClientApplicationUnitTest extends TestCase
 
     public function test_register_throws_when_disabled(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(policy: 'disabled');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
-        $usecase->register(new RegisterClientParams('t', 'https://iss', $req));
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'disabled'), $this->makeInitialAccessTokens());
+
+        $this->expectDcrError('access_denied', fn () => $usecase->register($this->params()));
     }
 
     public function test_register_throws_when_token_required_but_not_provided(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(policy: 'token-required');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
-        try {
-            $usecase->register(new RegisterClientParams('t', 'https://iss', $req, null));
-        } catch (DynamicClientException $e) {
-            $this->assertSame('access_denied', $e->error());
-            throw $e;
-        }
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'token-required'), $this->makeInitialAccessTokens());
+
+        $this->expectDcrError('access_denied', fn () => $usecase->register($this->params(token: null)));
     }
 
     public function test_register_succeeds_with_open_policy(): void
     {
         $gateway = $this->makeGateway(policy: 'open');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
+        $usecase = new RegisterClientUsecase($gateway, $this->makeInitialAccessTokens());
 
-        $result = $usecase->register(new RegisterClientParams('t', 'https://iss', $req));
+        $result = $usecase->register($this->params(tenant: 'acme'));
 
         $this->assertNotEmpty($result->clientId);
         $this->assertNotEmpty($result->clientSecret);
         $this->assertStringContainsString('https://iss/register/', $result->registrationClientUri);
+        $this->assertSame('acme', $gateway->createdTenant);
     }
 
     public function test_register_throws_for_javascript_redirect_uri(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(policy: 'open');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['javascript:alert(1)']);
-        try {
-            $usecase->register(new RegisterClientParams('t', 'https://iss', $req));
-        } catch (DynamicClientException $e) {
-            $this->assertSame('invalid_redirect_uri', $e->error());
-            throw $e;
-        }
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'open'), $this->makeInitialAccessTokens());
+
+        $this->expectDcrError('invalid_redirect_uri', fn () => $usecase->register($this->params(request: new DynamicClientRequest(['javascript:alert(1)']))));
     }
 
     public function test_register_throws_for_schemeless_redirect_uri(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(policy: 'open');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['//example.com/callback']);
-        try {
-            $usecase->register(new RegisterClientParams('t', 'https://iss', $req));
-        } catch (DynamicClientException $e) {
-            $this->assertSame('invalid_redirect_uri', $e->error());
-            throw $e;
-        }
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'open'), $this->makeInitialAccessTokens());
+
+        $this->expectDcrError('invalid_redirect_uri', fn () => $usecase->register($this->params(request: new DynamicClientRequest(['//example.com/callback']))));
     }
 
-    public function test_register_succeeds_when_token_provided_with_token_required_policy(): void
+    public function test_register_consumes_a_valid_initial_access_token(): void
     {
+        $tokens = $this->makeInitialAccessTokens(['acme' => ['good-token' => null]]);
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'token-required'), $tokens);
+
+        $result = $usecase->register($this->params(tenant: 'acme', token: 'good-token'));
+
+        $this->assertNotEmpty($result->clientId);
+        $this->assertSame(['acme:good-token'], $tokens->consumed);
+    }
+
+    public function test_register_rejects_an_unknown_or_foreign_initial_access_token(): void
+    {
+        $tokens = $this->makeInitialAccessTokens(['other' => ['good-token' => null]]);
         $gateway = $this->makeGateway(policy: 'token-required');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
+        $usecase = new RegisterClientUsecase($gateway, $tokens);
 
-        $result = $usecase->register(new RegisterClientParams('t', 'https://iss', $req, 'my-initial-token'));
-
-        $this->assertNotEmpty($result->clientId);
+        $this->expectDcrError('invalid_token', fn () => $usecase->register($this->params(tenant: 'acme', token: 'good-token')));
+        $this->assertNull($gateway->createdTenant);
     }
 
-    public function test_register_succeeds_with_token_required_underscore_policy(): void
+    public function test_register_with_invalid_metadata_keeps_the_initial_access_token(): void
     {
-        $gateway = $this->makeGateway(policy: 'token_required');
-        $usecase = new RegisterClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
+        $tokens = $this->makeInitialAccessTokens(['acme' => ['good-token' => null]]);
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'token-required'), $tokens);
+        $request = new DynamicClientRequest(['https://app/cb'], grantTypes: ['client_credentials'], responseTypes: []);
 
-        $result = $usecase->register(new RegisterClientParams('t', 'https://iss', $req, 'my-initial-token'));
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->register($this->params(tenant: 'acme', token: 'good-token', request: $request)));
+        $this->assertSame([], $tokens->consumed);
+    }
 
-        $this->assertNotEmpty($result->clientId);
+    public function test_initial_access_token_grants_take_precedence_over_the_tenant_ones(): void
+    {
+        $m2m = new DynamicClientRequest(['https://app/cb'], grantTypes: ['client_credentials'], responseTypes: []);
+        $tokens = $this->makeInitialAccessTokens(['acme' => ['m2m-token' => ['client_credentials'], 'plain-token' => null]]);
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'token-required'), $tokens);
+
+        $this->assertNotEmpty($usecase->register($this->params(tenant: 'acme', token: 'm2m-token', request: $m2m))->clientId);
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->register($this->params(tenant: 'acme', token: 'plain-token', request: $m2m)));
+        // The token grants replace the tenant ones: authorization_code is no longer allowed
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->register($this->params(tenant: 'acme', token: 'm2m-token')));
+    }
+
+    public function test_register_rejects_grants_out_of_the_tenant_rules(): void
+    {
+        $usecase = new RegisterClientUsecase($this->makeGateway(policy: 'open'), $this->makeInitialAccessTokens());
+        $request = new DynamicClientRequest(['https://app/cb'], grantTypes: ['authorization_code', 'client_credentials']);
+
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->register($this->params(request: $request)));
+    }
+
+    public function test_register_rejects_password_without_tenant_permission(): void
+    {
+        $usecase = new RegisterClientUsecase(
+            $this->makeGateway(policy: 'open', grants: ['authorization_code', 'password']),
+            $this->makeInitialAccessTokens()
+        );
+        $request = new DynamicClientRequest(['https://app/cb'], grantTypes: ['authorization_code', 'password']);
+
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->register($this->params(request: $request)));
+    }
+
+    public function test_register_accepts_password_with_tenant_permission(): void
+    {
+        $usecase = new RegisterClientUsecase(
+            $this->makeGateway(policy: 'open', grants: ['authorization_code', 'password'], allowPassword: true),
+            $this->makeInitialAccessTokens()
+        );
+        $request = new DynamicClientRequest(['https://app/cb'], grantTypes: ['authorization_code', 'password']);
+
+        $this->assertNotEmpty($usecase->register($this->params(request: $request))->clientId);
     }
 
     // --- DeleteDynamicClientUsecase ---
 
     public function test_delete_throws_when_not_found(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(deleteResult: false);
-        $usecase = new DeleteDynamicClientUsecase($gateway);
-        try {
-            $usecase->delete('client-id', 'bad-token');
-        } catch (DynamicClientException $e) {
-            $this->assertSame('invalid_token', $e->error());
-            throw $e;
-        }
+        $usecase = new DeleteDynamicClientUsecase($this->makeGateway(deleteResult: false));
+
+        $this->expectDcrError('invalid_token', fn () => $usecase->delete('t', 'client-id', 'bad-token'));
     }
 
     public function test_delete_succeeds_when_found(): void
     {
         $gateway = $this->makeGateway(deleteResult: true);
         $usecase = new DeleteDynamicClientUsecase($gateway);
-        $usecase->delete('client-id', 'valid-token'); // no exception
-        $this->assertTrue(true);
+
+        $usecase->delete('acme', 'client-id', 'valid-token');
+
+        $this->assertSame('acme', $gateway->managedTenant);
     }
 
     // --- ReadDynamicClientUsecase ---
 
     public function test_read_throws_when_not_found(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(findResult: null);
-        $usecase = new ReadDynamicClientUsecase($gateway);
-        $usecase->read('client-id', 'bad-token');
+        $usecase = new ReadDynamicClientUsecase($this->makeGateway(findResult: null));
+
+        $this->expectDcrError('invalid_token', fn () => $usecase->read('t', 'client-id', 'bad-token'));
     }
 
     public function test_read_returns_data_when_found(): void
     {
-        $data = $this->makeDynamicClientData();
-        $gateway = $this->makeGateway(findResult: $data);
+        $gateway = $this->makeGateway(findResult: $this->makeDynamicClientData());
         $usecase = new ReadDynamicClientUsecase($gateway);
 
-        $result = $usecase->read('dyn-1', 'valid-token');
+        $result = $usecase->read('acme', 'dyn-1', 'valid-token');
+
         $this->assertSame('dyn-1', $result->clientId);
+        $this->assertSame('acme', $gateway->managedTenant);
     }
 
     // --- UpdateDynamicClientUsecase ---
 
     public function test_update_throws_for_invalid_redirect_uri(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway();
-        $usecase = new UpdateDynamicClientUsecase($gateway);
-        $req = new DynamicClientRequest(['data:text/html,<script>']);
-        try {
-            $usecase->update('client-id', 'token', $req);
-        } catch (DynamicClientException $e) {
-            $this->assertSame('invalid_redirect_uri', $e->error());
-            throw $e;
-        }
+        $usecase = new UpdateDynamicClientUsecase($this->makeGateway(findResult: $this->makeDynamicClientData()));
+
+        $this->expectDcrError('invalid_redirect_uri', fn () => $usecase->update('t', 'client-id', 'token', new DynamicClientRequest(['data:text/html,<script>'])));
     }
 
     public function test_update_throws_when_not_found(): void
     {
-        $this->expectException(DynamicClientException::class);
-        $gateway = $this->makeGateway(updateResult: null);
-        $usecase = new UpdateDynamicClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
-        $usecase->update('client-id', 'bad-token', $req);
+        $usecase = new UpdateDynamicClientUsecase($this->makeGateway(findResult: null));
+
+        $this->expectDcrError('invalid_token', fn () => $usecase->update('t', 'client-id', 'bad-token', new DynamicClientRequest(['https://app/cb'])));
     }
 
     public function test_update_returns_data_when_found(): void
     {
         $data = $this->makeDynamicClientData();
-        $gateway = $this->makeGateway(updateResult: $data);
-        $usecase = new UpdateDynamicClientUsecase($gateway);
-        $req = new DynamicClientRequest(['https://app/cb']);
+        $usecase = new UpdateDynamicClientUsecase($this->makeGateway(findResult: $data, updateResult: $data));
 
-        $result = $usecase->update('dyn-1', 'valid-token', $req);
+        $result = $usecase->update('t', 'dyn-1', 'valid-token', new DynamicClientRequest(['https://app/cb']));
+
         $this->assertSame('dyn-1', $result->clientId);
+    }
+
+    public function test_update_keeps_grants_already_held_but_cannot_add_new_ones(): void
+    {
+        $data = $this->makeDynamicClientData(['authorization_code', 'client_credentials']);
+        $usecase = new UpdateDynamicClientUsecase($this->makeGateway(findResult: $data, updateResult: $data));
+
+        $kept = new DynamicClientRequest(['https://app/cb'], grantTypes: ['authorization_code', 'client_credentials']);
+        $this->assertSame('dyn-1', $usecase->update('t', 'dyn-1', 'valid-token', $kept)->clientId);
+
+        $escalated = new DynamicClientRequest(['https://app/cb'], grantTypes: ['authorization_code', 'urn:ietf:params:oauth:grant-type:device_code']);
+        $this->expectDcrError('invalid_client_metadata', fn () => $usecase->update('t', 'dyn-1', 'valid-token', $escalated));
     }
 
     // --- helpers ---
 
-    private function makeDynamicClientData(): DynamicClientData
+    private function params(string $tenant = 't', ?string $token = null, ?DynamicClientRequest $request = null): RegisterClientParams
+    {
+        return new RegisterClientParams($tenant, 'https://iss', $request ?? new DynamicClientRequest(['https://app/cb']), $token);
+    }
+
+    private function expectDcrError(string $error, \Closure $action): void
+    {
+        try {
+            $action();
+            $this->fail("Expected DCR error {$error}");
+        } catch (DynamicClientException $e) {
+            $this->assertSame($error, $e->error());
+        }
+    }
+
+    private function makeDynamicClientData(array $grantTypes = ['authorization_code']): DynamicClientData
     {
         return new DynamicClientData(
             clientId: 'dyn-1',
             redirectUris: ['https://app/cb'],
-            grantTypes: ['authorization_code'],
+            grantTypes: $grantTypes,
             responseTypes: ['code'],
             scope: 'openid',
             tokenEndpointAuthMethod: 'client_secret_basic',
@@ -303,44 +347,84 @@ final class ClientApplicationUnitTest extends TestCase
         );
     }
 
+    /**
+     * @param array<string, array<string, string[]|null>> $tokens grant types of each token by tenant
+     */
+    private function makeInitialAccessTokens(array $tokens = []): DcrInitialAccessTokenGateway
+    {
+        return new class ($tokens) implements DcrInitialAccessTokenGateway {
+            /** @var string[] */
+            public array $consumed = [];
+
+            public function __construct(private array $tokens)
+            {
+            }
+
+            public function consume(string $tenant, string $token, \Closure $validate): bool
+            {
+                if (!array_key_exists($token, $this->tokens[$tenant] ?? [])) {
+                    return false;
+                }
+                $validate(new DcrInitialAccess('iat-' . $token, $this->tokens[$tenant][$token]));
+                $this->consumed[] = $tenant . ':' . $token;
+                return true;
+            }
+
+            public function issue(string $token, ?string $tenantUid, ?string $description, \DateTimeImmutable $expiresAt, int $maxUses, ?array $allowedGrantTypes): string
+            {
+                return 'iat-' . $token;
+            }
+        };
+    }
+
     private function makeGateway(
         string $policy = 'open',
         ?DynamicClientData $findResult = null,
         ?DynamicClientData $updateResult = null,
         bool $deleteResult = true,
+        array $grants = ['authorization_code', 'refresh_token'],
+        bool $allowPassword = false,
     ): DynamicClientGateway {
-        return new class ($policy, $findResult, $updateResult, $deleteResult) implements DynamicClientGateway {
+        $rules = new DcrRegistrationRules($policy, $grants, ['client_secret_basic', 'none'], $allowPassword);
+        return new class ($rules, $findResult, $updateResult, $deleteResult) implements DynamicClientGateway {
+            public ?string $createdTenant = null;
+            public ?string $managedTenant = null;
+
             public function __construct(
-                private string $policy,
+                private DcrRegistrationRules $rules,
                 private ?DynamicClientData $findResult,
                 private ?DynamicClientData $updateResult,
                 private bool $deleteResult,
             ) {
             }
 
-            public function create(string $clientId, string $clientSecret, string $registrationAccessToken, DynamicClientRequest $request): array
+            public function create(string $tenant, string $clientId, string $clientSecret, string $registrationAccessToken, DynamicClientRequest $request): array
             {
-                return ['clientId' => $clientId, 'clientSecret' => $clientSecret, 'registrationAccessToken' => $registrationAccessToken, 'issuedAt' => time()];
+                $this->createdTenant = $tenant;
+                return ['clientId' => $clientId, 'issuedAt' => time()];
             }
 
-            public function findByClientIdAndToken(string $clientId, string $registrationAccessToken): ?DynamicClientData
+            public function findByClientIdAndToken(string $tenant, string $clientId, string $registrationAccessToken): ?DynamicClientData
             {
+                $this->managedTenant = $tenant;
                 return $this->findResult;
             }
 
-            public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData
+            public function update(string $tenant, string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData
             {
+                $this->managedTenant = $tenant;
                 return $this->updateResult;
             }
 
-            public function delete(string $clientId, string $registrationAccessToken): bool
+            public function delete(string $tenant, string $clientId, string $registrationAccessToken): bool
             {
+                $this->managedTenant = $tenant;
                 return $this->deleteResult;
             }
 
-            public function readRegistrationPolicy(string $tenant): string
+            public function registrationRules(string $tenant): DcrRegistrationRules
             {
-                return $this->policy;
+                return $this->rules;
             }
         };
     }

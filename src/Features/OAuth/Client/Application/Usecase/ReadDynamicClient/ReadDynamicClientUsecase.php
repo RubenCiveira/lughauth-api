@@ -28,12 +28,12 @@ final class ReadDynamicClientUsecase
     }
 
     /**
-     * Retrieves the registered metadata for the dynamic client identified by the given client ID.
+     * Retrieves the registered metadata for the dynamic client of the tenant with the given client ID.
      * Validates ownership via the registration access token and throws on failure or not found.
      */
-    public function read(string $clientId, string $registrationAccessToken): DynamicClientData
+    public function read(string $tenant, string $clientId, string $registrationAccessToken): DynamicClientData
     {
-        $data = $this->gateway->findByClientIdAndToken($clientId, $registrationAccessToken);
+        $data = $this->gateway->findByClientIdAndToken($tenant, $clientId, $registrationAccessToken);
         if ($data === null) {
             throw DynamicClientException::invalidToken();
         }

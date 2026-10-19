@@ -394,7 +394,7 @@ class AuthorizeHtml
             if ($clientId === '') {
                 throw new UnauthorizedException('invalid_request_object');
             }
-            $client = $this->clients->preValidatedClient($clientId);
+            $client = $this->clients->preValidatedClient($tenant, $clientId);
             if ($client === null) {
                 throw new UnauthorizedException('invalid_request_object');
             }

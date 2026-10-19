@@ -13,6 +13,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
@@ -156,6 +158,31 @@ abstract class OidcIntegrationTestCase extends TestCase
         ]);
 
         $this->container = $builder->build();
+        $this->container->set(TenantQueryRepositoryGateway::class, $this->tenantRepository());
+        foreach (self::TENANT_UIDS as $name => $uid) {
+            $this->clientStore->tenant($name, $uid);
+        }
+    }
+
+    /**
+     * Tenants known by name, with the uids that own their clients (task 022).
+     */
+    protected const array TENANT_UIDS = [self::TENANT => 'tenant1-uid', 'tenant2' => 'tenant2-uid'];
+
+    private function tenantRepository(): TenantQueryRepositoryGateway
+    {
+        $tenants = $this->createStub(TenantQueryRepositoryGateway::class);
+        $tenants->method('findOneByName')->willReturnCallback(function (string $name): ?Tenant {
+            $uid = self::TENANT_UIDS[$name] ?? null;
+            if ($uid === null) {
+                return null;
+            }
+            $tenant = $this->createStub(Tenant::class);
+            $tenant->method('uid')->willReturn($uid);
+            $tenant->method('getName')->willReturn($name);
+            return $tenant;
+        });
+        return $tenants;
     }
 
     protected function createAppConfig(): AppConfig

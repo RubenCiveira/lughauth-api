@@ -6,6 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\RegisterClient;
 
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrInitialAccess;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrMetadataPolicy;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrRegistrationRules;
+use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
@@ -13,10 +17,14 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
  * Application use case that implements the OAuth 2.0 Dynamic Client Registration endpoint
  * as defined in RFC 7591.
  *
- * Before persisting a new client, this use case reads the tenant's registration policy and
- * enforces it: registration may be completely disabled, open to anyone, or gated behind an
- * initial access token. All supplied redirect URIs are also validated to reject dangerous
- * schemes such as "javascript:", "data:", and "vbscript:".
+ * Before persisting a new client, this use case reads the tenant's registration rules and
+ * enforces them: registration may be completely disabled, open to anyone, or gated behind an
+ * initial access token issued for the tenant (task 023). The metadata is checked with
+ * DcrMetadataPolicy: redirect URI schemes, grant types (the token ones take precedence over the
+ * tenant ones; password needs the tenant permission), response types and auth method (024).
+ *
+ * With "token-required" one use of the token is consumed atomically, and only once the metadata
+ * is valid, so a rejected request does not spend it.
  *
  * On success it generates a cryptographically random client ID (UUID), a 256-bit client
  * secret, and a 256-bit registration access token (used for subsequent RFC 7592 management
@@ -25,38 +33,45 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
  */
 final class RegisterClientUsecase
 {
-    /** List of URI schemes that are explicitly forbidden as redirect URIs for security reasons. */
-    private const array FORBIDDEN_URI_SCHEMES = ['javascript', 'data', 'vbscript'];
-
     public function __construct(
         private readonly DynamicClientGateway $gateway,
+        private readonly DcrInitialAccessTokenGateway $initialAccessTokens,
+        private readonly DcrMetadataPolicy $policy = new DcrMetadataPolicy(),
     ) {
     }
 
     /**
-     * Validates the registration policy and all redirect URIs, then creates and persists
-     * a new dynamic client, returning a result object with all RFC 7591 response fields.
+     * Validates the registration rules, the initial access token and the metadata, then creates
+     * and persists a new dynamic client, returning a result object with all RFC 7591 fields.
      */
     public function register(RegisterClientParams $params): RegisterClientResult
     {
-        $policy = $this->gateway->readRegistrationPolicy($params->tenant);
+        $rules = $this->gateway->registrationRules($params->tenant);
 
-        match ($policy) {
-            'disabled' => throw DynamicClientException::registrationNotAllowed(),
-            'token-required' => $this->requireInitialAccessToken($params->initialAccessToken),
-            'token_required' => $this->requireInitialAccessToken($params->initialAccessToken),
-            default => null,
-        };
-
-        foreach ($params->request->redirectUris as $uri) {
-            $this->validateRedirectUri($uri);
+        if ($rules->policy === DcrRegistrationRules::TOKEN_REQUIRED) {
+            $token = $params->initialAccessToken;
+            if ($token === null || $token === '') {
+                throw DynamicClientException::tokenRequired();
+            }
+            $accepted = $this->initialAccessTokens->consume(
+                $params->tenant,
+                $token,
+                fn (DcrInitialAccess $access) => $this->policy->validate($params->request, $rules->withGrantTypes($access->allowedGrantTypes))
+            );
+            if (!$accepted) {
+                throw DynamicClientException::invalidInitialAccessToken();
+            }
+        } elseif ($rules->policy === DcrRegistrationRules::OPEN) {
+            $this->policy->validate($params->request, $rules);
+        } else {
+            throw DynamicClientException::registrationNotAllowed();
         }
 
         $clientId = Random::uuid();
         $clientSecret = bin2hex(random_bytes(32));
         $registrationAccessToken = bin2hex(random_bytes(32));
 
-        $meta = $this->gateway->create($clientId, $clientSecret, $registrationAccessToken, $params->request);
+        $meta = $this->gateway->create($params->tenant, $clientId, $clientSecret, $registrationAccessToken, $params->request);
 
         return new RegisterClientResult(
             clientId: $meta['clientId'],
@@ -67,23 +82,5 @@ final class RegisterClientUsecase
             registrationClientUri: $params->issuer . '/register/' . $meta['clientId'],
             request: $params->request,
         );
-    }
-
-    private function requireInitialAccessToken(?string $token): void
-    {
-        if ($token === null || $token === '') {
-            throw DynamicClientException::tokenRequired();
-        }
-    }
-
-    private function validateRedirectUri(string $uri): void
-    {
-        $scheme = strtolower((string) parse_url($uri, PHP_URL_SCHEME));
-        if (in_array($scheme, self::FORBIDDEN_URI_SCHEMES, true)) {
-            throw DynamicClientException::invalidRedirectUri($uri);
-        }
-        if ($scheme === '') {
-            throw DynamicClientException::invalidRedirectUri($uri);
-        }
     }
 }

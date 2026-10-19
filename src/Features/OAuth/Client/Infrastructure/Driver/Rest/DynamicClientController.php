@@ -27,7 +27,11 @@ use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\DeleteDynamicClient\
  * The four HTTP methods map directly to the four RFC operations: POST creates a new client
  * (RFC 7591), GET reads its current metadata, PUT replaces its metadata, and DELETE removes
  * it permanently (all RFC 7592). Each management method (GET, PUT, DELETE) requires a valid
- * Bearer registration access token in the Authorization header.
+ * Bearer registration access token in the Authorization header; POST takes the Bearer initial
+ * access token when the tenant policy is "token-required". A failed initial access token is
+ * reported as invalid_token with its own description, never as a registration token error.
+ *
+ * Clients are registered as owned by the {tenant} of the path and can only be managed from it.
  *
  * DynamicClientException thrown by the use cases is translated into the standard OAuth JSON
  * error body {"error": "...", "error_description": "..."} with the appropriate HTTP status.
@@ -135,7 +139,7 @@ class DynamicClientController
             $clientId = $args['client_id'];
             $token = $this->requireBearerToken($request);
 
-            $data = $this->readUsecase->read($clientId, $token);
+            $data = $this->readUsecase->read($tenant, $clientId, $token);
 
             $issuer = $this->context->getIssuer($tenant);
 
@@ -176,7 +180,7 @@ class DynamicClientController
             $body = (array) ($request->getParsedBody() ?? []);
 
             $registrationRequest = DynamicClientRequest::fromArray($body);
-            $data = $this->updateUsecase->update($clientId, $token, $registrationRequest);
+            $data = $this->updateUsecase->update($tenant, $clientId, $token, $registrationRequest);
 
             $issuer = $this->context->getIssuer($tenant);
 
@@ -211,10 +215,11 @@ class DynamicClientController
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {
+            $tenant = $args['tenant'];
             $clientId = $args['client_id'];
             $token = $this->requireBearerToken($request);
 
-            $this->deleteUsecase->delete($clientId, $token);
+            $this->deleteUsecase->delete($tenant, $clientId, $token);
 
             return $response->withStatus(204);
         } catch (DynamicClientException $ex) {

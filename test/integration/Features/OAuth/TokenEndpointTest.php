@@ -115,7 +115,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testAuthorizationCodeGrantReturnsTokenSet(): void
     {
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(
             valid: true,
             id: self::USER_ID,
@@ -157,7 +157,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testAuthorizationCodeGrantIdTokenContainsNonce(): void
     {
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(
             valid: true,
             id: self::USER_ID,
@@ -200,7 +200,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $verifier = bin2hex(random_bytes(32));
         $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
 
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(
             valid: true,
             id: self::USER_ID,
@@ -239,7 +239,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     {
         $challenge = rtrim(strtr(base64_encode(hash('sha256', 'some-verifier', true)), '+/', '-_'), '=');
 
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(
@@ -274,7 +274,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     {
         $challenge = rtrim(strtr(base64_encode(hash('sha256', 'correct-verifier', true)), '+/', '-_'), '=');
 
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(
@@ -309,7 +309,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testAuthorizationCodeIsOneTimeUse(): void
     {
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(data: $authResult, client: $clientData, nonce: 'nonce', request: $authRequest);
@@ -332,7 +332,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testWrongClientRedirectOrTenantDoesNotConsumeTheCode(): void
     {
-        $client = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $client = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
             data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid', tenantName: self::TENANT, scope: 'openid'),
             client: $client,
@@ -373,7 +373,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testConfidentialClientWithoutSecretOrWrongMethodIsRejected(): void
     {
-        $client = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $client = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
             data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid', tenantName: self::TENANT, scope: 'openid'),
             client: $client,
@@ -468,7 +468,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testRefreshTokenGrantIssuesNewAccessToken(): void
     {
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(
             valid: true,
             id: self::USER_ID,
@@ -737,7 +737,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
         // SSO: the test client is authorized from the session opened by the other client.
         $this->container->get(\Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser::class)->sessionAuthenticated(
-            new AuthenticationRequest($this->clientStore->preValidatedClient(self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
+            new AuthenticationRequest($this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
             (new ChallengesState())->withUsername(self::USER_ID)->withSession(true),
             self::TENANT,
             $this->context->getIssuer(self::TENANT),
@@ -827,6 +827,122 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(200, $this->refreshStatus($other));
     }
 
+    public function testPasswordGrantIsNeverImpliedAndNeedsRegistration(): void
+    {
+        $this->registerClient('web-app', ['authorization_code', 'refresh_token']);
+
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'password',
+            'client_id' => 'web-app',
+            'client_secret' => 'web-app-secret',
+            'username' => self::USERNAME,
+            'password' => self::PASSWORD,
+        ]), new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('unauthorized_client', $this->decodeJson($response)['error']);
+    }
+
+    public function testAuthorizationCodeNeedsTheGrant(): void
+    {
+        $this->registerClient('m2m', ['client_credentials']);
+
+        $response = $this->redeemCode('m2m');
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('unauthorized_client', $this->decodeJson($response)['error']);
+    }
+
+    public function testClientWithoutRefreshGrantGetsNoRefreshTokenAndCannotRefresh(): void
+    {
+        $this->registerClient('no-refresh', ['authorization_code']);
+
+        $tokens = $this->decodeJson($this->redeemCode('no-refresh'));
+        $this->assertArrayHasKey('access_token', $tokens);
+        $this->assertArrayNotHasKey('refresh_token', $tokens);
+
+        $refresh = $this->sign([
+            'keypass' => self::USER_ID, 'azp' => 'no-refresh', 'iss' => $this->context->getIssuer(self::TENANT),
+            'token_use' => 'refresh', 'origin_grant' => 'authorization_code', 'resources' => [],
+            'fid' => 'family', 'fexp' => time() + 3600, 'sid' => self::SESSION_ID,
+        ]);
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refresh,
+            'client_id' => 'no-refresh',
+            'client_secret' => 'no-refresh-secret',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('unauthorized_client', $this->decodeJson($response)['error']);
+    }
+
+    public function testRequirePkceAppliesToConfidentialClients(): void
+    {
+        $this->registerClient('strict', ['authorization_code'], requirePkce: true);
+        $this->registerClient('relaxed', ['authorization_code']);
+
+        $strict = $this->redeemCode('strict');
+        $this->assertSame(400, $strict->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($strict)['error']);
+        $this->assertSame(200, $this->redeemCode('relaxed')->getStatusCode());
+    }
+
+    public function testClientOfAnotherTenantCannotAuthenticateButAGlobalOneCan(): void
+    {
+        $this->registerClient('foreign', ['client_credentials'], tenantUid: self::TENANT_UIDS['tenant2']);
+        $this->registerClient('own', ['client_credentials'], tenantUid: self::TENANT_UIDS[self::TENANT]);
+
+        $this->assertSame(401, $this->clientCredentials('foreign')->getStatusCode());
+        $this->assertSame(200, $this->clientCredentials('own')->getStatusCode());
+        $this->assertSame(200, $this->clientCredentials(self::CLIENT_ID, self::CLIENT_SECRET)->getStatusCode());
+    }
+
+    /**
+     * Registers a confidential client authenticated with client_secret_post and secret "<id>-secret".
+     */
+    private function registerClient(string $id, array $grants, bool $requirePkce = false, ?string $tenantUid = null): void
+    {
+        $this->clientStore->register($id, $id . '-secret', new ClientData(
+            id: $id,
+            grants: $grants,
+            secretLogin: true,
+            allowedScopesM2m: ['openid'],
+            tokenEndpointAuthMethod: 'client_secret_post',
+            tenant: $tenantUid,
+            requirePkce: $requirePkce,
+        ));
+    }
+
+    private function redeemCode(string $clientId): \Psr\Http\Message\ResponseInterface
+    {
+        $client = $this->clientStore->preValidatedClient(self::TENANT, $clientId);
+        $this->assertNotNull($client);
+        $codeKey = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid'),
+            client: $client,
+            nonce: 'n',
+            request: new AuthenticationRequest($client, 'openid', 'https://app.example.com/callback'),
+            sessionId: self::SESSION_ID,
+        ));
+        return $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $codeKey,
+            'client_id' => $clientId,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => $clientId . '-secret',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+    }
+
+    private function clientCredentials(string $clientId, ?string $secret = null): \Psr\Http\Message\ResponseInterface
+    {
+        return $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => $clientId,
+            'client_secret' => $secret ?? $clientId . '-secret',
+            'scope' => 'openid',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+    }
+
     private function sign(array $payload): string
     {
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
@@ -862,7 +978,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     {
         $this->sessionStore->saveSession(
             $sid,
-            $this->clientStore->preValidatedClient(self::CLIENT_ID),
+            $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID),
             $issuer,
             new ChallengesState(),
             new AuthenticationResult(valid: true, id: $userId),
@@ -882,7 +998,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     private function redeemCodeWithAudience(string $audience, array $extra = [], ?string $sessionId = self::SESSION_ID): array
     {
-        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback', null, [self::CLIENT_ID, $audience]);
         $codeKey = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
             data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid'),

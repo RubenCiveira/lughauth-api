@@ -100,7 +100,8 @@ class IntrospectionController
             );
         }
 
-        if (!$this->authenticateClient($params)) {
+        $tenant = (string) ($args['tenant'] ?? '');
+        if (!$this->authenticateClient($tenant, $params)) {
             return $this->jsonError(
                 $response,
                 401,
@@ -109,7 +110,6 @@ class IntrospectionController
             );
         }
 
-        $tenant = (string) ($args['tenant'] ?? '');
         $payload = $this->tokenSigner->verifyTokenPayload($tenant, $token);
         if ($payload === null) {
             return $this->jsonResponse($response, ['active' => false]);
@@ -123,10 +123,10 @@ class IntrospectionController
         return $this->jsonResponse($response, $this->buildResponse($payload));
     }
 
-    private function authenticateClient(array $params): bool
+    private function authenticateClient(string $tenant, array $params): bool
     {
         if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
-            return $this->clients->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) !== null;
+            return $this->clients->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) !== null;
         }
 
         $clientId = (string) ($params['client_id'] ?? '');
@@ -135,7 +135,7 @@ class IntrospectionController
             return false;
         }
 
-        return $this->clients->clientData($clientId, $clientSecret) !== null;
+        return $this->clients->clientData($tenant, $clientId, $clientSecret) !== null;
     }
 
     /** @param array<string, mixed> $payload */

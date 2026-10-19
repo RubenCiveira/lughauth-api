@@ -10,7 +10,6 @@ use Civi\Lughauth\Shared\Security\SecretDigester;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
 /**
@@ -26,14 +25,22 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
  *
  * Redirect-URI matching supports exact matches and a wildcard suffix ("*") restricted
  * to localhost origins for local development.
+ *
+ * Clients are resolved from the request tenant with TrustedClientFinder: the tenant's own client
+ * or a global one, never a client of another tenant (task 022).
  */
 class ClientStoreAdapter implements ClientStoreGateway
 {
     use LoggerAwareTrait;
 
+    /** Grants of a client without registered grant types. */
+    public const array DEFAULT_GRANTS = ['authorization_code', 'refresh_token'];
+    /** Response types of a client without registered response types. */
+    private const array DEFAULT_RESPONSE_TYPES = ['code'];
+
     public function __construct(
         private readonly SecretDigester $digester,
-        private readonly TrustedClientQueryRepositoryGateway $clients,
+        private readonly TrustedClientFinder $clients,
     ) {
     }
 
@@ -42,9 +49,9 @@ class ClientStoreAdapter implements ClientStoreGateway
      * Returns null if the client is not found, disabled, or the secret is wrong.
      */
     #[Override]
-    public function clientData(string $clientId, string $clientSecret): ?ClientData
+    public function clientData(string $tenant, string $clientId, string $clientSecret): ?ClientData
     {
-        $existent = $this->findGlobalClient($clientId);
+        $existent = $this->clients->findForTenantName($tenant, $clientId);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 // Not enabled
@@ -69,9 +76,9 @@ class ClientStoreAdapter implements ClientStoreGateway
      * Returns null if the client is not found or is disabled.
      */
     #[Override]
-    public function findEnabledClient(string $clientId): ?ClientData
+    public function findEnabledClient(string $tenant, string $clientId): ?ClientData
     {
-        $existent = $this->findGlobalClient($clientId);
+        $existent = $this->clients->findForTenantName($tenant, $clientId);
         if ($existent === null) {
             $this->inexistent($clientId);
             return null;
@@ -88,9 +95,9 @@ class ClientStoreAdapter implements ClientStoreGateway
      * Returns null if the client is not found, disabled, or does not allow public access.
      */
     #[Override]
-    public function preValidatedClient(string $clientId): ?ClientData
+    public function preValidatedClient(string $tenant, string $clientId): ?ClientData
     {
-        $existent = $this->findGlobalClient($clientId);
+        $existent = $this->clients->findForTenantName($tenant, $clientId);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 $this->notEnabled($clientId);
@@ -117,7 +124,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     #[Override]
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
-        $existent = $this->findGlobalClient($id);
+        $existent = $this->clients->findForTenantName($tenant, $id);
         if ($existent) {
             if (!$existent->isEnabled()) {
                 $this->notEnabled($id);
@@ -159,9 +166,9 @@ class ClientStoreAdapter implements ClientStoreGateway
      * the client does not exist, is disabled, or has no redirect URIs configured.
      */
     #[Override]
-    public function defaultRedirectUri(string $clientId): ?string
+    public function defaultRedirectUri(string $tenant, string $clientId): ?string
     {
-        $client = $this->findGlobalClient($clientId);
+        $client = $this->clients->findForTenantName($tenant, $clientId);
         if ($client === null || !$client->isEnabled()) {
             return null;
         }
@@ -207,28 +214,8 @@ class ClientStoreAdapter implements ClientStoreGateway
         return str_starts_with($actualPath, $expected[2] ?? '');
     }
 
-    /**
-     * Looks a client up by code among the global clients (tenant = null), which is the only
-     * kind that exists until per-tenant clients are resolved (task 022).
-     */
-    private function findGlobalClient(string $code): ?TrustedClient
+    private function mapClientData(TrustedClient $trustedClient): ClientData
     {
-        return $this->clients->findOneByTenantAndCode(null, $code);
-    }
-
-    private function mapClientData(mixed $trustedClient): ClientData
-    {
-        $grants = ['password'];
-        $grantTypesJson = $trustedClient->getGrantTypesJson();
-        if (is_string($grantTypesJson) && $grantTypesJson !== '') {
-            $decoded = json_decode($grantTypesJson, true);
-            if (is_array($decoded)) {
-                $grants = array_values(array_filter($decoded, static fn (mixed $item): bool => is_string($item) && $item !== ''));
-            }
-        }
-
-        $allowedScopesM2m = $trustedClient->getAllowedScopesM2m() ?? [];
-        $m2mTokenTtlSeconds = $trustedClient->getM2mTokenTtlSeconds() ?? 3600;
         $allowedAudiences = [];
         foreach ($trustedClient->getAllowedAudiences() ?? [] as $allowed) {
             $audience = $allowed?->getAudience() ?? '';
@@ -236,18 +223,30 @@ class ClientStoreAdapter implements ClientStoreGateway
                 $allowedAudiences[] = $audience;
             }
         }
+        // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
+        $authMethod = str_replace('-', '_', $trustedClient->getTokenEndpointAuthMethod()->value);
         return new ClientData(
-            $trustedClient->getCode() ?? '',
-            $grants,
-            true,
-            $allowedScopesM2m,
-            $m2mTokenTtlSeconds,
-            $trustedClient->getRequestObjectSigningAlg(),
-            $trustedClient->getJwksUri(),
-            $trustedClient->getJwksJson(),
-            // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
-            str_replace('-', '_', $trustedClient->getTokenEndpointAuthMethod()->value),
-            $allowedAudiences
+            id: $trustedClient->getCode() ?? '',
+            // Without registered grants the safe default applies: never the password grant (task 024).
+            grants: JsonStringList::decode($trustedClient->getGrantTypesJson()) ?? self::DEFAULT_GRANTS,
+            secretLogin: true,
+            allowedScopesM2m: $trustedClient->getAllowedScopesM2m() ?? [],
+            m2mTokenTtlSeconds: $trustedClient->getM2mTokenTtlSeconds() ?? 3600,
+            requestObjectSigningAlg: $trustedClient->getRequestObjectSigningAlg(),
+            jwksUri: $trustedClient->getJwksUri(),
+            jwksJson: $trustedClient->getJwksJson(),
+            tokenEndpointAuthMethod: $authMethod,
+            allowedAudiences: $allowedAudiences,
+            tenant: $trustedClient->getTenant()?->uid(),
+            responseTypes: JsonStringList::decode($trustedClient->getResponseTypesJson()) ?? self::DEFAULT_RESPONSE_TYPES,
+            // A public client has no secret to protect its codes: PKCE is always mandatory for it.
+            requirePkce: $trustedClient->isRequirePkce() || $authMethod === 'none',
+            requirePar: $trustedClient->isRequirePushedAuthorizationRequests(),
+            tokenEndpointAuthSigningAlg: $trustedClient->getTokenEndpointAuthSigningAlg(),
+            allowAllScopes: $trustedClient->isAllowAllScopes() ?? false,
+            isResourceServer: $trustedClient->isIsResourceServer(),
+            backChannelLogoutSessionRequired: $trustedClient->isBackChannelLogoutSessionRequired() ?? false,
+            frontChannelLogoutSessionRequired: $trustedClient->isFrontChannelLogoutSessionRequired() ?? false,
         );
     }
 

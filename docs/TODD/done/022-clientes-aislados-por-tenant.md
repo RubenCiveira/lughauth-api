@@ -1,6 +1,6 @@
 # 022 — Definir y aplicar pertenencia de TrustedClient al tenant
 
-- **Estado:** pendiente, requiere migración/diseño. **Prioridad:** alta.
+- **Estado:** hecho (EP-03). **Prioridad:** alta.
 - **Evidencia:** [ClientStoreAdapter::publicClientData](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) recibe `$tenant` pero no lo usa; [DynamicClientAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/DynamicClientAdapter.php) guarda clientes DCR como `TrustedClient` globales.
 - **Impacto:** clientes DCR de un tenant pueden reutilizarse o recibir eventos de otro.
 - **Por hacer:** acordar si se permiten clientes globales; si no, agregar pertenencia al modelo/esquema, migrar datos, filtrar todas las lecturas/autenticaciones/DCR/logout por tenant y definir el comportamiento de clientes compartidos.

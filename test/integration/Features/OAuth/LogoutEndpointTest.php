@@ -52,7 +52,8 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
 
         $repository = $this->createStub(TrustedClientQueryRepositoryGateway::class);
         $repository->method('findOneByTenantAndCode')->willReturnCallback(
-            fn (?TenantRef $tenant, string $code): ?TrustedClient => $tenant === null ? ($this->trustedClients[$code] ?? null) : null
+            fn (?TenantRef $tenant, string $code): ?TrustedClient => ($client = $this->trustedClients[$code] ?? null) !== null
+                && $client->getTenant()?->uid() === $tenant?->uid() ? $client : null
         );
         $this->container->set(TrustedClientQueryRepositoryGateway::class, $repository);
 
@@ -140,6 +141,27 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         $this->assertStringNotContainsString('rp2.example.com', $html);
     }
 
+    public function testParticipantOwnedByAnotherTenantIsNotNotified(): void
+    {
+        $this->register(self::SSO_CLIENT, 'https://rp2.example.com/bc', 'https://rp2.example.com/fc', tenantUid: self::TENANT_UIDS['tenant2']);
+
+        $html = (string) $this->logout(self::SESSION_ID)->getBody();
+        $this->runJobs();
+
+        $this->assertSame(['https://rp1.example.com/bc'], $this->sentUris());
+        $this->assertStringNotContainsString('rp2.example.com', $html);
+    }
+
+    public function testParticipantOwnedBySessionTenantIsNotified(): void
+    {
+        $this->register(self::SSO_CLIENT, 'https://rp2.example.com/bc', null, tenantUid: self::TENANT_UIDS[self::TENANT]);
+
+        $this->logout(self::SESSION_ID);
+        $this->runJobs();
+
+        $this->assertSame(['https://rp1.example.com/bc', 'https://rp2.example.com/bc'], $this->sentUris());
+    }
+
     public function testSessionOfAnotherTenantNotifiesNobodyAndIsKept(): void
     {
         $this->openSession('tenant2-session', $this->context->getIssuer('tenant2'));
@@ -183,7 +205,7 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         $this->openSession('tenant2-session', $foreignIssuer, 'shared-csid');
 
         $auth = $this->authenticateUser()->authenticate(
-            new AuthenticationRequest($this->clientStore->preValidatedClient(self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
+            new AuthenticationRequest($this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
             new ChallengesState(),
             self::TENANT,
             self::USERNAME,
@@ -258,7 +280,7 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
     {
         $this->sessionStore->saveSession(
             $sid,
-            $this->clientStore->preValidatedClient(self::CLIENT_ID),
+            $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID),
             $issuer,
             new ChallengesState(),
             new AuthenticationResult(valid: true, id: self::USER_ID),
@@ -267,11 +289,12 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         );
     }
 
-    private function register(string $code, ?string $backChannel, ?string $frontChannel, bool $frontChannelSession = false, bool $enabled = true): void
+    private function register(string $code, ?string $backChannel, ?string $frontChannel, bool $frontChannelSession = false, bool $enabled = true, ?string $tenantUid = null): void
     {
         $this->trustedClients[$code] = new TrustedClient(
             uid: $code,
             code: $code,
+            tenant: $tenantUid !== null ? new TenantRef($tenantUid) : null,
             publicAllow: true,
             tokenEndpointAuthMethod: TrustedClientTokenEndpointAuthMethodOptions::CLIENT_SECRET_BASIC,
             dpopBoundAccessTokens: false,

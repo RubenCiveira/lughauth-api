@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain\Gateway;
 
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrRegistrationRules;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 
@@ -16,42 +17,47 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
  * TrustedClient entity in the Access bounded context, acting as an anti-corruption layer that
  * keeps the OAuth domain free of persistence details.
  *
- * The registration policy method is also housed here so that the RegisterClientUsecase can
- * read the tenant-level policy in a single gateway call without depending on a separate port.
+ * The registration rules method is also housed here so that the RegisterClientUsecase can
+ * read the tenant-level rules in a single gateway call without depending on a separate port.
  * All management methods that require token validation return null on failure rather than
  * throwing, allowing use cases to raise the appropriate domain exception.
+ *
+ * Every operation is made from a tenant, the name on the {tenant} path segment: a client is
+ * registered as owned by that tenant and only that tenant can read, update or delete it (022).
  */
 interface DynamicClientGateway
 {
     /**
-     * Persists a new dynamically registered client with the given credentials and metadata.
+     * Persists a new dynamically registered client, owned by the tenant, with the given
+     * credentials and the already validated metadata.
      * Returns an array containing at minimum the assigned clientId and the issuedAt timestamp.
      *
-     * @return array{clientId: string, clientSecret: string, registrationAccessToken: string, issuedAt: int}
+     * @return array{clientId: string, issuedAt: int}
      */
-    public function create(string $clientId, string $clientSecret, string $registrationAccessToken, DynamicClientRequest $request): array;
+    public function create(string $tenant, string $clientId, string $clientSecret, string $registrationAccessToken, DynamicClientRequest $request): array;
 
     /**
-     * Looks up a dynamically registered client by its ID and validates the registration access
-     * token. Returns the client metadata snapshot or null if not found or the token is invalid.
+     * Looks up a dynamically registered client of the tenant by its ID and validates the
+     * registration access token. Returns the client metadata snapshot or null if not found or
+     * the token is invalid.
      */
-    public function findByClientIdAndToken(string $clientId, string $registrationAccessToken): ?DynamicClientData;
+    public function findByClientIdAndToken(string $tenant, string $clientId, string $registrationAccessToken): ?DynamicClientData;
 
     /**
-     * Updates the metadata of an existing dynamically registered client after validating the
-     * registration access token. Returns the updated snapshot or null on failure.
+     * Updates the metadata of an existing dynamically registered client of the tenant after
+     * validating the registration access token. Returns the updated snapshot or null on failure.
      */
-    public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData;
+    public function update(string $tenant, string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData;
 
     /**
-     * Permanently removes a dynamically registered client after validating the registration
-     * access token. Returns true if the deletion was carried out, false otherwise.
+     * Permanently removes a dynamically registered client of the tenant after validating the
+     * registration access token. Returns true if the deletion was carried out, false otherwise.
      */
-    public function delete(string $clientId, string $registrationAccessToken): bool;
+    public function delete(string $tenant, string $clientId, string $registrationAccessToken): bool;
 
     /**
-     * Returns the dynamic registration policy configured for the given tenant.
-     * Typical values are "open", "token-required", and "disabled".
+     * Returns the dynamic registration rules configured for the given tenant; an unknown or
+     * unconfigured tenant gets disabled rules.
      */
-    public function readRegistrationPolicy(string $tenant): string;
+    public function registrationRules(string $tenant): DcrRegistrationRules;
 }

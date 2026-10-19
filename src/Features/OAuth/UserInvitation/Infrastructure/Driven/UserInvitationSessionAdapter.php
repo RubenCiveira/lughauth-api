@@ -37,7 +37,7 @@ class UserInvitationSessionAdapter implements UserInvitationSessionGateway
             return null;
         }
 
-        $client = $this->clients->findEnabledClient($clientId);
+        $client = $this->clients->findEnabledClient($tenantName, $clientId);
         if ($client === null) {
             return null;
         }

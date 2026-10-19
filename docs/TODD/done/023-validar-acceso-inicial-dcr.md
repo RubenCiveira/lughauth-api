@@ -1,6 +1,6 @@
 # 023 — Validar de verdad el initial access token de DCR
 
-- **Estado:** pendiente. **Prioridad:** alta.
+- **Estado:** hecho (EP-03). **Prioridad:** alta.
 - **Evidencia:** [RegisterClientUsecase::requireInitialAccessToken](../../src/Features/OAuth/Client/Application/Usecase/RegisterClient/RegisterClientUsecase.php) solo exige texto no vacío cuando la política lo requiere.
 - **Impacto:** cualquier cadena da acceso al registro si el tenant usa `token-required`.
 - **Por hacer:** emitir/verificar token o credencial ligada a tenant y política, expiración y permisos; almacenar hash si procede y cubrir revocación/replay.

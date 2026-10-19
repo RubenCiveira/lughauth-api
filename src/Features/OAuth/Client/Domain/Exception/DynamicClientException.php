@@ -98,4 +98,14 @@ final class DynamicClientException extends \RuntimeException
     {
         return new self('access_denied', 'An initial_access_token is required to register clients', 401);
     }
+
+    /**
+     * Creates an exception indicating that the initial access token presented to register a client
+     * is unknown, of another tenant, expired, revoked or exhausted; maps to HTTP 401 invalid_token.
+     * It never refers to the registration access token of RFC 7592.
+     */
+    public static function invalidInitialAccessToken(): self
+    {
+        return new self('invalid_token', 'The initial_access_token is invalid, expired or exhausted', 401);
+    }
 }

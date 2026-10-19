@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 use Override;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\SecretDigester;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
@@ -21,6 +20,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrRegistrationRules;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
@@ -34,39 +34,55 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
  * client secret and the registration access token are kept as SecretDigester digests (HMAC with
  * pepper), so that no plain-text credential is kept at rest; they are verified in constant time.
  *
- * The registration policy is resolved by reading the tenant's TenantConfig record; when
- * neither the tenant nor the config is found, "disabled" is returned as a safe default.
+ * The registration rules are read from the tenant's TenantConfig record (policy, allowed grant
+ * types and auth methods, password permission); when neither the tenant nor the config is found,
+ * disabled rules are returned as a safe default.
+ *
+ * Every client is created as owned by the request tenant and can only be read, updated or deleted
+ * from that tenant (task 022). The metadata reaching this adapter was already validated by the
+ * use cases (task 024).
  * All redirect URIs are stored as individual TrustedClientAllowedRedirects value objects,
  * each assigned a fresh COMB UUID, so the Access layer can manage them independently.
  */
 final class DynamicClientAdapter implements DynamicClientGateway
 {
+    /** Grant types a DCR client may get when the tenant config does not list them. */
+    private const array DEFAULT_DCR_GRANTS = ['authorization_code', 'refresh_token'];
+    /** Auth methods a DCR client may use when the tenant config does not list them. */
+    private const array DEFAULT_DCR_AUTH_METHODS = ['client_secret_basic', 'private_key_jwt', 'none'];
+
     public function __construct(
         private readonly TrustedClientCommandRepositoryGateway $writer,
-        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TrustedClientFinder $finder,
         private readonly TenantConfigQueryRepositoryGateway $tenantConfigs,
         private readonly SecretDigester $digester,
     ) {
     }
 
     /**
-     * Creates a new TrustedClient entity with the dynamically_registered flag set, storing the
-     * digests of the registration access token and the client secret, then returns the assigned
-     * client ID and issuance timestamp.
+     * Creates a new TrustedClient entity owned by the tenant with the dynamically_registered flag
+     * set, storing the digests of the registration access token and the client secret, then
+     * returns the assigned client ID and issuance timestamp.
      */
     #[Override]
     public function create(
+        string $tenant,
         string $clientId,
         string $clientSecret,
         string $registrationAccessToken,
         DynamicClientRequest $request,
     ): array {
+        $tenantRef = $this->finder->tenantRef($tenant);
+        if ($tenantRef === null) {
+            throw new \DomainException('Unknown tenant ' . $tenant);
+        }
         $now = new \DateTimeImmutable();
 
         $attrs = (new TrustedClientAttributes())
             ->withDefaults()
             ->uid($clientId)
             ->code($clientId)
+            ->tenant($tenantRef)
             ->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->digester, $clientSecret))
             ->publicAllow(true)
             ->enabled(true)
@@ -96,26 +112,16 @@ final class DynamicClientAdapter implements DynamicClientGateway
     }
 
     /**
-     * Looks up a dynamically registered client by UID and verifies the SHA-256 hash of the
-     * provided token matches the stored value. Returns null on any mismatch or if the client
-     * is not flagged as dynamically registered.
+     * Looks up a dynamically registered client of the tenant by UID and verifies the provided
+     * token against the stored digest. Returns null on any mismatch, if the client belongs to
+     * another tenant or if it is not flagged as dynamically registered.
      */
     #[Override]
-    public function findByClientIdAndToken(string $clientId, string $registrationAccessToken): ?DynamicClientData
+    public function findByClientIdAndToken(string $tenant, string $clientId, string $registrationAccessToken): ?DynamicClientData
     {
         $client = $this->writer->findOneByUid($clientId);
 
-        if ($client === null) {
-            return null;
-        }
-        if (!$client->isDynamicallyRegistered()) {
-            return null;
-        }
-        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
-            return null;
-        }
-
-        return $this->mapToDynamicClientData($client);
+        return $this->isManageable($client, $tenant, $registrationAccessToken) ? $this->mapToDynamicClientData($client) : null;
     }
 
     /**
@@ -123,17 +129,10 @@ final class DynamicClientAdapter implements DynamicClientGateway
      * updated metadata attributes, persists the change, and returns the refreshed snapshot.
      */
     #[Override]
-    public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData
+    public function update(string $tenant, string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData
     {
         $client = $this->writer->findOneForUpdateByUid($clientId);
-
-        if ($client === null) {
-            return null;
-        }
-        if (!$client->isDynamicallyRegistered()) {
-            return null;
-        }
-        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
+        if (!$this->isManageable($client, $tenant, $registrationAccessToken)) {
             return null;
         }
 
@@ -161,41 +160,48 @@ final class DynamicClientAdapter implements DynamicClientGateway
      * the physical deletion to the write gateway. Returns false on any validation failure.
      */
     #[Override]
-    public function delete(string $clientId, string $registrationAccessToken): bool
+    public function delete(string $tenant, string $clientId, string $registrationAccessToken): bool
     {
         $client = $this->writer->findOneForUpdateByUid($clientId);
 
-        if ($client === null) {
-            return false;
-        }
-        if (!$client->isDynamicallyRegistered()) {
-            return false;
-        }
-        if (!$client->verifyRegistrationAccess($this->digester, $registrationAccessToken)) {
-            return false;
-        }
-
-        return $this->writer->delete($client->delete());
+        return $this->isManageable($client, $tenant, $registrationAccessToken) && $this->writer->delete($client->delete());
     }
 
     /**
-     * Reads the dynamic registration policy from the tenant's configuration record.
-     * Returns "disabled" when the tenant or its configuration cannot be found.
+     * Reads the dynamic registration rules from the tenant's configuration record.
+     * Returns disabled rules when the tenant or its configuration cannot be found.
      */
     #[Override]
-    public function readRegistrationPolicy(string $tenant): string
+    public function registrationRules(string $tenant): DcrRegistrationRules
     {
-        $tenantObj = $this->tenants->findOneByName($tenant);
-        if ($tenantObj === null) {
-            return 'disabled';
-        }
-
-        $config = $this->tenantConfigs->findOneByTenant($tenantObj);
+        $tenantRef = $this->finder->tenantRef($tenant);
+        $config = $tenantRef !== null ? $this->tenantConfigs->findOneByTenant($tenantRef) : null;
         if ($config === null) {
-            return 'disabled';
+            return DcrRegistrationRules::disabled();
         }
 
-        return $config->getDynamicRegistrationPolicy()?->value ?? 'disabled';
+        return new DcrRegistrationRules(
+            policy: $config->getDynamicRegistrationPolicy()?->value ?? DcrRegistrationRules::DISABLED,
+            allowedGrantTypes: JsonStringList::decode($config->getDcrAllowedGrantTypes()) ?? self::DEFAULT_DCR_GRANTS,
+            allowedAuthMethods: JsonStringList::decode($config->getDcrAllowedAuthMethods()) ?? self::DEFAULT_DCR_AUTH_METHODS,
+            allowPasswordGrant: $config->isAllowPasswordGrant(),
+        );
+    }
+
+    /**
+     * A client can be managed through RFC 7592 when it exists, was dynamically registered, is
+     * owned by the tenant and the registration access token matches its digest.
+     *
+     * @psalm-assert-if-true TrustedClient $client
+     */
+    private function isManageable(?TrustedClient $client, string $tenant, string $registrationAccessToken): bool
+    {
+        $tenantUid = $this->finder->tenantRef($tenant)?->uid();
+        return $client !== null
+            && $tenantUid !== null
+            && $client->isDynamicallyRegistered()
+            && $client->getTenant()?->uid() === $tenantUid
+            && $client->verifyRegistrationAccess($this->digester, $registrationAccessToken);
     }
 
     private function buildRedirectsListRef(array $uris): TrustedClientAllowedRedirectsListRef
@@ -224,29 +230,13 @@ final class DynamicClientAdapter implements DynamicClientGateway
             }
         }
 
-        $grantTypes = ['authorization_code'];
-        if ($client->getGrantTypesJson() !== null) {
-            $decoded = json_decode($client->getGrantTypesJson(), true);
-            if (is_array($decoded)) {
-                $grantTypes = $decoded;
-            }
-        }
-
-        $responseTypes = ['code'];
-        if ($client->getResponseTypesJson() !== null) {
-            $decoded = json_decode($client->getResponseTypesJson(), true);
-            if (is_array($decoded)) {
-                $responseTypes = $decoded;
-            }
-        }
-
         $issuedAt = $client->getRegisteredAt()?->getTimestamp() ?? 0;
 
         return new DynamicClientData(
             clientId: (string) $client->uid(),
             redirectUris: $redirectUris,
-            grantTypes: $grantTypes,
-            responseTypes: $responseTypes,
+            grantTypes: JsonStringList::decode($client->getGrantTypesJson()) ?? ClientStoreAdapter::DEFAULT_GRANTS,
+            responseTypes: JsonStringList::decode($client->getResponseTypesJson()) ?? ['code'],
             scope: null,
             // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
             tokenEndpointAuthMethod: str_replace('-', '_', $client->getTokenEndpointAuthMethod()->value),

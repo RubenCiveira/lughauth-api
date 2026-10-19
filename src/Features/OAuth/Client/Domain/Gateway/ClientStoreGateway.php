@@ -19,26 +19,30 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
  *
  * Implementations translate from the Access bounded context's TrustedClient entity into the
  * OAuth-specific ClientData value object, acting as an anti-corruption layer.
+ *
+ * Every lookup is made from a tenant, the name on the {tenant} path segment (task 022): the
+ * tenant's own client is found first, then a global one (tenant = null); a client of another
+ * tenant is never returned.
  */
 interface ClientStoreGateway
 {
     /**
      * Retrieves client data after verifying both the client ID and the plain-text client secret.
-     * Returns null if the client is unknown, disabled, or the secret does not match.
+     * Returns null if the client is unknown in the tenant, disabled, or the secret does not match.
      */
-    public function clientData(string $clientId, string $clientSecret): ?ClientData;
+    public function clientData(string $tenant, string $clientId, string $clientSecret): ?ClientData;
 
     /**
      * Retrieves client data for a known enabled client without secret verification.
      * Intended for flows that authenticate the client through other means (e.g. PAR with PKCE).
      */
-    public function findEnabledClient(string $clientId): ?ClientData;
+    public function findEnabledClient(string $tenant, string $clientId): ?ClientData;
 
     /**
      * Retrieves client data for a client that allows public (unauthenticated) access and is enabled.
      * Returns null if the client is not enabled or does not permit public access.
      */
-    public function preValidatedClient(string $clientId): ?ClientData;
+    public function preValidatedClient(string $tenant, string $clientId): ?ClientData;
 
     /**
      * Retrieves client data for a public client after also validating that the redirect URL is
@@ -51,5 +55,5 @@ interface ClientStoreGateway
      * Returns the first registered redirect URI for the given client, or null if none exists
      * or the client is disabled. Useful as a fallback when the caller did not supply a redirect_uri.
      */
-    public function defaultRedirectUri(string $clientId): ?string;
+    public function defaultRedirectUri(string $tenant, string $clientId): ?string;
 }

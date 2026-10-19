@@ -460,7 +460,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $clients = $this->createMock(ClientStoreGateway::class);
         $clients->expects($this->once())
             ->method('preValidatedClient')
-            ->with('client-123')
+            ->with('tenant1', 'client-123')
             ->willReturn(new ClientData('client-123', ['code'], true, [], 3600, 'RS256', null, $jwksJson));
         $clients->expects($this->once())
             ->method('publicClientData')
@@ -534,7 +534,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $clients = $this->createMock(ClientStoreGateway::class);
         $clients->expects($this->once())
             ->method('preValidatedClient')
-            ->with('client-123')
+            ->with('tenant1', 'client-123')
             ->willReturn(new ClientData('client-123', ['code'], true));
 
         $authorize = new AuthorizeHtml(

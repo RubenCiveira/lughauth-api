@@ -79,8 +79,8 @@ class DeviceAuthorizationController
         $tenant = $args['tenant'];
         $params = (array) ($request->getParsedBody() ?? []);
         try {
-            $client = $this->resolveClient($params);
-            if (false === array_search(DeviceAuthorizationService::grantType(), $client->grants)) {
+            $client = $this->resolveClient($tenant, $params);
+            if (!$client->allowsGrant(DeviceAuthorizationService::grantType())) {
                 throw DeviceAuthorizationException::invalidClient();
             }
             $scope = (string) ($params['scope'] ?? '');
@@ -120,10 +120,10 @@ class DeviceAuthorizationController
         }
     }
 
-    private function resolveClient(array $params): ClientData
+    private function resolveClient(string $tenant, array $params): ClientData
     {
         if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
-            $client = $this->clients->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+            $client = $this->clients->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
             if (!$client) {
                 throw DeviceAuthorizationException::invalidClient();
             }
@@ -134,7 +134,7 @@ class DeviceAuthorizationController
         if ($clientId === '') {
             throw DeviceAuthorizationException::invalidRequest('client_id is required');
         }
-        $client = $this->clients->preValidatedClient($clientId);
+        $client = $this->clients->preValidatedClient($tenant, $clientId);
         if (!$client) {
             throw DeviceAuthorizationException::invalidClient();
         }

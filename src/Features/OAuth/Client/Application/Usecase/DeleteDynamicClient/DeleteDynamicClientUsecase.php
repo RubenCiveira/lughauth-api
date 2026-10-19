@@ -28,12 +28,12 @@ final class DeleteDynamicClientUsecase
     }
 
     /**
-     * Attempts to permanently remove the dynamic client identified by the given client ID.
+     * Attempts to permanently remove the dynamic client of the tenant with the given client ID.
      * Validates ownership via the registration access token and throws on failure.
      */
-    public function delete(string $clientId, string $registrationAccessToken): void
+    public function delete(string $tenant, string $clientId, string $registrationAccessToken): void
     {
-        $deleted = $this->gateway->delete($clientId, $registrationAccessToken);
+        $deleted = $this->gateway->delete($tenant, $clientId, $registrationAccessToken);
         if (!$deleted) {
             throw DynamicClientException::invalidToken();
         }

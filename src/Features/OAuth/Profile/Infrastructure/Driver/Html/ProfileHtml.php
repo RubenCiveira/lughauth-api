@@ -104,7 +104,7 @@ class ProfileHtml
             $translator = $this->translatorFor($request, $profile?->locale ?? '');
             $base = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $backUrl = $this->resolveTrustedBackUrl($request)
-                ?? ($session->clientId !== '' ? $this->clientStore->defaultRedirectUri($session->clientId) : null);
+                ?? ($session->clientId !== '' ? $this->clientStore->defaultRedirectUri($tenant, $session->clientId) : null);
             $html = '<div class="section-card">' . $this->viewPanel->render(
                 $profile,
                 $base . '/edit',
@@ -235,7 +235,7 @@ class ProfileHtml
             $inviterEmail = $inviter?->getEmail() ?? '';
 
             $clientId    = $session->clientId;
-            $redirectUri = $clientId !== '' ? ($this->clientStore->defaultRedirectUri($clientId) ?? '') : '';
+            $redirectUri = $clientId !== '' ? ($this->clientStore->defaultRedirectUri($tenant, $clientId) ?? '') : '';
 
             $params = new InvitationCreateParams(
                 tenantName: $tenant,

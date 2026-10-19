@@ -57,6 +57,9 @@ use Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driver\Rest\ParController;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\DynamicClientAdapter;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driver\Rest\DynamicClientController;
+use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driver\Rest\InitialAccessTokenIssueController;
+use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DcrInitialAccessTokenGateway;
+use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\DcrInitialAccessTokenSqlAdapter;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Driven\WebAuthnCredentialSqlAdapter;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
@@ -138,6 +141,7 @@ class OAuthPlugin extends MicroPlugin
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
         $def[DynamicClientGateway::class] = \DI\autowire(DynamicClientAdapter::class);
+        $def[DcrInitialAccessTokenGateway::class] = \DI\autowire(DcrInitialAccessTokenSqlAdapter::class);
         $def[WebAuthnCredentialGateway::class] = \DI\autowire(WebAuthnCredentialSqlAdapter::class);
         $def[WebAuthnChallengeGateway::class] = \DI\autowire(WebAuthnChallengeSqlAdapter::class);
         $def[GdprConsentGateway::class] = \DI\autowire(GdprConsentAdapter::class);
@@ -248,6 +252,8 @@ class OAuthPlugin extends MicroPlugin
             $group->get('/invitation/accept', [InvitationAcceptHtml::class, 'form']);
             $group->post('/invitation/accept', [InvitationAcceptHtml::class, 'accept']);
         });
+
+        $collector->post('/api/access/dcr-initial-access-tokens/~/issue', [InitialAccessTokenIssueController::class, 'issue']);
 
         $collector->group('/api/access/invitations', function (RouteCollectorProxy $group) {
             $group->post('', [InvitationCreateController::class, 'create']);

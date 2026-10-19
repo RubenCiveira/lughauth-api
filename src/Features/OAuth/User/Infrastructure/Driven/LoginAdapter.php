@@ -15,7 +15,7 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentFilter;
@@ -46,7 +46,7 @@ class LoginAdapter implements LoginGateway
         private readonly UserAcceptedTermsOfUseQueryRepositoryGateway $userTerms,
         private readonly UserGroupMembershipQueryRepositoryGateway $userGroupMemberships,
         private readonly UserRoleAssignmentQueryRepositoryGateway $userRoleAssignments,
-        private readonly TrustedClientQueryRepositoryGateway $clients,
+        private readonly TrustedClientFinder $clients,
         private readonly RelyingPartyQueryRepositoryGateway $parties,
         private readonly UserCommandRepositoryGateway $writeUsers,
         private readonly RoleQueryRepositoryGateway $roles,
@@ -326,7 +326,7 @@ class LoginAdapter implements LoginGateway
                     continue;
                 }
                 $roles[$audience] = $forAll;
-                if ($from = $this->clients->findOneByTenantAndCode(null, $audience)) {
+                if ($from = $this->clients->findForTenant($user->getTenant(), $audience)) {
                     $this->rolesFromAssignment(new UserRoleAssignmentFilter(
                         user: $user,
                         trustedClient: $from
@@ -390,7 +390,7 @@ class LoginAdapter implements LoginGateway
                     continue;
                 }
                 $audienceGroups = $forAll;
-                if ($from = $this->clients->findOneByTenantAndCode(null, $audience)) {
+                if ($from = $this->clients->findForTenant($user->getTenant(), $audience)) {
                     $this->groupsFromMembership(new UserGroupMembershipFilter(
                         user: $user,
                         trustedClient: $from

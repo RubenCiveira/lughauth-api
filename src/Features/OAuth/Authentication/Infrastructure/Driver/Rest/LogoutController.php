@@ -7,12 +7,13 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\BackChannelLogoutDispatcher;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
@@ -39,7 +40,7 @@ use OpenApi\Attributes as OA;
  *
  * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
  * removal, ClientStoreGateway for client validation, TokenSigner for id_token_hint parsing,
- * RevokeTokenUsecase for revocation, TrustedClientQueryRepositoryGateway for the participants' logout URIs, and
+ * RevokeTokenUsecase for revocation, TrustedClientFinder for the participants' logout URIs, and
  * BackChannelLogoutDispatcher for back-channel notifications.
  */
 class LogoutController
@@ -53,7 +54,7 @@ class LogoutController
         private readonly ClientStoreGateway $clients,
         private readonly TokenSigner $keys,
         private readonly RevokeTokenUsecase $revokeTokenUsecase,
-        private readonly TrustedClientQueryRepositoryGateway $trustedClients,
+        private readonly TrustedClientFinder $trustedClients,
         private readonly BackChannelLogoutDispatcher $backChannelLogout,
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
@@ -111,7 +112,7 @@ class LogoutController
         $session = $sessionId !== '' ? $this->sessionStore->findActiveSession($sessionId, $issuer) : null;
         $participants = [];
         if ($session !== null) {
-            $participants = $this->participants($session);
+            $participants = $this->participants($tenant, $session);
             $this->sessionManager->removeSession($sessionId);
         }
 
@@ -189,7 +190,7 @@ class LogoutController
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $client = $this->authenticateClient($body);
+        $client = $this->authenticateClient($tenant, $body);
         if ($client === null) {
             $response->getBody()->write('{"error":"invalid_client","error_description":"client authentication required"}');
             return $response->withStatus(401)
@@ -204,17 +205,16 @@ class LogoutController
     }
 
     /**
-     * Resolves the RPs that opened or joined the session through SSO. Clients are looked up among
-     * the global ones (tenant = null), the only kind that exists until task 022; the session itself
-     * is already bound to the tenant issuer.
+     * Resolves the RPs that opened or joined the session through SSO, as seen from the session's
+     * tenant: its own clients and the global ones, never a client of another tenant (task 022).
      *
      * @return TrustedClient[]
      */
-    private function participants(SessionInfo $session): array
+    private function participants(string $tenant, SessionInfo $session): array
     {
         $clients = [];
         foreach ($session->clients() as $code) {
-            $client = $this->trustedClients->findOneByTenantAndCode(null, $code);
+            $client = $this->trustedClients->findForTenantName($tenant, $code);
             if ($client !== null) {
                 $clients[] = $client;
             }
@@ -266,11 +266,11 @@ class LogoutController
         return $preCookie->remove($authCookie->remove($response));
     }
 
-    private function authenticateClient(array $body): mixed
+    private function authenticateClient(string $tenant, array $body): ?ClientData
     {
         // Confidential client: Basic auth
         if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
-            return $this->clients->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+            return $this->clients->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
         }
 
         $clientId = (string) ($body['client_id'] ?? '');
@@ -281,11 +281,11 @@ class LogoutController
         // Confidential client: client_id + client_secret in body
         $clientSecret = (string) ($body['client_secret'] ?? '');
         if ($clientSecret !== '') {
-            return $this->clients->clientData($clientId, $clientSecret);
+            return $this->clients->clientData($tenant, $clientId, $clientSecret);
         }
 
         // Public client (SPA): client_id only — security relies on azp claim validation in the usecase
-        return $this->clients->preValidatedClient($clientId);
+        return $this->clients->preValidatedClient($tenant, $clientId);
     }
 
     private function isAllowedRedirect(string $clientId, string $tenant, string $redirectUri): bool

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\UpdateDynamicClient;
 
+use Civi\Lughauth\Features\OAuth\Client\Domain\DcrMetadataPolicy;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
@@ -14,39 +15,41 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
  * Application use case that implements the update (PUT) endpoint of the OAuth 2.0 Dynamic
  * Client Registration Management Protocol defined in RFC 7592.
  *
- * The caller must present the registration access token that was issued at registration time;
- * the gateway validates it by comparing the SHA-256 hash stored alongside the client record.
- * Before delegating to the gateway, all redirect URIs in the incoming request are validated to
- * reject dangerous schemes ("javascript:", "data:", "vbscript:") and empty-scheme URIs.
+ * The caller must present the registration access token that was issued at registration time,
+ * for a client of the same tenant. The new metadata is checked with DcrMetadataPolicy against
+ * the tenant rules (task 024); the grant types the client already holds stay acceptable (they
+ * may have come from an initial access token), except password, which always needs the tenant
+ * permission. Only validated metadata reaches the gateway.
  *
  * A DynamicClientException with "invalid_token" (HTTP 401) is raised when the token does not
- * match or the client is not found. A DynamicClientException with "invalid_redirect_uri" (HTTP
- * 400) is raised for any rejected URI scheme.
+ * match or the client is not found. "invalid_redirect_uri" or "invalid_client_metadata" (HTTP
+ * 400) are raised for rejected metadata.
  */
 final class UpdateDynamicClientUsecase
 {
-    /** List of URI schemes that are explicitly forbidden as redirect URIs for security reasons. */
-    private const array FORBIDDEN_URI_SCHEMES = ['javascript', 'data', 'vbscript'];
-
     public function __construct(
         private readonly DynamicClientGateway $gateway,
+        private readonly DcrMetadataPolicy $policy = new DcrMetadataPolicy(),
     ) {
     }
 
     /**
-     * Validates redirect URIs in the request, then delegates the update to the gateway
+     * Validates the token and the new metadata, then delegates the update to the gateway
      * and returns the refreshed client metadata snapshot on success.
      */
-    public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): DynamicClientData
+    public function update(string $tenant, string $clientId, string $registrationAccessToken, DynamicClientRequest $request): DynamicClientData
     {
-        foreach ($request->redirectUris as $uri) {
-            $scheme = strtolower((string) parse_url($uri, PHP_URL_SCHEME));
-            if (in_array($scheme, self::FORBIDDEN_URI_SCHEMES, true) || $scheme === '') {
-                throw DynamicClientException::invalidRedirectUri($uri);
-            }
+        $current = $this->gateway->findByClientIdAndToken($tenant, $clientId, $registrationAccessToken);
+        if ($current === null) {
+            throw DynamicClientException::invalidToken();
         }
+        $rules = $this->gateway->registrationRules($tenant);
+        $this->policy->validate(
+            $request,
+            $rules->withGrantTypes(array_values(array_unique([...$rules->allowedGrantTypes, ...$current->grantTypes])))
+        );
 
-        $data = $this->gateway->update($clientId, $registrationAccessToken, $request);
+        $data = $this->gateway->update($tenant, $clientId, $registrationAccessToken, $request);
         if ($data === null) {
             throw DynamicClientException::invalidToken();
         }

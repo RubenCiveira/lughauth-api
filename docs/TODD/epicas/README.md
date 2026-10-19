@@ -16,7 +16,7 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 |---|---|---|---|---|
 | [EP-01 Discovery honesto](../done/EP-01-discovery-honesto.md) (hecha) | [030](../done/030-discovery-honesto.md) (+ retirada de anuncios de 034, 037, 045, 046, 053–057, 060–062, 067) | alta | S | — |
 | [EP-02 Secretos y criptografía en reposo](EP-02-secretos-y-cifrado.md) | 071, 063 | crítica | L | — |
-| [EP-03 Clientes: tenant, DCR y metadatos](EP-03-clientes-tenant-dcr.md) | 022, 023, 024, 065 | alta | L | EP-02 fase A (mismos adapters) |
+| [EP-03 Clientes: tenant, DCR y metadatos](../done/EP-03-clientes-tenant-dcr.md) (hecha) | [022](../done/022-clientes-aislados-por-tenant.md), [023](../done/023-validar-acceso-inicial-dcr.md), [024](../done/024-limitar-grants-y-ropc.md), [065](../done/065-metadatos-cliente-inoperantes.md) | alta | L | EP-02 fase A (mismos adapters) |
 | [EP-04 Firma JWT por propósito y claves](EP-04-firma-jwt-y-claves.md) | 025, 029 | crítica | M | — |
 | [EP-05 Emisión de tokens y claims](EP-05-emision-tokens-y-claims.md) | 038, 032, 049, 064 (+ `sid` público) | alta | L | EP-04 |
 | [EP-06 Validación de bearer en consumidores](EP-06-validacion-bearer.md) | 026, 028, 035 | crítica | M | EP-04 |

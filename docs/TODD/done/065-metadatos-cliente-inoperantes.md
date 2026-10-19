@@ -1,6 +1,6 @@
 # 065 — Aplicar metadatos de seguridad de TrustedClient
 
-- **Estado:** pendiente. **Prioridad:** media.
+- **Estado:** hecho en lo que toca a EP-03 (metadatos en `ClientData`, PKCE en el canje); `responseTypes` y `requirePar` los aplican EP-08 y EP-07. **Prioridad:** media.
 - **Evidencia:** [ClientStoreAdapter::mapClientData](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) transporta grants/M2M/JAR, pero no `tokenEndpointAuthMethod`, `responseTypes`, `requirePkce` ni flags de logout presentes en TrustedClient.
 - **Impacto:** configuración administrativa no impone los límites esperados por cliente.
 - **Por hacer:** incorporar metadatos necesarios a [ClientData](../../src/Features/OAuth/Client/Domain/ClientData.php), aplicar en authorize/token/logout/DCR y probar defaults seguros; coordinar con 016, 033, 034 y 021.
