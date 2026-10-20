@@ -86,7 +86,7 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
             public function __construct(private ?array $payload)
             {
             }
-            public function sign(string $t, array $d, \DateInterval $e): string
+            public function sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type, array $d, string $t, \DateInterval $e): string
             {
                 return 'tok';
             }
@@ -98,15 +98,11 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
             {
                 return '';
             }
-            public function verifyTokenPayload(string $t, string $tok): ?array
-            {
-                return null;
-            }
             public function verifiedKeypass(string $t, string $tok): mixed
             {
                 return null;
             }
-            public function parseSignedPayload(string $t, string $tok): ?array
+            public function verify(string $t, string $tok, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy $policy): ?array
             {
                 return $this->payload;
             }

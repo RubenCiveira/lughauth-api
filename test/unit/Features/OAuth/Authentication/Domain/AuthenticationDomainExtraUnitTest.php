@@ -75,8 +75,10 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
         $capturedClaims = null;
         $signer = new class ($capturedClaims) implements TokenSigner {
             public ?array $claims = null;
-            public function sign(string $t, array $d, \DateInterval $e): string
+            public ?\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type = null;
+            public function sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type, array $d, string $t, \DateInterval $e): string
             {
+                $this->type = $type;
                 $this->claims = $d;
                 return 'logout-jwt';
             }
@@ -88,15 +90,11 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
             {
                 return '';
             }
-            public function verifyTokenPayload(string $t, string $tok): ?array
+            public function verify(string $t, string $tok, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy $policy): ?array
             {
                 return null;
             }
             public function verifiedKeypass(string $t, string $tok): mixed
-            {
-                return null;
-            }
-            public function parseSignedPayload(string $t, string $tok): ?array
             {
                 return null;
             }
@@ -105,7 +103,7 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
         $token = LogoutToken::build($signer, 'tenant', 'https://iss', 'user-1', 'client-1', 'sess-1');
 
         $this->assertSame('logout-jwt', $token);
-        $this->assertSame('logout+jwt', $signer->claims['typ']);
+        $this->assertSame('logout+jwt', $signer->type?->value);
         $this->assertSame('https://iss', $signer->claims['iss']);
         $this->assertSame('user-1', $signer->claims['sub']);
         $this->assertSame('client-1', $signer->claims['aud']);

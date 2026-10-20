@@ -6,8 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Override;
+use Cron\CronExpression;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
+use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Event\TenantCreateEvent;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\OAuth\Device\Infrastructure\Driver\Html\DeviceVerificationHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest\DelegatedController;
@@ -20,6 +24,10 @@ use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driver\Rest\ApiKeyControl
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driver\Rest\JwksController;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\Listener\ProvisionTenantKeys;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\OpenSslKeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
 use Civi\Lughauth\Shared\AppConfig;
@@ -134,6 +142,7 @@ class OAuthPlugin extends MicroPlugin
         $def[TemporalKeysGateway::class] = \DI\autowire(TemporalKeysSqlAdapter::class);
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
         $def[TokenSigner::class] = \DI\autowire(JoseTokenSigner::class);
+        $def[KeyPairGenerator::class] = \DI\autowire(OpenSslKeyPairGenerator::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
@@ -172,6 +181,24 @@ class OAuthPlugin extends MicroPlugin
         $def[OpenIdConfigurationController::class] = \DI\autowire()
             ->constructorParameter('contributors', [\DI\get(MtlsDiscoveryContributor::class)]);
         return $def;
+    }
+
+    /**
+     * Provisions the signing keys of each new tenant so it can issue tokens immediately.
+     */
+    #[Override]
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
+    {
+        $listener->registerListener(TenantCreateEvent::class, ProvisionTenantKeys::class);
+    }
+
+    /**
+     * Provisions and rotates every tenant's signing keys outside of token requests.
+     */
+    #[Override]
+    public function registerSchedulers(SchedulerManager $scheduler): void
+    {
+        $scheduler->register(new CronExpression('*/15 * * * *'), KeyRotationService::class, 'rotateAll');
     }
 
     #[Override]

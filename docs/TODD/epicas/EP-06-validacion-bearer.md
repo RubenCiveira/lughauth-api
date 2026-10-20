@@ -1,6 +1,6 @@
 # EP-06 — Validación de bearer en los consumidores
 
-- **Tareas:** [026](../026-validar-issuer-audience-bearer.md) (issuer, audience y tenant), [028](../028-revocacion-en-bearer.md) (revocación en bearer) y [035](../035-userinfo-conforme.md) (UserInfo GET/POST). Completa el lado consumidor de [025](../025-jwt-kid-y-proposito.md) y [049](../049-perfil-at-jwt.md).
+- **Tareas:** [026](../026-validar-issuer-audience-bearer.md) (issuer, audience y tenant), [028](../028-revocacion-en-bearer.md) (revocación en bearer) y [035](../035-userinfo-conforme.md) (UserInfo GET/POST). Completa el lado consumidor de [025](../done/025-jwt-kid-y-proposito.md) y [049](../049-perfil-at-jwt.md).
 - **Prioridad:** crítica. **Tamaño:** M. **Depende de:** EP-04 (propósito). 028 puede empezar antes. **Desbloquea:** EP-12, EP-13, EP-14 (060).
 - **Esquema:** sin cambios; `_oauth_revoked_jti` ya tiene `tenant_id` e índices (B.5).
 

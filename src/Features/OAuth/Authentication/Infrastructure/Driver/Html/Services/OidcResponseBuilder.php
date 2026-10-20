@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
@@ -86,16 +87,16 @@ class OidcResponseBuilder
         if ($hasId) {
             $idData = array_merge($auth->accessTokenClaims(), $auth->idData);
             if ($hasAccess) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->accessTokenClaims(), $auth->authExpiration);
+                $accessToken = $this->keys->sign(TokenType::Access, $auth->accessTokenClaims(), $auth->tenant, $auth->authExpiration);
                 $idData['at_hash'] = AuthenticateUser::generateHash($accessToken);
             }
-            $location .= '&id_token=' . $this->keys->sign($auth->tenant, $idData, $auth->idExpiration);
+            $location .= '&id_token=' . $this->keys->sign(TokenType::Id, $idData, $auth->tenant, $auth->idExpiration);
         }
         if ($hasAccess) {
             $now = new \DateTimeImmutable();
             $until = $now->add($auth->authExpiration);
             if ($accessToken === null) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->accessTokenClaims(), $auth->authExpiration);
+                $accessToken = $this->keys->sign(TokenType::Access, $auth->accessTokenClaims(), $auth->tenant, $auth->authExpiration);
             }
             $location .= '&access_token=' . $accessToken;
             $location .= '&expires_in=' . ($until->getTimestamp() - $now->getTimestamp());

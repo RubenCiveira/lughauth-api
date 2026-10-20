@@ -25,23 +25,33 @@ class InMemoryTokenStore implements TokenStoreGateway
         return null;
     }
 
-    public function nextKeysExpiration(string $tenant): \DateTimeImmutable
+    public function latestExpiration(string $tenant): ?\DateTimeImmutable
     {
-        $latest = new \DateTimeImmutable('@0');
+        $latest = null;
         foreach ($this->keys[$tenant] ?? [] as $entry) {
-            if ($entry['end'] > $latest) {
+            if ($latest === null || $entry['end'] > $latest) {
                 $latest = $entry['end'];
             }
         }
         return $latest;
     }
 
-    public function listKeys(string $tenant): array
+    public function listKeys(string $tenant, \DateTimeImmutable $expiringAfter): array
     {
-        return array_map(
-            static fn (array $entry): KeyPair => $entry['pair'],
-            $this->keys[$tenant] ?? []
-        );
+        $published = array_filter($this->keys[$tenant] ?? [], static fn (array $entry): bool => $entry['end'] >= $expiringAfter);
+        return array_values(array_map(static fn (array $entry): KeyPair => $entry['pair'], $published));
+    }
+
+    public function purgeExpired(\DateTimeImmutable $before): void
+    {
+        foreach ($this->keys as $tenant => $entries) {
+            $this->keys[$tenant] = array_values(array_filter($entries, static fn (array $entry): bool => $entry['end'] >= $before));
+        }
+    }
+
+    public function tenantsToProvision(): array
+    {
+        return array_keys($this->keys);
     }
 
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void
@@ -56,6 +66,13 @@ class InMemoryTokenStore implements TokenStoreGateway
     public static function withGeneratedKey(string $tenant): self
     {
         $store = new self();
+        $store->generateKey($tenant);
+        return $store;
+    }
+
+    /** Stores an active key for the tenant (2048 bits: fast enough for tests). */
+    public function generateKey(string $tenant): void
+    {
         $privateKeyResource = openssl_pkey_new([
             'private_key_type' => OPENSSL_KEYTYPE_RSA,
             'private_key_bits' => 2048,
@@ -74,7 +91,6 @@ class InMemoryTokenStore implements TokenStoreGateway
             publicKey: $publicKey
         );
         $now = new \DateTimeImmutable();
-        $store->saveKey($tenant, $pair, $now->sub(new \DateInterval('PT1H')), new \DateInterval('P7D'));
-        return $store;
+        $this->saveKey($tenant, $pair, $now->sub(new \DateInterval('PT1H')), new \DateInterval('P7D'));
     }
 }

@@ -17,6 +17,8 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter\TokenGr
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\OAuthTokenException;
@@ -184,7 +186,7 @@ class TokenController
             $audiences = $code->request->audiences;
             $sid = $code->sessionId;
         } elseif ("refresh_token" == $grant) {
-            $refreshPayload = $this->manager->verifyTokenPayload($tenant, $params['refresh_token'] ?? '');
+            $refreshPayload = $this->manager->verify($tenant, $params['refresh_token'] ?? '', VerificationPolicy::expecting(TokenType::Refresh));
             if ($refreshPayload === null) {
                 throw new UnauthorizedException("Invalid refresh token");
             }
@@ -304,15 +306,15 @@ class TokenController
         $data = [
             'token_type' => 'Bearer',
             'expires_in' => $expires->getTimestamp() - $now->getTimestamp(),
-            'access_token' => $this->manager->sign($tenant, array_merge($detail, [
+            'access_token' => $this->manager->sign(TokenType::Access, array_merge($detail, [
                 // https://www.iana.org/assignments/jwt/jwt.xhtml
                 'scope' => $auth->scope ?? '',
                 'roles' => $auth->roles ?? [],
                 'groups' => $auth->groups ?? []
-            ]), $expiration),
+            ]), $tenant, $expiration),
         ];
         if ($grant !== 'client_credentials') {
-            $data['id_token'] = $this->manager->sign($tenant, $identity, $expiration);
+            $data['id_token'] = $this->manager->sign(TokenType::Id, $identity, $tenant, $expiration);
         }
         // Only a client registered for the refresh_token grant receives a refresh token it can use.
         if ($grant !== 'client_credentials' && $client->allowsGrant('refresh_token') && ($grant !== 'authorization_code' || $sid !== null)) {
@@ -344,7 +346,7 @@ class TokenController
                 // Ties the refresh token to the browser session so logout stops further refreshes.
                 $refresh['sid'] = $sid;
             }
-            $data['refresh_token'] = $this->manager->sign($tenant, $refresh, new DateInterval('PT' . $refreshTtl . 'S'));
+            $data['refresh_token'] = $this->manager->sign(TokenType::Refresh, $refresh, $tenant, new DateInterval('PT' . $refreshTtl . 'S'));
         }
         $encoded = json_encode($data);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');

@@ -10,36 +10,48 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 /**
  * Domain port for persisting and retrieving JWT signing key pairs per tenant.
  *
- * Implementations back the key rotation strategy: keys are stored with an explicit
- * validity window (since / expiration) and the signer pre-generates future keys so
- * that JWKS consumers can cache public keys without observing gaps. The store is
- * responsible for durability; the signer layer drives the rotation schedule by
- * calling saveKey whenever the lookahead window falls short of the configured
- * number of future keys. Tenant isolation is enforced by the tenant parameter
- * present on every method.
+ * Keys are stored with an explicit validity window (since / expiration). The key rotation
+ * service provisions them ahead of time (future keys are published before they sign) and
+ * keeps retired keys published while tokens signed with them may still be presented. Tenant
+ * isolation is enforced by the tenant parameter present on every method.
  */
 interface TokenStoreGateway
 {
     /**
-     * Returns the key pair that is currently active (its validity window covers now).
-     * Returns null if no active key exists, triggering key generation by the signer.
+     * Returns the key pair that is currently active (its validity window covers now), or null.
+     * When several overlap, the most recent one signs.
      */
     public function currentKey(string $tenant): ?KeyPair;
 
     /**
-     * Returns the expiration timestamp of the latest key stored for the tenant.
-     * Used by the signer to decide whether new future keys need to be generated.
+     * Returns the expiration of the latest key stored for the tenant, or null if it has none.
+     * Used by the rotation service to decide whether new future keys need to be generated.
      */
-    public function nextKeysExpiration(string $tenant): \DateTimeImmutable;
+    public function latestExpiration(string $tenant): ?\DateTimeImmutable;
 
     /**
-     * return PublicKey[]
-    */
-    public function listKeys(string $tenant): array;
+     * Returns the keys the tenant publishes: those expiring after the given instant,
+     * which includes future keys and retired keys still inside the retention window.
+     *
+     * @return KeyPair[]
+     */
+    public function listKeys(string $tenant, \DateTimeImmutable $expiringAfter): array;
 
     /**
      * Persists a newly generated key pair with its validity window for the tenant.
      * The effective expiration is computed as start + caducidad by the implementation.
      */
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void;
+
+    /**
+     * Deletes the keys of every tenant that expired before the given instant.
+     */
+    public function purgeExpired(\DateTimeImmutable $before): void;
+
+    /**
+     * Names of the enabled tenants that must have signing keys provisioned.
+     *
+     * @return list<string>
+     */
+    public function tenantsToProvision(): array;
 }

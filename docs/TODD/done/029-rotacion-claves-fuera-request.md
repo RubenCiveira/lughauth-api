@@ -1,6 +1,6 @@
 # 029 — Sacar generación de claves de las peticiones
 
-- **Estado:** pendiente. **Prioridad:** media.
+- **Estado:** hecho (EP-04). **Prioridad:** media.
 - **Evidencia:** [JoseTokenSigner](../../src/Features/OAuth/TokenSecurity/Infrastructure/Driven/JoseTokenSigner.php) puede generar RSA-4096 durante sign/JWKS, hace `echo` de errores OpenSSL e invalida claves de caché globales sin tenant.
 - **Impacto:** latencia/bloqueo en petición, fugas en respuesta y cache cruzada entre tenants.
 - **Por hacer:** job/comando de rotación con ventana dual, aprovisionamiento seguro, fallo controlado sin salida HTTP y caché JWKS por tenant; evitar portar el fallo de clave privada en `kid` advertido para Phylax.

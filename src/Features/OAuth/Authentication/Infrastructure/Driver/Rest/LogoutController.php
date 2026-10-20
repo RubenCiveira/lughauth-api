@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 use Civi\Lughauth\Shared\Context;
@@ -97,7 +99,7 @@ class LogoutController
         $clientId = $query['client_id'] ?? '';
 
         if ($clientId === '' && isset($query['id_token_hint'])) {
-            $payload = $this->keys->parseSignedPayload($tenant, $query['id_token_hint']);
+            $payload = $this->keys->verify($tenant, $query['id_token_hint'], VerificationPolicy::expecting(TokenType::Id)->ignoringTime());
             $clientId = $payload['azp'] ?? '';
         }
 

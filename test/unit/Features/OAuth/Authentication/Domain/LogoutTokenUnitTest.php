@@ -14,12 +14,14 @@ final class LogoutTokenUnitTest extends TestCase
     {
         $signer = new class () implements TokenSigner {
             public ?string $tenant = null;
+            public ?\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type = null;
             public array $data = [];
             public ?DateInterval $expiration = null;
 
-            public function sign(string $tenant, array $data, DateInterval $expiration): string
+            public function sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type, array $data, string $tenant, DateInterval $expiration): string
             {
                 $this->tenant = $tenant;
+                $this->type = $type;
                 $this->data = $data;
                 $this->expiration = $expiration;
                 return 'signed-token';
@@ -32,15 +34,11 @@ final class LogoutTokenUnitTest extends TestCase
             {
                 return 'keypass-token';
             }
-            public function verifyTokenPayload(string $tenant, string $token): ?array
+            public function verify(string $tenant, string $token, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy $policy): ?array
             {
                 return null;
             }
             public function verifiedKeypass(string $tenant, string $token): mixed
-            {
-                return null;
-            }
-            public function parseSignedPayload(string $tenant, string $token): ?array
             {
                 return null;
             }
@@ -57,6 +55,8 @@ final class LogoutTokenUnitTest extends TestCase
 
         $this->assertSame('signed-token', $token);
         $this->assertSame('tenant-one', $signer->tenant);
+        $this->assertSame(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Logout, $signer->type);
+        $this->assertArrayNotHasKey('typ', $signer->data, 'The purpose travels in the JWS header, not in the payload');
         $this->assertSame('https://issuer.example.com', $signer->data['iss']);
         $this->assertSame('user-123', $signer->data['sub']);
         $this->assertSame('client-abc', $signer->data['aud']);

@@ -10,31 +10,36 @@ use DateInterval;
 /**
  * Immutable configuration for the JWT signing key rotation policy.
  *
- * `ttl` defines how long a key remains valid after creation (default: 7 days).
- * `futures` is the number of upcoming keys pre-generated so clients can cache
- * the JWKS without a gap when the active key rolls over. Together these two
- * values determine the total lookahead window: futures * ttl. Increasing
- * `futures` allows clients with longer cache TTLs to keep working without
- * fetching the JWKS again, at the cost of storing more keys in the database.
+ * `ttl` defines how long a key signs (default: 7 days). `futures` is the number of upcoming
+ * keys kept provisioned and published beyond the active one, so clients can cache the JWKS
+ * without a gap when the active key rolls over. `retention` is how long a retired key stays
+ * published, so tokens it signed shortly before retiring still verify.
  */
 class KeyConfig
 {
     /**
-     * How long each signing key remains valid before it must be rotated.
+     * How long each signing key remains active before the next one takes over.
      * Defaults to 7 days; adjust based on the token lifetimes issued by the system.
      */
     public readonly DateInterval $ttl;
 
     /**
-     * Number of future keys to pre-generate beyond the currently active one.
+     * Number of future keys to keep provisioned beyond the currently active one.
      * A higher value gives clients more time to refresh their JWKS cache before
-     * a key becomes invalid, reducing the risk of verification failures during rollover.
+     * a key becomes active, reducing the risk of verification failures during rollover.
      */
     public readonly int $futures;
+
+    /**
+     * How long a key stays published after it stops signing: the maximum lifetime of the
+     * tokens it may have signed (the refresh token family, 30 days).
+     */
+    public readonly DateInterval $retention;
 
     public function __construct()
     {
         $this->futures = 3;
         $this->ttl = new DateInterval("P7D");
+        $this->retention = new DateInterval("P30D");
     }
 }

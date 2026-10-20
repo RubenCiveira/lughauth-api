@@ -158,7 +158,7 @@ class JwtVerifierMiddleware
                         throw new UnauthorizedException(message: $fail);
                     } else {
                         try {
-                            $this->verifyToken($payload);
+                            $this->verifyClaims($payload, $jwt);
                         } catch (UnauthorizedException $e) {
                             $this->logger->warning('JWT rejected: verifyToken failed', ['sub' => $payload->sub ?? null, 'iss' => $payload->iss ?? null, 'aud' => $payload->aud ?? null, 'message' => $e->getMessage()]);
                             throw $e;
@@ -220,7 +220,7 @@ class JwtVerifierMiddleware
                         throw new UnauthorizedException(message: $fail);
                     }
                     try {
-                        $this->verifyToken($payload);
+                        $this->verifyClaims($payload, $jwt);
                     } catch (UnauthorizedException $e) {
                         $this->logger->warning('JWT rejected after JWKS refresh: verifyToken failed', ['sub' => $payload->sub ?? null, 'message' => $e->getMessage()]);
                         throw $e;
@@ -436,6 +436,14 @@ class JwtVerifierMiddleware
         return $item;
     }
 
+    private function verifyClaims(object $payload, JWS $jwt): void
+    {
+        if (!$this->isAccessToken($jwt)) {
+            throw new UnauthorizedException(message: 'The provided JWT is not an access token.');
+        }
+        $this->verifyToken($payload);
+    }
+
     private function verifyToken(object $payload): void
     {
         if ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $payload->iss != $this->requiredIssuer) {
@@ -455,6 +463,14 @@ class JwtVerifierMiddleware
                 throw new UnauthorizedException(message: 'The audience is not valid.');
             }
         }
+    }
+
+    /**
+     * Only access tokens (`typ: at+jwt`) authenticate requests.
+     */
+    private function isAccessToken(JWS $jwt): bool
+    {
+        return ($jwt->getSignature(0)->getProtectedHeader()['typ'] ?? null) === 'at+jwt';
     }
 
     private function extractRoles(object $payload): array

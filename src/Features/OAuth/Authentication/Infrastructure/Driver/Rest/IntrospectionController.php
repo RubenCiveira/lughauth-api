@@ -8,6 +8,8 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use OpenApi\Attributes as OA;
@@ -110,7 +112,7 @@ class IntrospectionController
             );
         }
 
-        $payload = $this->tokenSigner->verifyTokenPayload($tenant, $token);
+        $payload = $this->tokenSigner->verify($tenant, $token, VerificationPolicy::expecting(TokenType::Access, TokenType::Refresh));
         if ($payload === null) {
             return $this->jsonResponse($response, ['active' => false]);
         }

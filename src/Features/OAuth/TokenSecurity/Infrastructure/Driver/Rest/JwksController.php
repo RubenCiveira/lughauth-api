@@ -9,6 +9,7 @@ use DateInterval;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use OpenApi\Attributes as OA;
 
@@ -18,15 +19,13 @@ use OpenApi\Attributes as OA;
  * The JWKS document contains all RSA public keys currently valid for the tenant,
  * allowing external OAuth resource servers and OIDC relying parties to verify
  * tokens without contacting this server on every request. To reduce latency and
- * database load, the serialized JWKS JSON is cached in the injected PSR-16 cache
- * for one hour. The response includes ETag and Cache-Control headers so that
+ * database load, the serialized JWKS JSON is cached per tenant in the injected PSR-16
+ * cache for one hour; the key rotation service invalidates only the rotated tenant's entry. The response includes ETag and Cache-Control headers so that
  * downstream HTTP caches and clients can perform conditional GET requests. Clients
  * should poll this endpoint when they encounter an unknown kid in a JWT header.
  */
 class JwksController
 {
-    private const string CACHE_KEY = 'jwks_public_keyset';
-
     public function __construct(private readonly TokenSigner $tokenHandler, private readonly CacheInterface $cacheInterface)
     {
     }
@@ -65,7 +64,7 @@ class JwksController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $key = self::CACHE_KEY;
+        $key = KeyRotationService::jwksCacheKey($tenant);
         if (!$this->cacheInterface->has($key)) {
             $data = $this->tokenHandler->keysAsJwks($tenant);
             $encoded = json_encode($data);

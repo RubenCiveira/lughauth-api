@@ -7,6 +7,8 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\Revoke
 
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 
 /**
  * Application use case that implements token revocation per RFC 7009.
@@ -34,7 +36,7 @@ class RevokeTokenUsecase
      */
     public function revoke(string $tokenValue, string $clientId, string $tenant): void
     {
-        $payload = $this->tokenSigner->parseSignedPayload($tenant, $tokenValue);
+        $payload = $this->tokenSigner->verify($tenant, $tokenValue, VerificationPolicy::expecting(TokenType::Access, TokenType::Refresh)->ignoringTime());
         if ($payload === null) {
             return;
         }

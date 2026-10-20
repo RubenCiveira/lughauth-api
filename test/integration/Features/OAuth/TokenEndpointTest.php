@@ -67,7 +67,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $token = $body['access_token'];
 
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        $payload = $signer->verifyTokenPayload(self::TENANT, $token);
+        $payload = $signer->verify(self::TENANT, $token, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access));
 
         $this->assertNotNull($payload);
         $this->assertSame(self::CLIENT_ID, $payload['azp']);
@@ -188,7 +188,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
         $body = $this->decodeJson($response);
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        $idTokenPayload = $signer->verifyTokenPayload(self::TENANT, $body['id_token']);
+        $idTokenPayload = $signer->verify(self::TENANT, $body['id_token'], \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Id));
 
         $this->assertNotNull($idTokenPayload);
         $this->assertSame('unique-nonce-xyz', $idTokenPayload['nonce']);
@@ -438,6 +438,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     {
         $client = new ClientData('lughauth-ui', ['authorization_code'], false, tokenEndpointAuthMethod: 'none');
         $this->clientStore->register('lughauth-ui', '', $client);
+        $this->tokenStore->generateKey('main');
         $verifier = bin2hex(random_bytes(32));
         $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
         $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
@@ -641,14 +642,14 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     {
         // Same signing key, but the token was issued under another tenant issuer.
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        $refreshToken = $signer->sign(self::TENANT, [
+        $refreshToken = $signer->sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Refresh, [
             'keypass' => self::USER_ID,
             'azp' => self::CLIENT_ID,
             'iss' => $this->context->getIssuer('tenant2'),
             'token_use' => 'refresh',
             'scope' => ['refresh'],
             'resources' => [],
-        ], new \DateInterval('PT1H'));
+        ], self::TENANT, new \DateInterval('PT1H'));
 
         $response = $this->refresh($refreshToken);
 
@@ -695,7 +696,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     public function testRefreshWithoutSessionIsOnlyAcceptedFromSessionlessGrants(): void
     {
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        $unbound = $signer->sign(self::TENANT, [
+        $unbound = $signer->sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Refresh, [
             'keypass' => self::USER_ID,
             'azp' => self::CLIENT_ID,
             'iss' => $this->context->getIssuer(self::TENANT),
@@ -703,7 +704,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             'origin_grant' => 'authorization_code',
             'scope' => ['refresh'],
             'resources' => [],
-        ], new \DateInterval('PT1H'));
+        ], self::TENANT, new \DateInterval('PT1H'));
         $password = $this->decodeJson($this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             'grant_type' => 'password',
             'client_id' => self::CLIENT_ID,
@@ -897,6 +898,37 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(200, $this->clientCredentials(self::CLIENT_ID, self::CLIENT_SECRET)->getStatusCode());
     }
 
+    public function testIssuedTokensCarryPublishedKidAndTypePerPurpose(): void
+    {
+        $body = $this->redeemCodeWithAudience('api-resource');
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        $published = array_keys($signer->keysAsJwks(self::TENANT)->all());
+
+        foreach (['access_token' => 'at+jwt', 'id_token' => 'JWT', 'refresh_token' => 'refresh+jwt'] as $field => $typ) {
+            $header = $this->header($body[$field]);
+            $this->assertSame($typ, $header['typ'] ?? null, $field);
+            $this->assertSame('RS256', $header['alg'] ?? null, $field);
+            $this->assertContains($header['kid'] ?? null, $published, "$field must reference a key published in the tenant JWKS");
+            $this->assertArrayNotHasKey('typ', $this->payload($body[$field]), "$field must not carry typ in the payload");
+        }
+    }
+
+    public function testRefreshGrantRejectsAccessAndIdTokens(): void
+    {
+        $body = $this->redeemCodeWithAudience('api-resource');
+
+        $this->assertNotSame(200, $this->refreshStatus($body['access_token']));
+        $this->assertNotSame(200, $this->refreshStatus($body['id_token']));
+        $this->assertSame(200, $this->refreshStatus($body['refresh_token']));
+    }
+
+    /** @return array<string, mixed> */
+    private function header(string $token): array
+    {
+        $encoded = explode('.', $token)[0];
+        return json_decode(base64_decode(strtr($encoded, '-_', '+/')), true) ?? [];
+    }
+
     /**
      * Registers a confidential client authenticated with client_secret_post and secret "<id>-secret".
      */
@@ -948,7 +980,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
         // Fresh jti and time claims: a new token of the same family.
         unset($payload['jti'], $payload['iat'], $payload['nbf'], $payload['exp']);
-        return $signer->sign(self::TENANT, $payload, new \DateInterval('PT1H'));
+        return $signer->sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Refresh, $payload, self::TENANT, new \DateInterval('PT1H'));
     }
 
     /** @return array{status: int, body: array} */
@@ -1033,6 +1065,6 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     private function payload(string $token): array
     {
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        return $signer->verifyTokenPayload(self::TENANT, $token) ?? [];
+        return $signer->verify(self::TENANT, $token, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Id, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Refresh)) ?? [];
     }
 }

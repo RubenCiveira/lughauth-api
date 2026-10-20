@@ -53,6 +53,7 @@ abstract class OidcIntegrationTestCase extends TestCase
     protected InMemoryLoginGateway $loginGateway;
     protected \DI\Container $container;
     protected Context $context;
+    protected CacheInterface $cache;
 
     protected function setUp(): void
     {
@@ -76,7 +77,7 @@ abstract class OidcIntegrationTestCase extends TestCase
 
         $tokenStore = $this->tokenStore;
         $keyConfig = new KeyConfig();
-        $cache = new class () implements CacheInterface {
+        $this->cache = $cache = new class () implements CacheInterface {
             private array $items = [];
 
             public function get(string $key, mixed $default = null): mixed
@@ -133,7 +134,7 @@ abstract class OidcIntegrationTestCase extends TestCase
             }
         };
 
-        $signer = new JoseTokenSigner($keyConfig, $tokenStore, $cache);
+        $signer = new JoseTokenSigner($keyConfig, $tokenStore);
 
         $builder->addDefinitions([
             ClientStoreGateway::class => $this->clientStore,
@@ -146,6 +147,7 @@ abstract class OidcIntegrationTestCase extends TestCase
             LoginGateway::class => $this->loginGateway,
             DeviceAuthorizationGateway::class => new InMemoryDeviceAuthorizationGateway(),
             KeyConfig::class => $keyConfig,
+            CacheInterface::class => $cache,
             JoseTokenSigner::class => $signer,
             Context::class => $this->context,
             AppConfig::class => $config,

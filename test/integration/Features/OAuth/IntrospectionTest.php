@@ -23,7 +23,7 @@ class IntrospectionTest extends OidcIntegrationTestCase
 
     private function issueAccessToken(string $sub = self::USER_ID, string $scope = 'openid profile'): string
     {
-        return $this->signer->sign(self::TENANT, [
+        return $this->signer->sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access, [
             'sub' => $sub,
             'azp' => self::CLIENT_ID,
             'iss' => 'http://localhost/oauth/openid/' . self::TENANT,
@@ -31,7 +31,7 @@ class IntrospectionTest extends OidcIntegrationTestCase
             'scope' => $scope,
             'roles' => [],
             'groups' => [],
-        ], new \DateInterval('PT10M'));
+        ], self::TENANT, new \DateInterval('PT10M'));
     }
 
     private function introspect(string $token, array $clientAuth = []): \Psr\Http\Message\ResponseInterface
@@ -78,7 +78,7 @@ class IntrospectionTest extends OidcIntegrationTestCase
     public function testRevokedTokenIsInactive(): void
     {
         $token = $this->issueAccessToken();
-        $payload = $this->signer->parseSignedPayload(self::TENANT, $token);
+        $payload = $this->signer->verify(self::TENANT, $token, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access));
         $jti = $payload['jti'];
 
         $this->tokenRevocation->revokeJti($jti, self::TENANT, 'access_token', new \DateTimeImmutable('+10 minutes'));

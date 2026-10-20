@@ -5,27 +5,31 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway;
 
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Jose\Component\Core\JWKSet;
 
 /**
  * Port for signing and verifying JWTs using the tenant's active key pair.
  *
- * `sign` produces a standard access/ID token; `signKeypass` produces a
- * session-scoped internal token (keypass) used to carry challenges between
- * redirect steps without exposing them in the URL.
- * `parseSignedPayload` bypasses time checks — use only in revocation flows.
- * Implementations are responsible for key rotation and must ensure that the
- * JWKS returned by `keysAsJwks` contains all keys still needed for verification,
- * including recently expired ones whose tokens may still be in flight.
+ * Every token is signed for one purpose (TokenType), written with the signing key's `kid` in
+ * the JWS header, and verified against the purposes the consumer accepts. `signKeypass`
+ * produces the internal pre-session token used to carry challenges between redirect steps.
+ * Signing never creates keys: they are provisioned ahead of time by the key rotation service,
+ * and the JWKS returned by `keysAsJwks` contains every key still needed for verification,
+ * including future keys and recently retired ones whose tokens may still be in flight.
  */
 interface TokenSigner
 {
     /**
-     * Signs the given payload claims as a compact JWS using the tenant's current active key.
-     * Standard time claims (iat, nbf, exp, jti) are automatically injected and must not
-     * be included in the provided data array.
+     * Signs the claims as a compact JWS with the tenant's active key, writing `kid`, `alg` and
+     * `typ` (from the token type) in the header. Standard time claims (iat, nbf, exp, jti) are
+     * injected unless provided. Pre-session tokens must be signed with `signKeypass`.
+     *
+     * @throws \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Exception\NoActiveKeyException
+     *         when the tenant has no active signing key.
      */
-    public function sign(string $tenant, array $data, \DateInterval $expiration): string;
+    public function sign(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string;
 
     /**
      * Returns the JSON Web Key Set containing all public keys valid for the tenant.
@@ -35,29 +39,20 @@ interface TokenSigner
     public function keysAsJwks(string $tenant): JWKSet;
 
     /**
-     * Signs a keypass token — an internal short-lived JWT that wraps challenge data
-     * as a nested "keypass" claim, preventing it from being confused with access tokens.
-     * Used to safely pass challenge state across OIDC redirect hops.
+     * Signs a pre-session token, an internal short-lived JWT that wraps challenge data
+     * as a nested "keypass" claim. Used to safely pass challenge state across OIDC redirect hops.
      */
     public function signKeypass(string $tenant, array $data, \DateInterval $expiration): string;
 
     /**
-     * Verifies a JWT signature and validates its time claims (nbf/exp).
-     * Returns the decoded payload array on success, or null if the token is invalid,
-     * expired, or not yet valid.
+     * Verifies the signature, the purpose and (unless the policy ignores it) the nbf/exp window.
+     * Returns the payload claims, or null if the token fails any of those checks.
      */
-    public function verifyTokenPayload(string $tenant, string $token): ?array;
+    public function verify(string $tenant, string $token, VerificationPolicy $policy): ?array;
 
     /**
-     * Verifies and unwraps a keypass token, returning only the inner "keypass" claim value.
-     * Returns null if the token is invalid, expired, or does not contain a keypass claim.
+     * Verifies and unwraps a pre-session token, returning only the inner "keypass" claim value.
+     * Returns null if the token is invalid, expired, of another purpose or has no keypass claim.
      */
     public function verifiedKeypass(string $tenant, string $token): mixed;
-
-    /**
-     * Verifies the JWT signature but ignores time validity (exp/nbf).
-     * Returns the payload claims or null if the signature is invalid.
-     * Use for revocation flows where expired tokens must still be parseable.
-     */
-    public function parseSignedPayload(string $tenant, string $token): ?array;
 }

@@ -14,13 +14,15 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorizationGrantType;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
 
 /**
  * Token granter strategy for the OAuth 2.0 refresh_token grant type.
  *
- * Validates an incoming refresh token by verifying its signature and requiring its JTI and
+ * Validates an incoming refresh token by verifying its signature and purpose and requiring its JTI and
  * family (fid) claims. A token bound to a browser session (sid claim) is only accepted while
  * that session is still active under the tenant issuer, belongs to the same user and was opened
  * or joined through SSO by the requesting client, so logging out stops further refreshes. Only
@@ -71,7 +73,7 @@ class ResolverForRefresh implements TokenGranterStrategy
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {
         $token = $params['refresh_token'];
-        $payload = $this->manager->verifyTokenPayload($tenant, $token);
+        $payload = $this->manager->verify($tenant, $token, VerificationPolicy::expecting(TokenType::Refresh));
         $key = $payload['keypass'] ?? null;
         if ($key === null || $key === '') {
             return AuthenticationResult::wrongCredentials($tenant, '');

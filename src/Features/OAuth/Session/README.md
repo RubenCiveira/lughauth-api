@@ -35,7 +35,7 @@ This context owns **session state** across the authorization flow. It tracks whi
 
 - Authorization codes are **single-use**: consumed on the first token exchange.
 - Sessions carry an explicit `withMfa` flag; token issuance may require MFA-verified sessions for sensitive clients.
-- Signing keys rotate on a schedule; expired keys are removed by `OAuthCleanupScheduler` to prevent unbounded growth.
+- Signing keys rotate on a schedule; expired keys are removed by TokenSecurity's `KeyRotationService` to prevent unbounded growth.
 
 ## Interactions with Other Contexts
 

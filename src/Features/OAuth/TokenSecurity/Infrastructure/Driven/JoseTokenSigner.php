@@ -6,14 +6,16 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven;
 
 use Override;
-use Psr\SimpleCache\CacheInterface;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Exception\NoActiveKeyException;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\JWS;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\Algorithm\RS256;
@@ -24,85 +26,45 @@ use Ramsey\Uuid\Uuid;
 /**
  * TokenSigner implementation backed by the web-token/jwt-framework (JOSE) library.
  *
- * Produces and verifies RS256 compact-serialized JWTs using RSA 4096-bit key pairs
- * that are lazily rotated on every operation. Before each sign or key-listing call,
- * the adapter inspects the current key coverage window and generates as many future
- * keys as needed to satisfy the KeyConfig lookahead (futures * ttl). This on-demand
- * rotation avoids the need for a separate cron job while guaranteeing that JWKS
- * consumers always find a valid key. Private keys are generated via PHP's openssl
- * extension and stored through the injected TokenStoreGateway.
+ * Produces and verifies RS256 compact-serialized JWTs. Each token is signed with the tenant's
+ * active key and carries that key's `kid` and the token purpose (`typ`) in its header, so
+ * relying parties pick the right key during rotation and each consumer rejects tokens issued
+ * for another purpose. This adapter never creates keys: when the tenant has no active key,
+ * signing fails with NoActiveKeyException and an error log, and the key rotation service is
+ * expected to provision one. Tokens without `kid` or `typ` (issued before EP-04) are rejected.
  */
 class JoseTokenSigner implements TokenSigner
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly KeyConfig $config,
-        private readonly TokenStoreGateway $repository,
-        private readonly CacheInterface $cache
+        private readonly TokenStoreGateway $repository
     ) {
     }
 
     /**
      * Signs the payload as a compact RS256 JWT, injecting standard time claims automatically.
-     * Triggers key rotation checks before signing to ensure an active key is always available.
-     * Throws NoActiveKeyException if, after rotation, no current key can be found.
      */
     #[Override]
-    public function sign(string $tenant, array $data, \DateInterval $expiration): string
+    public function sign(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string
     {
-        if ($this->checkNewNeeded($tenant)) {
-            $this->cache->deleteMultiple(['jwks_public_keyset', 'jwks.verify.publickey']);
+        if ($type === TokenType::PreSession) {
+            throw new \InvalidArgumentException('Pre-session tokens are signed with signKeypass');
         }
-        $key = $this->repository->currentKey($tenant);
-        if (!$key) {
-            throw new NoActiveKeyException('There is no active key for tenant: ' . $tenant);
-        }
-        // Crear el gestor de algoritmos con RS256
-        $privateKeyContent = JWKFactory::createFromKey($key->privateKey);
-
-        $algorithmManager = new AlgorithmManager([new RS256()]);
-
-        // Crear un JWT Builder
-        $jwsBuilder = new JWSBuilder($algorithmManager);
-
-        $initial = new \DateTimeImmutable();
-        $end = $initial->add($expiration);
-        $data = array_merge(['typ' => 'Bearer',
-                'jti' => Uuid::uuid4()->toString(),
-                'iat' => $initial->getTimestamp(),
-                'nbf' => $initial->getTimestamp(),
-                'exp' => $end->getTimestamp()], $data);
-        foreach ($data as $k => $v) {
-            if (null === $v) {
-                unset($data[$k]);
-            }
-        }
-        // Payload del JWT
-        $encoded = json_encode($data);
-        $payload = $encoded !== false ? $encoded : '{}';
-        // Construir y firmar el token
-        $token = $jwsBuilder->create() // Crear el JWS
-                    ->withPayload($payload) // Establecer el payload
-                    ->addSignature($privateKeyContent, ['alg' => 'RS256']) // Añadir la firma
-                    ->build();
-
-        // Serializar el token a formato compacto
-        $serializer = new CompactSerializer();
-        return $serializer->serialize($token, 0);
+        return $this->signAs($type, $claims, $tenant, $expiration);
     }
 
     /**
-     * Builds and returns the JWKS containing all currently valid public keys for the tenant.
-     * Triggers key rotation if necessary so the set always covers the full lookahead window.
+     * Builds and returns the JWKS with every key the tenant publishes: future keys, the active
+     * one and retired keys still inside the retention window.
      */
     #[Override]
     public function keysAsJwks(string $tenant): JWKSet
     {
-        if ($this->checkNewNeeded($tenant)) {
-            $this->cache->deleteMultiple(['jwks_public_keyset', 'jwks.verify.publickey']);
-        }
         $keys = [];
-        $result = $this->repository->listKeys($tenant);
-        foreach ($result as $pk) {
+        $published = $this->repository->listKeys($tenant, (new \DateTimeImmutable())->sub($this->config->retention));
+        foreach ($published as $pk) {
             $keys[] = JWKFactory::createFromKey(
                 $pk->publicKey,
                 null,
@@ -113,137 +75,92 @@ class JoseTokenSigner implements TokenSigner
     }
 
     /**
-     * Signs a keypass token by wrapping the given data under a "keypass" top-level claim.
-     * This nesting distinguishes internal session tokens from standard access/ID tokens.
+     * Signs a pre-session token by wrapping the given data under a "keypass" top-level claim.
      */
     #[Override]
     public function signKeypass(string $tenant, array $data, \DateInterval $expiration): string
     {
-        return $this->sign($tenant, ['keypass' => $data], $expiration);
+        return $this->signAs(TokenType::PreSession, ['keypass' => $data], $tenant, $expiration);
     }
 
     /**
-     * Verifies an RS256 JWT signature and enforces the nbf/exp time window.
-     * Returns the decoded payload claims on success, or null if verification fails for any reason.
+     * Verifies an RS256 JWT signature against the published key named by its `kid`, its purpose and,
+     * unless the policy ignores it, its nbf/exp window.
      */
     #[Override]
-    public function verifyTokenPayload(string $tenant, string $token): ?array
+    public function verify(string $tenant, string $token, VerificationPolicy $policy): ?array
     {
-        $jwkSet = $this->keysAsJwks($tenant);
-        $serializer = new CompactSerializer();
         try {
-            $jwt = $serializer->unserialize($token);
+            $jws = (new CompactSerializer())->unserialize($token);
+            $keys = $this->keysAsJwks($tenant);
+            // A token names its key: it only verifies against that published key.
+            $kid = $jws->getSignature(0)->getProtectedHeader()['kid'] ?? null;
+            if (!is_string($kid) || !$keys->has($kid)) {
+                return null;
+            }
+            $jwsVerifier = new JWSVerifier(new AlgorithmManager([new RS256()]));
+            if (!$jwsVerifier->verifyWithKeySet($jws, new JWKSet([$keys->get($kid)]), 0)) {
+                return null;
+            }
         } catch (\InvalidArgumentException) {
+            // Malformed token, or a tenant that publishes no keys.
             return null;
         }
-        $algorithmManager = new AlgorithmManager([new RS256()]);
-        $jwsVerifier = new JWSVerifier($algorithmManager);
-        if (!$jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0)) {
+        $payload = json_decode($jws->getPayload() ?? '', true);
+        if (!is_array($payload) || !$this->hasAcceptedPurpose($jws, $policy)) {
             return null;
         }
-        $payload = json_decode($jwt->getPayload() ?? '{}', true);
-        $nbf = $payload['nbf'] ?? null;
-        $exp = $payload['exp'] ?? null;
-        if ($nbf === null || $exp === null) {
-            return null;
-        }
-        $now = time();
-        if ($now < $nbf || $now > $exp) {
-            return null;
+        if ($policy->checkTime) {
+            $nbf = $payload['nbf'] ?? null;
+            $exp = $payload['exp'] ?? null;
+            $now = time();
+            if ($nbf === null || $exp === null || $now < $nbf || $now > $exp) {
+                return null;
+            }
         }
         return $payload;
     }
 
     /**
-     * Unwraps a verified keypass token and returns the inner "keypass" claim value.
-     * Returns null if the token is invalid, expired, or lacks the keypass claim.
+     * Unwraps a verified pre-session token and returns the inner "keypass" claim value.
      */
     #[Override]
     public function verifiedKeypass(string $tenant, string $token): mixed
     {
-        $payload = $this->verifyTokenPayload($tenant, $token);
+        $payload = $this->verify($tenant, $token, VerificationPolicy::expecting(TokenType::PreSession));
         return $payload['keypass'] ?? null;
     }
 
-    /**
-     * Verifies an RS256 JWT signature without checking time claims (nbf/exp).
-     * Returns the raw payload array or null if the signature is invalid.
-     * Intended exclusively for revocation flows that must parse already-expired tokens.
-     */
-    #[Override]
-    public function parseSignedPayload(string $tenant, string $token): ?array
+    private function signAs(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string
     {
-        $jwkSet = $this->keysAsJwks($tenant);
-        $serializer = new CompactSerializer();
-        try {
-            $jwt = $serializer->unserialize($token);
-        } catch (\InvalidArgumentException) {
-            return null;
+        $key = $this->repository->currentKey($tenant);
+        if (!$key) {
+            $this->logError('There is no active signing key for tenant ' . $tenant . '; the key rotation must provision one');
+            throw new NoActiveKeyException('There is no active key for tenant: ' . $tenant);
         }
-        $algorithmManager = new AlgorithmManager([new RS256()]);
-        $jwsVerifier = new JWSVerifier($algorithmManager);
-        if (!$jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0)) {
-            return null;
-        }
-        $payload = json_decode($jwt->getPayload() ?? '{}', true);
-        return is_array($payload) ? $payload : null;
+        $initial = new \DateTimeImmutable();
+        $data = array_merge([
+                'jti' => Uuid::uuid4()->toString(),
+                'iat' => $initial->getTimestamp(),
+                'nbf' => $initial->getTimestamp(),
+                'exp' => $initial->add($expiration)->getTimestamp()], $claims);
+        $data = array_filter($data, static fn (mixed $v): bool => $v !== null);
+        $encoded = json_encode($data);
+        $token = (new JWSBuilder(new AlgorithmManager([new RS256()])))->create()
+                    ->withPayload($encoded !== false ? $encoded : '{}')
+                    ->addSignature(JWKFactory::createFromKey($key->privateKey), [
+                        'alg' => $key->alg,
+                        'kid' => $key->kid,
+                        'typ' => $type->value,
+                    ])
+                    ->build();
+        return (new CompactSerializer())->serialize($token, 0);
     }
 
-    private function checkNewNeeded(string $tenant): bool
+    private function hasAcceptedPurpose(JWS $jws, VerificationPolicy $policy): bool
     {
-        $expected = new \DateTime();
-        for ($i = 0; $i < $this->config->futures; $i++) {
-            $expected = $expected->add($this->config->ttl);
-        }
-        $end = $this->repository->nextKeysExpiration($tenant);
-        if ($expected > $end) {
-            $since = (new \DateTimeImmutable())->setTimestamp(time() - 3600);
-            $differenceInSeconds = $expected->getTimestamp() - $since->getTimestamp();
-            $intervalInSeconds = $this->intervalInSeconds($this->config->ttl);
-            $numberOfIntervals = (int) ceil($differenceInSeconds / $intervalInSeconds);
-            for ($i = 0; $i < $numberOfIntervals + 1; $i++) {
-                $pair = $this->createKeyPair();
-                $this->repository->saveKey($tenant, $pair, $since, $this->config->ttl);
-                $since = $since->add($this->config->ttl);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private function createKeyPair(): KeyPair
-    {
-        $privateKeyResource = openssl_pkey_new([
-            'private_key_type' => OPENSSL_KEYTYPE_RSA,
-            'private_key_bits' => 4096,
-        ]);
-        if ($privateKeyResource === false) {
-            while ($msg = openssl_error_string()) {
-                echo "OpenSSL error: $msg\n";
-            }
-            throw new \RuntimeException('No se pudo generar la clave RSA');
-        }
-        // Exportar claves
-        openssl_pkey_export($privateKeyResource, $privateKey);
-        $details = openssl_pkey_get_details($privateKeyResource);
-        $publicKey = $details !== false ? $details['key'] : '';
-        return new KeyPair(
-            kid: Uuid::uuid4()->toString(),
-            alg: 'RS256',
-            keyUse: 'sig',
-            privateKey: $privateKey,
-            publicKey: $publicKey
-        );
-    }
-
-    private function intervalInSeconds(\DateInterval $range): int
-    {
-        return $range->y * 31536000
-                   + $range->m * 2419200
-                   + $range->d * 86400
-                   + $range->h * 3600
-                   + $range->i * 60
-                   + $range->s;
-
+        $typ = $jws->getSignature(0)->getProtectedHeader()['typ'] ?? null;
+        $type = is_string($typ) ? TokenType::tryFrom($typ) : null;
+        return $type !== null && $policy->accepts($type);
     }
 }

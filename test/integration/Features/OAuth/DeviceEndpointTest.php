@@ -234,7 +234,7 @@ class DeviceEndpointTest extends OidcIntegrationTestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
-        $payload = $signer->verifyTokenPayload(self::TENANT, $this->decodeJson($response)['access_token']);
+        $payload = $signer->verify(self::TENANT, $this->decodeJson($response)['access_token'], \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access));
         $this->assertSame(self::CLIENT_ID, $payload['aud']);
     }
 }

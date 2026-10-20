@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 
 /**
  * Builds OIDC Back-Channel Logout tokens (logout+jwt) per the OIDC Back-Channel Logout 1.0 spec.
@@ -38,13 +39,12 @@ final class LogoutToken
         string $clientId,
         string $sessionId,
     ): string {
-        return $signer->sign($tenant, [
-            'typ'    => 'logout+jwt',
+        return $signer->sign(TokenType::Logout, [
             'iss'    => $issuer,
             'sub'    => $subject,
             'aud'    => $clientId,
             'sid'    => $sessionId,
             'events' => ['http://schemas.openid.net/event/backchannel-logout' => new \stdClass()],
-        ], new \DateInterval('PT5M'));
+        ], $tenant, new \DateInterval('PT5M'));
     }
 }

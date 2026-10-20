@@ -207,6 +207,54 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     /**
      * Ensures valid JWTs are verified and accepted.
      */
+    /** @return array<string, array{string}> */
+    public static function nonAccessTypes(): array
+    {
+        return [
+            'id token' => ['JWT'],
+            'refresh token' => ['refresh+jwt'],
+            'logout token' => ['logout+jwt'],
+            'pre-session token' => ['presession+jwt'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('nonAccessTypes')]
+    public function testRejectsValidTokenOfAnotherPurpose(string $typ): void
+    {
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt($claims, $key, $typ)));
+    }
+
+    public function testRejectsUntypedToken(): void
+    {
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'typ' => 'Bearer'], $key, null)));
+    }
+
+    public function testAcceptsAccessToken(): void
+    {
+        $this->assertTrue($this->authenticates(fn ($key, $claims) => $this->jwt($claims, $key)));
+    }
+
+    /**
+     * Runs the middleware with a signed, otherwise valid token built by $token(key, claims).
+     */
+    private function authenticates(\Closure $token): bool
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $claims = ['sub' => 'user', 'iss' => 'issuer', 'aud' => 'aud1', 'azp' => 'app', 'tenant' => 'main', 'nbf' => time() - 10, 'exp' => time() + 1000];
+        $cache = new ArrayCache(['jwks.verify.publickey' => json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR)]);
+        $context = $this->createStub(Context::class);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context);
+        try {
+            $middleware($this->request('Bearer ' . $token($key, $claims)), $this->handler());
+            return true;
+        } catch (UnauthorizedException) {
+            return false;
+        }
+    }
+
     public function testVerifyAuthSuccessFlow(): void
     {
         /*
@@ -1133,13 +1181,17 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         };
     }
 
-    private function jwt(array $payload, $key): string
+    private function jwt(array $payload, $key, ?string $typ = 'at+jwt'): string
     {
+        $header = ['alg' => 'RS256', 'kid' => 'k1'];
+        if ($typ !== null) {
+            $header['typ'] = $typ;
+        }
         $jwsBuilder = new JWSBuilder(new AlgorithmManager([new RS256()]));
         $jws = $jwsBuilder
             ->create()
             ->withPayload(json_encode($payload, JSON_THROW_ON_ERROR))
-            ->addSignature($key, ['alg' => 'RS256', 'kid' => 'k1'])
+            ->addSignature($key, $header)
             ->build();
 
         return (new CompactSerializer())->serialize($jws, 0);

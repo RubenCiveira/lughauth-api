@@ -1,6 +1,6 @@
 # 025 — Emitir y verificar `kid` y propósito de cada JWT
 
-- **Estado:** pendiente. **Prioridad:** crítica.
+- **Estado:** hecho (EP-04). **Prioridad:** crítica.
 - **Evidencia:** [JoseTokenSigner::sign](../../src/Features/OAuth/TokenSecurity/Infrastructure/Driven/JoseTokenSigner.php) firma con cabecera solo `alg` pese a publicar `kid`; payload por defecto `typ=Bearer`; [TokenController](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) firma access/id/refresh con el mismo mecanismo y apenas un grant fija `token_use`.
 - **Impacto:** RP no selecciona la clave durante rotación y tokens de diferente uso pueden confundirse.
 - **Por hacer:** cabecera `kid` real y `typ` adecuado, propósito obligatorio validado en cada consumidor (incluidos pre-sesión y logout), compatibilidad acotada para tokens viejos.

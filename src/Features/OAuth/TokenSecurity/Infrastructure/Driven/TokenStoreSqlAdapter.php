@@ -14,86 +14,67 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 /**
  * SQL-backed adapter for the TokenStoreGateway port.
  *
- * Stores and retrieves JWT signing key pairs from the `_oauth_keys_storer` table,
- * where each row represents a key with an explicit validity window (since / expiration).
- * The constructor immediately purges keys that expired more than one hour ago, acting
- * as lightweight housekeeping so the table does not grow unboundedly. When `useTenant`
- * is false (current default) all operations collapse to a single shared tenant key "-",
- * making the adapter work correctly in single-tenant deployments without code changes.
+ * Stores and retrieves JWT signing key pairs from the `_oauth_keys_storer` table, where each row
+ * is a tenant's key with an explicit validity window (since / expiration). Purging is driven by
+ * the key rotation service, never by the requests that sign or verify.
+ *
+ * Before keys were per tenant, every tenant shared the keys stored under {@see LEGACY_TENANT}.
+ * They stay published until they leave the retention window and get purged, and a tenant whose
+ * own keys are not provisioned yet keeps signing with the active one, so the switch to
+ * per-tenant keys needs no downtime. No new key is ever stored under that tenant.
  * Key material (private and public PEM strings) is stored as plain text; ensure the
  * underlying database is encrypted at rest and access-controlled accordingly.
  */
 class TokenStoreSqlAdapter implements TokenStoreGateway
 {
-    private readonly bool $useTenant;
+    private const string LEGACY_TENANT = '-';
+
     public function __construct(
         private readonly \PDO $pdo
     ) {
-        $this->useTenant = false;
-        $this->clearTemp();
     }
 
     /**
-     * Returns the key pair whose validity window contains the current timestamp.
-     * Returns null when no active key exists, signalling the signer to generate one.
+     * Returns the most recent key pair whose validity window contains the current timestamp,
+     * preferring the tenant's own keys over the legacy shared ones.
      */
     #[Override]
     public function currentKey(string $tenant): ?KeyPair
     {
-        if (!$this->useTenant) {
-            $tenant = "-";
-        }
-        $since = new DateTime();
-        $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and since <= :since and tenant = :tenant');
-        $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE tenant IN (:tenant, :legacy) and since <= :now and expiration >= :now ORDER BY tenant = :own DESC, since DESC LIMIT 1');
+        $stmt->bindValue('now', (new DateTime())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue('tenant', $tenant);
+        $stmt->bindValue('own', $tenant);
+        $stmt->bindValue('legacy', self::LEGACY_TENANT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $this->map($row) : null;
+    }
+
+    #[Override]
+    public function latestExpiration(string $tenant): ?\DateTimeImmutable
+    {
+        $stmt = $this->pdo->prepare('SELECT MAX(expiration) as expiration FROM _oauth_keys_storer WHERE tenant = :tenant');
         $stmt->bindValue('tenant', $tenant);
         $stmt->execute();
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            return $this->map($row);
-        } else {
-            return null;
-        }
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row && $row['expiration'] ? new \DateTimeImmutable($row['expiration']) : null;
     }
 
     /**
-     * Returns the maximum expiration timestamp of all future keys for the tenant.
-     * Falls back to the current instant when no future keys exist, triggering generation.
+     * Returns the tenant's keys (plus the legacy shared ones) expiring after the given instant.
      */
     #[Override]
-    public function nextKeysExpiration(string $tenant): \DateTimeImmutable
+    public function listKeys(string $tenant, \DateTimeImmutable $expiringAfter): array
     {
-        if (!$this->useTenant) {
-            $tenant = "-";
-        }
-        $since = new DateTime();
-        $stmt = $this->pdo->prepare('SELECT MAX(expiration) as expiration FROM _oauth_keys_storer WHERE since >= :since and tenant = :tenant');
-        $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE tenant IN (:tenant, :legacy) and expiration >= :after ORDER BY since');
+        $stmt->bindValue('after', $expiringAfter->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
+        $stmt->bindValue('legacy', self::LEGACY_TENANT);
         $stmt->execute();
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            return $row['expiration'] ? new \DateTimeImmutable($row['expiration']) : new \DateTimeImmutable();
-        } else {
-            return new \DateTimeImmutable();
-        }
-    }
-
-    /**
-     * return PublicKey[]
-    */
-    #[Override]
-    public function listKeys(string $tenant): array
-    {
-        if (!$this->useTenant) {
-            $tenant = "-";
-        }
         $result = [];
-        $since = new DateTime();
-        $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and tenant = :tenant');
-        $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $stmt->bindValue('tenant', $tenant);
-        $stmt->execute();
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $result[] = $this->map($row);// new KeyPair(kid: $row['keyid'], alg: 'RS256', keyUse: 'sig', publicKey: $row['public'], privateKey: $row['private'] );
+            $result[] = $this->map($row);
         }
         return $result;
     }
@@ -105,9 +86,6 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
     #[Override]
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void
     {
-        if (!$this->useTenant) {
-            $tenant = "-";
-        }
         $stmt = $this->pdo->prepare('INSERT INTO _oauth_keys_storer (expiration, since, keyid, private, public, tenant) VALUES (:expiration, :since, :keyid, :private, :public, :tenant)');
         $stmt->bindValue('since', $start->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('expiration', $start->add($caducidad)->format('Y-m-d H:i:s'), PDO::PARAM_STR);
@@ -118,13 +96,19 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         $stmt->execute();
     }
 
-    private function clearTemp(): void
+    #[Override]
+    public function purgeExpired(\DateTimeImmutable $before): void
     {
-        $now = new DateTime();
-        $expires = $now->sub(new \DateInterval('PT1H'));
-        $stmt = $this->pdo->prepare('DELETE FROM _oauth_keys_storer WHERE expiration < :expiration');
-        $stmt->bindValue('expiration', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt = $this->pdo->prepare('DELETE FROM _oauth_keys_storer WHERE expiration < :before');
+        $stmt->bindValue('before', $before->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
+    }
+
+    #[Override]
+    public function tenantsToProvision(): array
+    {
+        $stmt = $this->pdo->query('SELECT name FROM access_tenant WHERE enabled = 1 AND mark_for_delete = 0');
+        return $stmt === false ? [] : array_values(array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
     }
 
     private function map(array $row): KeyPair
