@@ -17,8 +17,6 @@ final class UserDomainUnitTest extends TestCase
     public function test_public_login_auth_response_stores_fields(): void
     {
         $auth = new AuthenticationResult(valid: true, id: 'user-1', tenant: 'tenant');
-        $authExp = new DateInterval('PT1H');
-        $idExp = new DateInterval('PT2H');
         $sessExp = new DateInterval('P1D');
 
         $resp = new PublicLoginAuthResponse(
@@ -26,9 +24,6 @@ final class UserDomainUnitTest extends TestCase
             auth: $auth,
             issuer: 'https://auth.example.com/openid/tenant',
             clientId: 'my-client',
-            authExpiration: $authExp,
-            idData: ['name' => 'Alice'],
-            idExpiration: $idExp,
             sessionId: 'sess-123',
             sessionExpiration: $sessExp,
         );
@@ -38,27 +33,6 @@ final class UserDomainUnitTest extends TestCase
         $this->assertSame('https://auth.example.com/openid/tenant', $resp->issuer);
         $this->assertSame('my-client', $resp->clientId);
         $this->assertSame('sess-123', $resp->sessionId);
-        $this->assertSame(['name' => 'Alice'], $resp->idData);
-    }
-
-    public function test_public_login_auth_response_access_token_claims(): void
-    {
-        $auth = new AuthenticationResult(valid: true, id: 'user-1', tenant: 'tenant');
-        $resp = new PublicLoginAuthResponse(
-            tenant: 'tenant',
-            auth: $auth,
-            issuer: 'https://auth.example.com/openid/tenant',
-            clientId: 'client',
-            authExpiration: new DateInterval('PT1H'),
-            idData: [],
-            idExpiration: new DateInterval('PT1H'),
-            sessionId: 'sess',
-            sessionExpiration: new DateInterval('P1D'),
-        );
-
-        $claims = $resp->accessTokenClaims();
-        $this->assertArrayHasKey('sub', $claims);
-        $this->assertSame('user-1', $claims['sub']);
     }
 
     // --- RecoveryNotificationData ---

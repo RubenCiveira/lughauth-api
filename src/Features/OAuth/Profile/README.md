@@ -12,7 +12,7 @@ This context owns the **user self-service surface**: reading and updating OIDC s
 |---|---|---|
 | `OidcProfile` | Entity | Full OIDC profile: `uid`, `userUid`, `givenName`, `familyName`, `middleName`, `nickname`, `preferredUsername`, `pictureUrl`, `websiteUrl`, `gender`, `birthdate`, `zoneinfo`, `locale`, `phoneNumber`, `phoneNumberVerified`, `addressJson`, `updatedAt`, `version` |
 | `OidcProfileData` | ValueObject | Mutable subset of `OidcProfile` used for update operations |
-| `ActiveSession` | ValueObject | A live session: session id, client, creation time, last activity, device metadata |
+| `ActiveSession` | ValueObject | A live session: public sid (never the cookie), client, creation time, last activity, device metadata |
 | `MfaSetup` | ValueObject | Current MFA enrollment state for the user |
 
 ## Ports (Gateways)
@@ -20,7 +20,7 @@ This context owns the **user self-service surface**: reading and updating OIDC s
 | Gateway | Responsibility |
 |---|---|
 | `ProfileGateway` | Read and update the user's OIDC profile |
-| `SessionsGateway` | List active sessions; revoke individual sessions |
+| `SessionsGateway` | List active sessions; revoke individual sessions of the same user by sid |
 | `PasswordGateway` | Change the user's password (current + new) |
 | `MfaGateway` | Read and update MFA method enrollment |
 

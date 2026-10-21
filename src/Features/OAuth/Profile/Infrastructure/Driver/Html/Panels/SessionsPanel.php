@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\ActiveSession;
  *
  * This panel renders each of a user's active OAuth sessions as a card showing the
  * associated client name, IP address, user agent, last-used timestamp, and expiration
- * date.  The current session (identified by $currentSessionId) is highlighted with a
+ * date.  The current session (identified by its public sid, $currentSid) is highlighted with a
  * badge and its revoke button is replaced by a "this device" label to prevent
  * self-lockout.
  *
@@ -32,24 +32,24 @@ class SessionsPanel
      *
      * @param ActiveSession[] $sessions
      */
-    public function render(array $sessions, string $revokeBaseUrl, string $cancelUrl, ?string $currentSessionId = null, array $t = []): string
+    public function render(array $sessions, string $revokeBaseUrl, string $cancelUrl, ?string $currentSid = null, array $t = []): string
     {
         $cancelUrl = htmlspecialchars($cancelUrl);
         $cards = '';
 
         foreach ($sessions as $session) {
-            $sessionId = htmlspecialchars($session->sessionId);
+            $sid = htmlspecialchars($session->sid);
             $client = htmlspecialchars($session->clientName ?: $session->clientId);
             $ip = htmlspecialchars($session->ipAddress ?? $t['unknown']);
             $agent = htmlspecialchars($session->userAgent ?? $t['unknown']);
             $lastUsed = htmlspecialchars($session->lastUsedAt ?? $t['unknown']);
             $expiration = htmlspecialchars($session->expiration);
-            $isCurrent = $currentSessionId !== null && $session->sessionId === $currentSessionId;
+            $isCurrent = $currentSid !== null && $session->sid === $currentSid;
             $badge = $isCurrent ? '<strong>' . htmlspecialchars($t['currentSession']) . '</strong>' : '';
 
             $actions = $isCurrent
                 ? '<div class="profile-actions"><span class="secondary-button">' . htmlspecialchars($t['thisDevice']) . '</span></div>'
-                : '<form method="POST" action="' . htmlspecialchars($revokeBaseUrl . '/' . $sessionId) . '" class="profile-actions">'
+                : '<form method="POST" action="' . htmlspecialchars($revokeBaseUrl . '/' . $sid) . '" class="profile-actions">'
                     . '<input class="secondary-button" type="submit" value="' . htmlspecialchars($t['closeSession']) . '" />'
                     . '</form>';
 

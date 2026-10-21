@@ -17,6 +17,8 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGat
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\TokenLifetimesGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\TokenLifetimes;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
@@ -146,6 +148,12 @@ abstract class OidcIntegrationTestCase extends TestCase
         $builder->addDefinitions([
             ClientStoreGateway::class => $this->clientStore,
             SessionStoreGateway::class => $this->sessionStore,
+            TokenLifetimesGateway::class => new class () implements TokenLifetimesGateway {
+                public function forTenant(string $tenantName): TokenLifetimes
+                {
+                    return new TokenLifetimes();
+                }
+            },
             TemporalKeysGateway::class => $this->temporalKeys,
             TokenStoreGateway::class => $this->tokenStore,
             TokenSigner::class => $signer,

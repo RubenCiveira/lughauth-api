@@ -55,9 +55,7 @@ class RevokeTokenUsecase
         $exp = $payload['exp'] ?? (time() + 3600);
         $expiresAt = new \DateTimeImmutable('@' . $exp);
 
-        // Refresh tokens carry scope as an array containing 'refresh'
-        $scope = $payload['scope'] ?? null;
-        $tokenType = (is_array($scope) && in_array('refresh', $scope, true)) ? 'refresh' : 'access';
+        $tokenType = ($payload['token_use'] ?? null) === 'refresh' ? 'refresh' : 'access';
 
         $this->revocationGateway->revokeJti($jti, $tenant, $tokenType, $expiresAt);
     }

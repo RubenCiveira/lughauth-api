@@ -26,8 +26,8 @@ class ActiveSession
      * through the SessionsGateway (e.g. revoke) rather than through this value object.
      */
     public function __construct(
-        /** Unique identifier of the session record, used as the primary key for revocation. */
-        public readonly string $sessionId,
+        /** Public identifier of the session (its sid), used for revocation; never the session cookie. */
+        public readonly string $sid,
         /** Identifier of the OAuth client application that established this session. */
         public readonly string $clientId,
         /** Human-readable display name of the client application, or null when unavailable. */

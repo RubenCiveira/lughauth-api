@@ -61,7 +61,8 @@ class UserSessionController
         $sessions = $this->sessions->listByUser($identity->getId());
 
         $payload = array_map(static fn ($s) => [
-            'session_id' => $s->sessionId,
+            // The public sid, never the session cookie.
+            'session_id' => $s->sid,
             'client_id' => $s->clientId,
             'client_name' => $s->clientName,
             'ip_address' => $s->ipAddress,
@@ -76,7 +77,8 @@ class UserSessionController
     }
 
     /**
-     * Handles DELETE /api/me/sessions/{sessionId} — revokes the specified session.
+     * Handles DELETE /api/me/sessions/{sessionId} — revokes the specified session (by its public
+     * sid) when it belongs to the authenticated user; another user's sid revokes nothing.
      *
      * After this call the session token associated with the given ID is permanently
      * invalidated and any subsequent refresh or introspection attempt will fail.
@@ -102,7 +104,7 @@ class UserSessionController
             throw new UnauthorizedException('Authentication required');
         }
 
-        $this->sessions->revoke($args['sessionId'] ?? '');
+        $this->sessions->revoke($identity->getId(), (string) ($args['sessionId'] ?? ''));
 
         return $response->withStatus(204);
     }
@@ -132,7 +134,7 @@ class UserSessionController
         }
 
         foreach ($this->sessions->listByUser($identity->getId()) as $session) {
-            $this->sessions->revoke($session->sessionId);
+            $this->sessions->revoke($identity->getId(), $session->sid);
         }
 
         return $response->withStatus(204);

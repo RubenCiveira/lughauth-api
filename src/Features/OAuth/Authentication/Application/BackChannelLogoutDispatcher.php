@@ -56,7 +56,7 @@ final class BackChannelLogoutDispatcher
      * @param string          $tenant    Tenant identifier (used to sign the token)
      * @param string          $issuer    Token issuer (iss claim)
      * @param string          $userSub   Subject (sub claim) — the authenticated user's ID
-     * @param string          $sessionId Session identifier (sid claim)
+     * @param string          $sessionId Public session identifier (sid claim), never the cookie value
      * @param TrustedClient[] $clients   Relying parties that took part in the session
      */
     public function dispatch(

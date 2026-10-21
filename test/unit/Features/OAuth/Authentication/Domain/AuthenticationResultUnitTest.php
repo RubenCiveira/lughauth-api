@@ -81,39 +81,6 @@ final class AuthenticationResultUnitTest extends TestCase
         $this->assertSame(AuthenticationResult::ERR_NOT_ALLOWED_ACCESS, $r->error);
     }
 
-    public function test_to_jwt_user_claims(): void
-    {
-        $r = new AuthenticationResult(
-            valid: true,
-            id: 'user-1',
-            tenant: 'tenant-a',
-            scope: 'openid profile',
-            audiences: ['api'],
-            roles: ['admin'],
-            groups: ['g1'],
-            name: 'Alice',
-            email: 'alice@example.com',
-        );
-
-        $claims = $r->toJwtUserClaims('https://iss', 'client-1');
-
-        $this->assertContains('client-1', $claims['aud']);
-        $this->assertContains('api', $claims['aud']);
-        $this->assertSame('client-1', $claims['azp']);
-        $this->assertSame('https://iss', $claims['iss']);
-        $this->assertSame('user-1', $claims['sub']);
-        $this->assertSame('Alice', $claims['name']);
-        $this->assertSame('alice@example.com', $claims['email']);
-        $this->assertSame('tenant-a', $claims['tenant']);
-    }
-
-    public function test_to_jwt_deduplicates_audiences(): void
-    {
-        $r = new AuthenticationResult(valid: true, id: 'u', audiences: ['client-1', 'other']);
-        $claims = $r->toJwtUserClaims('iss', 'client-1');
-        $this->assertSame(array_unique($claims['aud']), $claims['aud']);
-    }
-
     public function test_serialize_and_deserialize_roundtrip(): void
     {
         $r = new AuthenticationResult(

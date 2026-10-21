@@ -7,11 +7,12 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenFactory;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\TokenGrant;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
@@ -27,17 +28,25 @@ use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
  *   code value to the redirect URI as a query parameter, ready for the token endpoint exchange.
  * - "id_token" response type: signs and appends an ID token to the fragment (implicit flow).
  * - "token" response type: signs and appends an access token to the fragment (implicit flow).
+ * - Combined with "code" (hybrid flow), the code joins the tokens in the fragment; only a
+ *   code-only response uses the query.
+ *
+ * The tokens themselves come from TokenFactory, with the same claims as the token endpoint: the
+ * ID token carries the session's auth_time, amr and public sid, plus at_hash and c_hash for the
+ * access token and code returned with it.
  *
  * It also attaches the authenticated session cookie via OidcCookieManager so the browser
  * establishes the session for future check-session calls.
  *
- * Relationships: depends on TokenSigner for JWT signing, TemporalKeysGateway for temporal
- * code registration, and OidcCookieManager for session cookie attachment.
+ * Relationships: depends on TokenFactory for the tokens, SessionStoreGateway for the session
+ * behind them, TemporalKeysGateway for temporal code registration, and OidcCookieManager for
+ * session cookie attachment.
  */
 class OidcResponseBuilder
 {
     public function __construct(
-        private readonly TokenSigner $keys,
+        private readonly TokenFactory $tokens,
+        private readonly SessionStoreGateway $sessions,
         private readonly TemporalKeysGateway $temporals,
         private readonly OidcCookieManager $cookies
     ) {
@@ -63,10 +72,14 @@ class OidcResponseBuilder
             $auth->sessionExpiration
         );
 
-        $location = $flow->redirect;
         $hasCode = $this->hasResponse($flow->responseType, 'code');
+        $hasId = $this->hasResponse($flow->responseType, 'id_token');
+        $hasAccess = $this->hasResponse($flow->responseType, 'token');
+        // A response carrying tokens (implicit, hybrid) goes entirely in the fragment, so no token
+        // reaches the redirect target's server (OIDC Core §3.2.2.5 and §3.3.2.5); code alone uses the query.
+        $location = $flow->redirect . ($hasId || $hasAccess ? '#' : '?') . 'state=' . $flow->state;
+        $code = null;
         if ($hasCode) {
-            $location .= '?state=' . $flow->state;
             $data = new TemporalAuthCode(
                 data: $auth->auth,
                 client: $client,
@@ -76,30 +89,33 @@ class OidcResponseBuilder
                 codeChallengeMethod: $flow->codeChallengeMethod,
                 sessionId: $auth->sessionId,
             );
-            $location .= '&code=' . $this->temporals->registerTemporalAuthCode($data);
+            $code = $this->temporals->registerTemporalAuthCode($data);
+            $location .= '&code=' . $code;
         } else {
-            $location .= '#state=' . $flow->state . '&nonce=' . $flow->nonce;
+            $location .= '&nonce=' . $flow->nonce;
         }
 
-        $hasId = $this->hasResponse($flow->responseType, 'id_token');
-        $hasAccess = $this->hasResponse($flow->responseType, 'token');
-        $accessToken = null;
-        if ($hasId) {
-            $idData = array_merge($auth->accessTokenClaims(), $auth->idData);
-            if ($hasAccess) {
-                $accessToken = $this->keys->sign(TokenType::Access, $auth->accessTokenClaims(), $auth->tenant, $auth->authExpiration);
-                $idData['at_hash'] = AuthenticateUser::generateHash($accessToken);
+        if ($hasId || $hasAccess) {
+            $grant = new TokenGrant(
+                // Keys belong to the tenant name, as for the token endpoint (auth->tenant is its uid).
+                tenant: $flow->tenant,
+                issuer: $auth->issuer,
+                client: $client,
+                grantType: 'implicit',
+                auth: $auth->auth,
+                scope: ScopeSet::fromString($auth->auth->scope ?? $authRequest->scope),
+                audiences: $auth->auth->audiences ?? [],
+                session: $this->sessions->findActiveSession($auth->sessionId, $auth->issuer),
+                nonce: $flow->nonce,
+            );
+            $tokens = $this->tokens->authorizationResponse($grant, $hasAccess, $hasId, $code, $flow->state);
+            if (isset($tokens['id_token'])) {
+                $location .= '&id_token=' . $tokens['id_token'];
             }
-            $location .= '&id_token=' . $this->keys->sign(TokenType::Id, $idData, $auth->tenant, $auth->idExpiration);
-        }
-        if ($hasAccess) {
-            $now = new \DateTimeImmutable();
-            $until = $now->add($auth->authExpiration);
-            if ($accessToken === null) {
-                $accessToken = $this->keys->sign(TokenType::Access, $auth->accessTokenClaims(), $auth->tenant, $auth->authExpiration);
+            if (isset($tokens['access_token'], $tokens['expires_in'])) {
+                $location .= '&access_token=' . $tokens['access_token'];
+                $location .= '&expires_in=' . $tokens['expires_in'];
             }
-            $location .= '&access_token=' . $accessToken;
-            $location .= '&expires_in=' . ($until->getTimestamp() - $now->getTimestamp());
         }
 
         $response = $response->withStatus(302)->withHeader('Location', $location);

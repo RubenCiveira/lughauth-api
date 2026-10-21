@@ -18,7 +18,7 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 | [EP-02 Secretos y criptografía en reposo](EP-02-secretos-y-cifrado.md) | 071, 063 | crítica | L | — |
 | [EP-03 Clientes: tenant, DCR y metadatos](../done/EP-03-clientes-tenant-dcr.md) (hecha) | [022](../done/022-clientes-aislados-por-tenant.md), [023](../done/023-validar-acceso-inicial-dcr.md), [024](../done/024-limitar-grants-y-ropc.md), [065](../done/065-metadatos-cliente-inoperantes.md) | alta | L | EP-02 fase A (mismos adapters) |
 | [EP-04 Firma JWT por propósito y claves](../done/EP-04-firma-jwt-y-claves.md) (hecha) | [025](../done/025-jwt-kid-y-proposito.md), [029](../done/029-rotacion-claves-fuera-request.md) | crítica | M | — |
-| [EP-05 Emisión de tokens y claims](EP-05-emision-tokens-y-claims.md) | 038, 032, 049, 064 (+ `sid` público) | alta | L | EP-04 |
+| [EP-05 Emisión de tokens y claims](../done/EP-05-emision-tokens-y-claims.md) (hecha) | [038](../done/038-extraer-emision-tokens.md), [032](../done/032-claims-id-token.md), [049](../done/049-perfil-at-jwt.md), [064](../done/064-respuestas-token-y-scopes.md) (+ `sid` público) | alta | L | EP-04 |
 | [EP-06 Validación de bearer en consumidores](EP-06-validacion-bearer.md) | 026, 028, 035 | crítica | M | EP-04 |
 | [EP-07 Autorización: origen y política de la solicitud](EP-07-autorizacion-solicitud.md) | 046, 047, 034, 068 (opc.) | alta | L | EP-03 |
 | [EP-08 Autorización: construcción de la respuesta](EP-08-autorizacion-respuesta.md) | 027, 037, 033, 070, 045 (opc.) | alta | M | EP-03, EP-05 (hashes) |
@@ -82,7 +82,7 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 
 ## Hallazgos transversales
 
-1. **El `sid` publicado es el valor de la cookie.** [LogoutController.php:129](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/LogoutController.php#L129) añade `sid=$sessionId` al front-channel, y el refresh y el logout token llevan el mismo identificador de `_oauth_session.session`. Es el hallazgo 2 de [MODELO_Y_ESQUEMA](../MODELO_Y_ESQUEMA_018-071.md) y no tiene tarea propia; se aborda en **EP-05 paso 1** y conviene adelantarlo si EP-05 se retrasa.
+1. **El `sid` publicado es el valor de la cookie.** [LogoutController.php:129](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/LogoutController.php#L129) añade `sid=$sessionId` al front-channel, y el refresh y el logout token llevan el mismo identificador de `_oauth_session.session`. Es el hallazgo 2 de [MODELO_Y_ESQUEMA](../MODELO_Y_ESQUEMA_018-071.md) y no tiene tarea propia; resuelto en **EP-05** (`_oauth_session.sid` aleatorio).
 2. **`ClientData` como snapshot único.** 024, 033, 034, 046, 053, 056, 057, 060 y 065 añaden cada una un metadato. EP-03 los mapea todos de una vez, y las demás épicas solo los consumen.
 3. **Almacén anti-replay compartido** `_oauth_replay_jti` (B.2): se crea en EP-07 (047) y lo reutilizan EP-11 (044, 069) y EP-13 (048).
 4. **Descarga segura de JWKS remoto**: se extrae de `RequestObjectValidator` en EP-07 y la reutilizan EP-10 (051), EP-11 (044) y EP-14 (057).

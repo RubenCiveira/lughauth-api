@@ -16,7 +16,7 @@ final class ProfileDomainUnitTest extends TestCase
     public function test_active_session_stores_all_fields(): void
     {
         $s = new ActiveSession(
-            sessionId: 'sess-1',
+            sid: 'sess-1',
             clientId: 'client-a',
             clientName: 'My App',
             ipAddress: '192.168.1.1',
@@ -25,7 +25,7 @@ final class ProfileDomainUnitTest extends TestCase
             expiration: '2026-05-02T12:00:00+00:00',
         );
 
-        $this->assertSame('sess-1', $s->sessionId);
+        $this->assertSame('sess-1', $s->sid);
         $this->assertSame('client-a', $s->clientId);
         $this->assertSame('My App', $s->clientName);
         $this->assertSame('192.168.1.1', $s->ipAddress);

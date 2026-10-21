@@ -432,8 +432,7 @@ class ProfileHtml
             $sessions = $this->sessionsGateway->listByUser($session->userId);
             $revokeBaseUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions/revoke';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
-            $currentSessionId = $this->currentSessionId($request, $tenant);
-            $html = $this->sessionsPanel->render($sessions, $revokeBaseUrl, $cancelUrl, $currentSessionId, $this->sessionsTexts($translator));
+            $html = $this->sessionsPanel->render($sessions, $revokeBaseUrl, $cancelUrl, $session->publicSid, $this->sessionsTexts($translator));
             $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.sessions.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
@@ -455,18 +454,10 @@ class ProfileHtml
             if ($session === null) {
                 return $this->renderUnauthenticated($request, $response, $tenant);
             }
-            $sessionId = (string) ($args['sessionId'] ?? '');
-            $currentSessionId = $this->currentSessionId($request, $tenant);
-            $sessions = $this->sessionsGateway->listByUser($session->userId);
-            $owned = false;
-            foreach ($sessions as $activeSession) {
-                if ($activeSession->sessionId === $sessionId) {
-                    $owned = true;
-                    break;
-                }
-            }
-            if ($owned && $sessionId !== '' && $sessionId !== $currentSessionId) {
-                $this->sessionsGateway->revoke($sessionId);
+            // The path carries the public sid; the gateway only revokes sessions of this user.
+            $sid = (string) ($args['sessionId'] ?? '');
+            if ($sid !== '' && $sid !== $session->publicSid) {
+                $this->sessionsGateway->revoke($session->userId, $sid);
             }
             $this->sql->commit();
             $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions';
@@ -880,16 +871,6 @@ class ProfileHtml
         }
         $first = trim(explode(',', $header)[0] ?? '');
         return strtolower(trim(explode(';', $first)[0] ?? ''));
-    }
-
-    private function currentSessionId(ServerRequestInterface $request, string $tenant): ?string
-    {
-        $cookies = $request->getCookieParams();
-        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null;
-        if (!is_string($sessionId) || $sessionId === '') {
-            return null;
-        }
-        return $sessionId;
     }
 
     private function viewTexts(MessageCatalogue $t): array

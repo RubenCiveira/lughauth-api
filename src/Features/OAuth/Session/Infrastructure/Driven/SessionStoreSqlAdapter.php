@@ -46,13 +46,22 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     /**
-     * Loads an active, unexpired session by its identifier restricted to the given issuer.
+     * Loads an active, unexpired session by its state key restricted to the given issuer.
      * Returns null when the session was closed, expired, or belongs to another tenant.
      */
     #[Override]
-    public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+    public function findActiveSession(string $state, string $issuer): ?SessionInfo
     {
-        return $this->fetchSession('session = :session and issuer = :issuer', ['session' => $sid, 'issuer' => $issuer]);
+        return $this->fetchSession('session = :session and issuer = :issuer', ['session' => $state, 'issuer' => $issuer]);
+    }
+
+    /**
+     * Loads an active, unexpired session by its public sid restricted to the given issuer.
+     */
+    #[Override]
+    public function findActiveSessionBySid(string $sid, string $issuer): ?SessionInfo
+    {
+        return $this->fetchSession('sid = :sid and issuer = :issuer', ['sid' => $sid, 'issuer' => $issuer]);
     }
 
     /**
@@ -99,6 +108,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     /**
      * Inserts a new session row associating the state key with the client, issuer, user identity, and MFA state.
      * The session expiration is calculated by adding the given interval to the current timestamp.
+     * The public sid is random, so it reveals nothing about the cookie (the state key).
      */
     #[Override]
     public function saveSession(
@@ -108,7 +118,8 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         ChallengesState $keypass,
         AuthenticationResult $validationData,
         string $csid,
-        DateInterval $expiration
+        DateInterval $expiration,
+        array $amr = []
     ): void {
         $now = new DateTimeImmutable();
 
@@ -120,12 +131,14 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $userAgent = $serverParams['HTTP_USER_AGENT'] ?? null;
 
         $stmt = $this->pdo->prepare('INSERT INTO _oauth_session ' .
-            '(session, expiration, client_id, issuer, auth_data, csid, ip_address, user_agent, last_used_at, client_name, user_uid, auth_time) VALUES ' .
-            '(:state, :expiration, :client, :issuer, :data, :csid, :ip_address, :user_agent, :last_used_at, :client_name, :user_uid, :auth_time)');
+            '(session, sid, expiration, client_id, issuer, tenant_id, auth_data, csid, ip_address, user_agent, last_used_at, client_name, user_uid, auth_time, amr) VALUES ' .
+            '(:state, :sid, :expiration, :client, :issuer, :tenant_id, :data, :csid, :ip_address, :user_agent, :last_used_at, :client_name, :user_uid, :auth_time, :amr)');
         $stmt->bindValue('state', $state, PDO::PARAM_STR);
+        $stmt->bindValue('sid', bin2hex(random_bytes(16)), PDO::PARAM_STR);
         $stmt->bindValue('expiration', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('client', $clientDetails->id, PDO::PARAM_STR);
         $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
+        $stmt->bindValue('tenant_id', $validationData->tenant, PDO::PARAM_STR);
         $stmt->bindValue('data', json_encode($data), PDO::PARAM_STR);
         $stmt->bindValue('csid', $csid, PDO::PARAM_STR);
         $stmt->bindValue('ip_address', $ipAddress, PDO::PARAM_STR);
@@ -134,6 +147,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $stmt->bindValue('client_name', $clientDetails->id, PDO::PARAM_STR);
         $stmt->bindValue('user_uid', $validationData->id, PDO::PARAM_STR);
         $stmt->bindValue('auth_time', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue('amr', $amr === [] ? null : implode(' ', $amr), PDO::PARAM_STR);
         $stmt->execute();
     }
 
@@ -167,6 +181,17 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     /**
+     * Removes the session row identified by its public sid.
+     */
+    #[Override]
+    public function deleteSessionBySid(string $sid): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM _oauth_session where sid = :sid');
+        $stmt->bindValue('sid', $sid, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    /**
      * Deletes all expired session rows from the database.
      * Delegates to the internal clearTemp helper which is also called on construction.
      */
@@ -180,7 +205,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     private function fetchSession(string $where, array $params): ?SessionInfo
     {
         $now = new \DateTime();
-        $stmt = $this->pdo->prepare('SELECT client_id, expiration, issuer, auth_data, csid, sso_clients_json FROM _oauth_session where ' . $where . ' and expiration > :now');
+        $stmt = $this->pdo->prepare('SELECT sid, client_id, expiration, issuer, tenant_id, auth_data, csid, sso_clients_json, auth_time, amr FROM _oauth_session where ' . $where . ' and expiration > :now');
         foreach ($params as $name => $value) {
             $stmt->bindValue($name, $value, PDO::PARAM_STR);
         }
@@ -196,6 +221,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
                 clientId: $row['client_id'],
                 withMfa: $data['withMfa'],
                 ssoClients: array_values(array_filter((array) json_decode((string) ($row['sso_clients_json'] ?? '[]'), true), 'is_string')),
+                publicSid: (string) $row['sid'],
+                authTime: $row['auth_time'] !== null ? new DateTimeImmutable((string) $row['auth_time']) : null,
+                amr: array_values(array_filter(explode(' ', (string) ($row['amr'] ?? '')))),
+                tenantId: $row['tenant_id'] !== null ? (string) $row['tenant_id'] : null,
             );
         }
         return $result;

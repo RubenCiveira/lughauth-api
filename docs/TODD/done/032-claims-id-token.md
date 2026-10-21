@@ -1,7 +1,7 @@
 # 032 — Completar y separar claims de ID token
 
-- **Estado:** pendiente. **Prioridad:** alta.
-- **Evidencia:** [TokenController](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) mezcla `$detail` de access con ID, `aud` incluye audiencias adicionales y no aporta `auth_time`/`acr`/`amr`/`sid`; [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) solo añade `at_hash` si hay token implícito.
+- **Estado:** hecho (EP-05). **Prioridad:** alta.
+- **Evidencia:** [TokenController](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) mezcla `$detail` de access con ID, `aud` incluye audiencias adicionales y no aporta `auth_time`/`acr`/`amr`/`sid`; [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) solo añade `at_hash` si hay token implícito.
 - **Impacto:** clientes no pueden evaluar reautenticación, MFA ni logout por sesión.
 - **Por hacer:** mapear claims por tipo de token; ID `aud` = RP, `auth_time` cuando aplique, `acr`/`amr` según evidencia y `sid`; `at_hash`/`c_hash` solo en respuestas que lo exijan.
 - **Aceptación:** tests de claims para code/hybrid y logout; no se inventan valores de MFA.

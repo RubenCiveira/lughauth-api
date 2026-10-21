@@ -65,9 +65,16 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             {
                 return null;
             }
-            public function findActiveSession(string $sid, string $issuer): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
+            public function findActiveSession(string $state, string $issuer): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
             {
                 return null;
+            }
+            public function findActiveSessionBySid(string $sid, string $issuer): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
+            {
+                return null;
+            }
+            public function deleteSessionBySid(string $sid): void
+            {
             }
             public function addSessionClient(string $state, string $issuer, string $clientId): void
             {
@@ -76,7 +83,7 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             {
                 return null;
             }
-            public function saveSession(string $state, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void
+            public function saveSession(string $state, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp, array $amr = []): void
             {
             }
             public function updateSession(string $newState, string $oldState): void

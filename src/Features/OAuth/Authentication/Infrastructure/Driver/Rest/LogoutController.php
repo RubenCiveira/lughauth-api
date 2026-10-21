@@ -118,8 +118,10 @@ class LogoutController
             $this->sessionManager->removeSession($sessionId);
         }
 
-        // Dispatch back-channel logout notifications (best-effort, never blocks the user)
-        $this->backChannelLogout->dispatch($tenant, $issuer, $session?->userId ?? '', $sessionId, $participants);
+        // Dispatch back-channel logout notifications (best-effort, never blocks the user). RPs only
+        // ever see the session's public sid, never the cookie value.
+        $sid = $session?->publicSid ?? '';
+        $this->backChannelLogout->dispatch($tenant, $issuer, $session?->userId ?? '', $sid, $participants);
 
         // Collect the participants' front-channel URIs and render iframe page if any are registered
         $frontChannelUris = [];
@@ -129,7 +131,7 @@ class LogoutController
                 continue;
             }
             if ($client->isFrontChannelLogoutSessionRequired()) {
-                $uri .= (str_contains($uri, '?') ? '&' : '?') . http_build_query(['iss' => $issuer, 'sid' => $sessionId]);
+                $uri .= (str_contains($uri, '?') ? '&' : '?') . http_build_query(['iss' => $issuer, 'sid' => $sid]);
             }
             $frontChannelUris[] = $uri;
         }

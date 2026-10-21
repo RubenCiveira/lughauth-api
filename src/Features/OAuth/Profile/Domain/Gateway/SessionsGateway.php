@@ -32,10 +32,11 @@ interface SessionsGateway
     public function listByUser(string $userUid): array;
 
     /**
-     * Permanently revokes the session identified by the given session ID.
+     * Permanently revokes the session identified by its public sid, only when it belongs to the
+     * given user: relying parties know the sid, so it must not let anyone close another user's session.
      *
      * After this call any bearer token or cookie referencing the session will be
      * considered invalid by the token-introspection and session-load logic.
      */
-    public function revoke(string $sessionId): void;
+    public function revoke(string $userUid, string $sid): void;
 }

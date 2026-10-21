@@ -46,6 +46,8 @@ use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\ChangePasswordGateway;
 use Civi\Lughauth\Features\OAuth\User\Infrastructure\Driven\ChangePasswordAdapter;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\TokenLifetimesGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\TenantConfigTokenLifetimesAdapter;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\TemporalKeysSqlAdapter;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
@@ -143,6 +145,7 @@ class OAuthPlugin extends MicroPlugin
         $def[TemporalKeysGateway::class] = \DI\autowire(TemporalKeysSqlAdapter::class);
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
         $def[TokenSigner::class] = \DI\autowire(JoseTokenSigner::class);
+        $def[TokenLifetimesGateway::class] = \DI\autowire(TenantConfigTokenLifetimesAdapter::class);
         $def[KeyPairGenerator::class] = \DI\autowire(OpenSslKeyPairGenerator::class);
         $def[SigningKeyProvisioner::class] = \DI\get(KeyRotationService::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);

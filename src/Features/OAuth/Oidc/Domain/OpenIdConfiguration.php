@@ -67,7 +67,7 @@ final class OpenIdConfiguration
             deviceAuthorizationEndpoint: "$issuer/device",
             pushedAuthorizationRequestEndpoint: "$issuer/par",
             scopesSupported: ['openid', 'profile', 'email'],
-            claimsSupported: ['sub', 'iss', 'name', 'email'],
+            claimsSupported: ['sub', 'iss', 'aud', 'auth_time', 'amr', 'sid', 'name', 'email'],
             capabilities: $capabilities,
         );
     }

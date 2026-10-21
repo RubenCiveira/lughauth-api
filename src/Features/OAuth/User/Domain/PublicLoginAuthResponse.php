@@ -15,17 +15,9 @@ class PublicLoginAuthResponse
         public readonly AuthenticationResult $auth,
         public readonly string $issuer,
         public readonly string $clientId,
-        public readonly DateInterval $authExpiration,
-        public readonly array $idData,
-        public readonly DateInterval $idExpiration,
+        /** Session state key, i.e. the session cookie value: never publish it in a token or URL. */
         public readonly string $sessionId,
         public readonly DateInterval $sessionExpiration
     ) {
     }
-
-    public function accessTokenClaims(): array
-    {
-        return $this->auth->toJwtUserClaims($this->issuer, $this->clientId);
-    }
-
 }

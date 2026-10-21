@@ -22,8 +22,9 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\SessionsGateway;
  * are returned; expired sessions are silently skipped so the profile UI never displays
  * already-invalidated sessions.
  *
- * The revoke() method issues a simple DELETE by primary key (session), ensuring that the
- * session cannot be used for token refresh or introspection after this call returns.
+ * Sessions are identified by their public sid, never by the session cookie (the `session`
+ * column). The revoke() method deletes by sid and owner, ensuring that the session cannot be
+ * used for token refresh or introspection after this call returns.
  */
 class SessionsAdapter implements SessionsGateway
 {
@@ -42,7 +43,7 @@ class SessionsAdapter implements SessionsGateway
     {
         $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $stmt = $this->pdo->prepare(
-            'SELECT session, client_id, client_name, ip_address, user_agent, last_used_at, expiration ' .
+            'SELECT sid, client_id, client_name, ip_address, user_agent, last_used_at, expiration ' .
             'FROM _oauth_session ' .
             'WHERE user_uid = :user_uid AND expiration > :now ' .
             'ORDER BY last_used_at DESC'
@@ -54,7 +55,7 @@ class SessionsAdapter implements SessionsGateway
         $sessions = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $sessions[] = new ActiveSession(
-                sessionId: $row['session'],
+                sid: $row['sid'],
                 clientId: $row['client_id'],
                 clientName: $row['client_name'],
                 ipAddress: $row['ip_address'],
@@ -67,16 +68,17 @@ class SessionsAdapter implements SessionsGateway
     }
 
     /**
-     * Permanently deletes the session record identified by sessionId from the session store.
+     * Permanently deletes the user's session identified by its public sid from the session store.
      *
      * After deletion any attempt to refresh a token or introspect a token tied to this
-     * session ID will fail as if the session had never existed.
+     * session will fail as if the session had never existed.
      */
     #[Override]
-    public function revoke(string $sessionId): void
+    public function revoke(string $userUid, string $sid): void
     {
-        $stmt = $this->pdo->prepare('DELETE FROM _oauth_session WHERE session = :session');
-        $stmt->bindValue('session', $sessionId, PDO::PARAM_STR);
+        $stmt = $this->pdo->prepare('DELETE FROM _oauth_session WHERE sid = :sid AND user_uid = :user_uid');
+        $stmt->bindValue('sid', $sid, PDO::PARAM_STR);
+        $stmt->bindValue('user_uid', $userUid, PDO::PARAM_STR);
         $stmt->execute();
     }
 }

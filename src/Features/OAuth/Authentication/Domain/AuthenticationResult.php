@@ -166,29 +166,6 @@ class AuthenticationResult
     }
 
     /**
-     * Builds the standard OIDC/JWT user claim set from this result for inclusion in an ID or access token.
-     * Merges the client ID into the audience list and maps identity attributes to their JWT claim names.
-     */
-    public function toJwtUserClaims(string $issuer, string $clientId): array
-    {
-        $audiences = array_values(array_unique([$clientId, ...($this->audiences ?? [])]));
-        return [
-            'aud' => $audiences,
-            'azp' => $clientId,
-            'iss' => $issuer,
-            'sub' => $this->id,
-            'name' => $this->name ?? $this->id,
-            'email' => $this->email ?? $this->id,
-            'tenant' => $this->tenant,
-            'tenant-name' => $this->tenantName,
-            'tenancy-mode' => $this->tenancyMode,
-            'scope' => $this->scope,
-            'roles' => $this->roles,
-            'groups' => $this->groups,
-        ];
-    }
-
-    /**
      * Converts this result to an associative array suitable for storing in a session or cache.
      * The shape is consumed by deserialize() to reconstruct the object across request boundaries.
      */

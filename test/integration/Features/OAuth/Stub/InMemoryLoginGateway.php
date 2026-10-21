@@ -39,7 +39,8 @@ class InMemoryLoginGateway implements LoginGateway
             valid: true,
             id: $entry['id'],
             tenant: $tenant,
-            scope: $entry['scope'],
+            // Like LoginAdapter: the requested scope, the registered one when none is requested.
+            scope: $client->scope !== '' ? $client->scope : $entry['scope'],
             name: $entry['name'],
             email: $entry['email'],
             roles: [],
@@ -56,7 +57,7 @@ class InMemoryLoginGateway implements LoginGateway
                     valid: true,
                     id: $entry['id'],
                     tenant: $tenant,
-                    scope: $entry['scope'],
+                    scope: $client->scope !== '' ? $client->scope : $entry['scope'],
                     name: $entry['name'],
                     email: $entry['email'],
                     roles: [],

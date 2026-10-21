@@ -1,7 +1,7 @@
 # 038 — Extraer la emisión de tokens del controller
 
-- **Estado:** pendiente. **Prioridad:** media.
-- **Evidencia:** [TokenController](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) construye audiences/claims y firma tres tipos de tokens dentro de `handlePost`; [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) emite otros JWT por separado.
+- **Estado:** hecho (EP-05). **Prioridad:** media.
+- **Evidencia:** [TokenController](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/TokenController.php) construye audiences/claims y firma tres tipos de tokens dentro de `handlePost`; [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) emite otros JWT por separado.
 - **Impacto:** duplicidad y errores de semántica entre grants/flujos.
 - **Por hacer:** servicio de aplicación para emisión/verificación por propósito y mapper de claims, con gateway de firma; mantener controller limitado al protocolo HTTP y centralizar políticas de expiración.
 - **Aceptación:** flujos code, refresh, device e hybrid comparten reglas por tipo y tests sin depender de controller.

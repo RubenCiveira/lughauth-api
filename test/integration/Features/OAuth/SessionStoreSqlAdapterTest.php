@@ -10,6 +10,7 @@ use Ramsey\Uuid\Uuid;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\SessionsAdapter;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
 use Civi\Lughauth\Shared\AppConfig;
 use PHPUnit\Framework\TestCase;
@@ -91,7 +92,59 @@ final class SessionStoreSqlAdapterTest extends TestCase
         $this->assertSame([], $store->loadSession($session)?->ssoClients);
     }
 
-    private function openSession(SessionStoreSqlAdapter $store): string
+    public function testSessionIsPublishedOnlyThroughARandomSid(): void
+    {
+        $store = new SessionStoreSqlAdapter($this->connect());
+        $before = time();
+        $session = $this->openSession($store, ['pwd', 'mfa'], 'tenant-uid');
+
+        $info = $store->loadSession($session);
+        $this->assertNotNull($info);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $info->publicSid);
+        $this->assertStringNotContainsString($session, $info->publicSid);
+        $this->assertSame(['pwd', 'mfa'], $info->amr);
+        $this->assertSame('tenant-uid', $info->tenantId);
+        $this->assertNull($info->acr);
+        $this->assertGreaterThanOrEqual($before, $info->authTime?->getTimestamp());
+
+        $this->assertSame('csid-' . $session, $store->findActiveSessionBySid($info->publicSid, self::ISSUER)?->csid);
+        $this->assertNull($store->findActiveSessionBySid($info->publicSid, 'https://issuer.example/other-tenant'));
+        $this->assertNull($store->findActiveSessionBySid($session, self::ISSUER), 'the cookie value is not a sid');
+
+        $store->deleteSessionBySid($info->publicSid);
+        $this->assertNull($store->loadSession($session));
+    }
+
+    public function testSessionWithoutEvidenceHasNoAmr(): void
+    {
+        $store = new SessionStoreSqlAdapter($this->connect());
+
+        $this->assertSame([], $store->loadSession($this->openSession($store))?->amr);
+    }
+
+    public function testProfileApiListsAndRevokesByPublicSidOnlyForTheOwner(): void
+    {
+        $pdo = $this->connect();
+        $store = new SessionStoreSqlAdapter($pdo);
+        $profile = new SessionsAdapter($pdo);
+        $session = $this->openSession($store);
+        $info = $store->loadSession($session);
+        $this->assertNotNull($info);
+
+        $listed = $profile->listByUser($info->userId);
+        $this->assertSame([$info->publicSid], array_map(static fn ($s): string => $s->sid, $listed), 'never the cookie value');
+
+        $profile->revoke('another-user', $info->publicSid);
+        $this->assertNotNull($store->loadSession($session), "another user's sid revokes nothing");
+        $profile->revoke($info->userId, $session);
+        $this->assertNotNull($store->loadSession($session), 'the cookie value is not a sid');
+
+        $profile->revoke($info->userId, $info->publicSid);
+        $this->assertNull($store->loadSession($session));
+    }
+
+    /** @param string[] $amr */
+    private function openSession(SessionStoreSqlAdapter $store, array $amr = [], ?string $tenantId = null): string
     {
         $session = $this->sessions[] = Uuid::uuid4()->toString();
         $store->saveSession(
@@ -99,9 +152,10 @@ final class SessionStoreSqlAdapterTest extends TestCase
             new ClientData(self::OPENER, ['authorization_code'], true),
             self::ISSUER,
             new ChallengesState(),
-            new AuthenticationResult(valid: true, id: Uuid::uuid4()->toString()),
+            new AuthenticationResult(valid: true, id: Uuid::uuid4()->toString(), tenant: $tenantId),
             'csid-' . $session,
-            new \DateInterval('PT1H')
+            new \DateInterval('PT1H'),
+            $amr
         );
         return $session;
     }
@@ -153,8 +207,8 @@ final class SessionStoreSqlAdapterTest extends TestCase
         } catch (\PDOException) {
             $this->markTestSkipped('MySQL integration database not available');
         }
-        if ($pdo->query("SHOW COLUMNS FROM _oauth_session LIKE 'sso_clients_json'")->rowCount() === 0) {
-            $this->markTestSkipped('Migration with _oauth_session.sso_clients_json not applied');
+        if ($pdo->query("SHOW COLUMNS FROM _oauth_session LIKE 'sid'")->rowCount() === 0) {
+            $this->markTestSkipped('Migration with _oauth_session.sid (20261021120000) not applied');
         }
         return $pdo;
     }

@@ -81,6 +81,15 @@ final class OAuthTokenException extends \RuntimeException
     }
 
     /**
+     * Creates an exception when the authorization server does not support the requested grant type.
+     * Corresponds to the "unsupported_grant_type" error code defined in RFC 6749 §5.2.
+     */
+    public static function unsupportedGrantType(string $detail = 'Unsupported grant type'): self
+    {
+        return new self('unsupported_grant_type', $detail);
+    }
+
+    /**
      * Creates an exception when the requested scope is invalid, unknown, or exceeds what the client is allowed.
      * Corresponds to the "invalid_scope" error code defined in RFC 6749 §5.2.
      */

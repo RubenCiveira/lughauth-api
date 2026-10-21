@@ -14,6 +14,10 @@ namespace Civi\Lughauth\Features\OAuth\Session\Domain;
  * sessions without exposing the internal state token. The withMfa flag is set to true only
  * after a successful second-factor step and may be required by certain clients before token
  * issuance proceeds.
+ *
+ * The session is published to relying parties (sid claim, logout notifications) only through
+ * publicSid, a random identifier unrelated to the session cookie, so no token or URL lets anyone
+ * rebuild the user's session credential.
  */
 class SessionInfo
 {
@@ -53,6 +57,10 @@ class SessionInfo
      */
     public readonly array $ssoClients;
 
+    /**
+     * @param string[] $ssoClients
+     * @param string[] $amr
+     */
     public function __construct(
         string $csid,
         bool $withMfa,
@@ -60,6 +68,16 @@ class SessionInfo
         string $userId,
         string $clientId,
         array $ssoClients = [],
+        /** Public identifier of the session, published as the sid claim; never the cookie value. */
+        public readonly string $publicSid = '',
+        /** When the user actually authenticated, carried as auth_time; null when unknown. */
+        public readonly ?\DateTimeImmutable $authTime = null,
+        /** Authentication methods actually used (RFC 8176), only those with evidence. */
+        public readonly array $amr = [],
+        /** Authentication context class reference; null until the login maps a configured value (task 067). */
+        public readonly ?string $acr = null,
+        /** Uid of the tenant the session was opened in, when recorded. */
+        public readonly ?string $tenantId = null,
     ) {
         $this->csid = $csid;
         $this->withMfa = $withMfa;

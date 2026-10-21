@@ -23,7 +23,8 @@ use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
  * Token granter strategy for the OAuth 2.0 refresh_token grant type.
  *
  * Validates an incoming refresh token by verifying its signature and purpose and requiring its JTI and
- * family (fid) claims. A token bound to a browser session (sid claim) is only accepted while
+ * family (fid) claims. A token bound to a browser session (sid claim, the session's public
+ * identifier, never its cookie) is only accepted while
  * that session is still active under the tenant issuer, belongs to the same user and was opened
  * or joined through SSO by the requesting client, so logging out stops further refreshes. Only
  * grants without a browser session (password, device) may omit the sid.
@@ -94,7 +95,7 @@ class ResolverForRefresh implements TokenGranterStrategy
                 return AuthenticationResult::wrongCredentials($tenant, '');
             }
         } else {
-            $session = $this->sessionStore->findActiveSession((string) $sid, $this->context->getIssuer($tenant));
+            $session = $this->sessionStore->findActiveSessionBySid((string) $sid, $this->context->getIssuer($tenant));
             if ($session === null || $session->userId !== (string) $key || !$session->hasClient($client->client->id)) {
                 return AuthenticationResult::wrongCredentials($tenant, '');
             }
@@ -112,7 +113,7 @@ class ResolverForRefresh implements TokenGranterStrategy
             $familyExpiresAt = new DateTimeImmutable('@' . (int) ($payload['fexp'] ?? $payload['exp'] ?? time()));
             $this->revocationGateway->revokeFamily($family, $tenant, $familyExpiresAt);
             if ($sid !== null) {
-                $this->sessionStore->deleteSession((string) $sid);
+                $this->sessionStore->deleteSessionBySid((string) $sid);
             }
             return AuthenticationResult::wrongCredentials($tenant, '');
         }

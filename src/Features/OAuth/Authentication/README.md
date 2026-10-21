@@ -10,7 +10,10 @@ This context owns the **multi-step authentication pipeline**: it coordinates use
 
 | Concept | Type | Description |
 |---|---|---|
-| `AuthenticationRequest` | ValueObject | Initial authorization parameters (client, scopes, PKCE, response_type) |
+| `AuthenticationRequest` | ValueObject | Initial authorization parameters (client, scopes normalised as exact values, PKCE, response_type) |
+| `ScopeSet` | ValueObject | Scope as a set of exact values (`myprofile` never grants `profile`) |
+| `TokenGrant` | ValueObject | What a grant or authorization response authorised (client, subject, scope, audiences, session, nonce, refresh family) |
+| `TokenLifetimes` | ValueObject | Access, ID, refresh and refresh-family lifetimes of a tenant (`TokenLifetimesGateway`, read from tenant config) |
 | `AuthenticationResult` | ValueObject | Outcome of a completed authentication step |
 | `ChallengesState` | ValueObject | Pending steps to complete before token issuance |
 | `StepInput` / `StepResult` | ValueObject | Input/output of a single authentication step |
@@ -27,6 +30,8 @@ This context owns the **multi-step authentication pipeline**: it coordinates use
 - **`SessionManager`** — Creates and binds authentication sessions to issued tokens.
 - **`BackChannelLogoutDispatcher`** — Sends back-channel logout notifications to registered clients.
 - **`TokenGranterMediator`** — Selects and executes the appropriate token grant strategy.
+- **`TokenFactory`** — Issues the access, ID and refresh tokens of a `TokenGrant`, for the token endpoint and for the authorization response (implicit/hybrid), with the tenant's lifetimes.
+- **`ClaimsMapper`** — Single place for the claims of each token type: access (RFC 9068), ID (`aud` = client; `auth_time`, `amr`, `acr`, public `sid` only from the session; `nonce`, `at_hash`, `c_hash`, `s_hash`) and refresh.
 
 ### Token Grant Strategies (`TokenGranter/`)
 
@@ -75,7 +80,7 @@ Exceptions are used to signal required next steps — they carry enough state fo
 - **`Html/AuthorizeHtml`** — Renders the authorization UI (login, MFA, consent forms).
 - **`Html/OidcStepRouter`** — Routes the current challenge state to the correct form.
 - **`Html/Forms/`** — Individual form renderers per step (LoginForm, MagicLinkLoginForm, NewMfaForm, ScopeConsentForm, WebAuthnLoginForm…).
-- **`Rest/TokenController`** — `/token` endpoint (all grant types).
+- **`Rest/TokenController`** — `/token` endpoint (all grant types): HTTP parsing, client authentication and grant resolution; tokens come from `TokenFactory`. Every response carries `Cache-Control: no-store`.
 - **`Rest/IntrospectionController`** — `/introspect` endpoint (RFC 7662).
 - **`Rest/LogoutController`** — `/logout` endpoint.
 - **`Rest/UserInfoController`** — `/userinfo` endpoint (OIDC).

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
 /**
@@ -26,7 +27,8 @@ class AuthenticationRequest
     public readonly ClientData $client;
 
     /**
-     * Space-separated list of OAuth scopes requested by the client.
+     * Space-separated list of OAuth scopes requested by the client, normalised as a set of exact
+     * values (single spaces, no duplicates) for every grant.
      * The final granted scopes may be a subset after applying client-level policy.
      */
     public readonly string $scope;
@@ -57,7 +59,7 @@ class AuthenticationRequest
         array $audiences = [],
     ) {
         $this->client = $client;
-        $this->scope = $scope;
+        $this->scope = ScopeSet::fromString($scope)->toString();
         $this->redirect = $redirect;
         $this->responseType = $responseType;
         $this->audiences = $audiences;

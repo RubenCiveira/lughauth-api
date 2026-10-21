@@ -139,10 +139,10 @@ final class ResolversUnitTest extends TestCase
 
     public function test_refresh_is_single_use_and_replay_revokes_family_and_session(): void
     {
-        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
+        $sessions = $this->makeSessions('state-1', 'u1', 'https://issuer/tenant');
         $revocation = new InMemoryTokenRevocation();
         $resolver = $this->makeRefreshResolver(
-            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1', 'jti' => 'jti-1', 'fid' => 'fam-1']),
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $this->publicSid($sessions), 'jti' => 'jti-1', 'fid' => 'fam-1']),
             $revocation,
             $sessions
         );
@@ -156,7 +156,7 @@ final class ResolversUnitTest extends TestCase
         $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
 
         $this->assertTrue($revocation->isFamilyRevoked('fam-1', 'tenant'));
-        $this->assertNull($sessions->loadSession('sid-1'));
+        $this->assertNull($sessions->loadSession('state-1'));
         $this->assertFalse($sibling->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
         $this->assertFalse($revocation->isRevoked('jti-2', 'tenant'), 'a token of a revoked family is not consumed');
     }
@@ -203,29 +203,39 @@ final class ResolversUnitTest extends TestCase
 
     public function test_refresh_with_session_of_other_client_is_rejected_unless_joined_by_sso(): void
     {
-        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
-        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $sessions = $this->makeSessions('state-1', 'u1', 'https://issuer/tenant');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $this->publicSid($sessions)]), sessions: $sessions);
         $req = new AuthenticationRequest(new ClientData('sso-client', ['refresh_token'], true), '', '');
 
         $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
-        $sessions->addSessionClient('sid-1', 'https://issuer/tenant', 'sso-client');
+        $sessions->addSessionClient('state-1', 'https://issuer/tenant', 'sso-client');
         $this->assertTrue($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
     }
 
     public function test_refresh_with_active_session_of_same_user_is_accepted(): void
     {
-        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
-        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $sessions = $this->makeSessions('state-1', 'u1', 'https://issuer/tenant');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $this->publicSid($sessions)]), sessions: $sessions);
         $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
 
         $this->assertTrue($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
     }
 
+    public function test_refresh_whose_sid_is_the_session_cookie_is_rejected(): void
+    {
+        $sessions = $this->makeSessions('state-1', 'u1', 'https://issuer/tenant');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'state-1']), sessions: $sessions);
+        $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+
+        $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
+    }
+
     public function test_refresh_with_closed_session_is_rejected(): void
     {
-        $sessions = $this->makeSessions('sid-1', 'u1', 'https://issuer/tenant');
-        $sessions->deleteSession('sid-1');
-        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']), sessions: $sessions);
+        $sessions = $this->makeSessions('state-1', 'u1', 'https://issuer/tenant');
+        $sid = $this->publicSid($sessions);
+        $sessions->deleteSession('state-1');
+        $resolver = $this->makeRefreshResolver($this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $sid]), sessions: $sessions);
         $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
 
         $this->assertFalse($resolver->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
@@ -234,13 +244,15 @@ final class ResolversUnitTest extends TestCase
     public function test_refresh_with_session_of_other_user_or_issuer_is_rejected(): void
     {
         $req = new AuthenticationRequest(new ClientData('c', ['refresh_token'], true), '', '');
+        $otherUserSessions = $this->makeSessions('state-1', 'u2', 'https://issuer/tenant');
         $otherUser = $this->makeRefreshResolver(
-            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']),
-            sessions: $this->makeSessions('sid-1', 'u2', 'https://issuer/tenant')
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $this->publicSid($otherUserSessions)]),
+            sessions: $otherUserSessions
         );
+        $otherIssuerSessions = $this->makeSessions('state-1', 'u1', 'https://issuer/other');
         $otherIssuer = $this->makeRefreshResolver(
-            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => 'sid-1']),
-            sessions: $this->makeSessions('sid-1', 'u1', 'https://issuer/other')
+            $this->makeSigner(payload: ['keypass' => 'u1', 'sid' => $this->publicSid($otherIssuerSessions)]),
+            sessions: $otherIssuerSessions
         );
 
         $this->assertFalse($otherUser->authenticate('tenant', $req, ['refresh_token' => 'some-token'])->valid);
@@ -306,11 +318,17 @@ final class ResolversUnitTest extends TestCase
         );
     }
 
-    private function makeSessions(string $sid, string $userId, string $issuer): InMemorySessionStore
+    /** Public sid of the session opened by makeSessions, which is not its state key. */
+    private function publicSid(InMemorySessionStore $sessions): string
+    {
+        return (string) $sessions->loadSession('state-1')?->publicSid;
+    }
+
+    private function makeSessions(string $state, string $userId, string $issuer): InMemorySessionStore
     {
         $sessions = new InMemorySessionStore();
         $sessions->saveSession(
-            $sid,
+            $state,
             new ClientData('c', ['authorization_code'], true),
             $issuer,
             new ChallengesState(),

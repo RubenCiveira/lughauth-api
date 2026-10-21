@@ -28,10 +28,16 @@ interface SessionStoreGateway
     public function loadSession(string $state): ?SessionInfo;
 
     /**
-     * Loads an active session by its identifier (the refresh token sid) only when it was opened
+     * Loads an active session by its state key (the session cookie value) only when it was opened
      * under the given issuer, so a session of another tenant is never matched.
      */
-    public function findActiveSession(string $sid, string $issuer): ?SessionInfo;
+    public function findActiveSession(string $state, string $issuer): ?SessionInfo;
+
+    /**
+     * Loads an active session by its public identifier (the sid claim of refresh and logout
+     * tokens) only when it was opened under the given issuer.
+     */
+    public function findActiveSessionBySid(string $sid, string $issuer): ?SessionInfo;
 
     /**
      * Finds the most recently active session identifier for the given cross-session identifier
@@ -50,6 +56,9 @@ interface SessionStoreGateway
     /**
      * Persists a new session record associating the state key with the client, user, and challenge data.
      * The session lifetime is determined by the expiration interval added to the current timestamp.
+     * The store assigns the session a random public sid and records now as its auth_time.
+     *
+     * @param string[] $amr authentication methods actually used (RFC 8176); empty when unknown
      */
     public function saveSession(
         string $state,
@@ -58,7 +67,8 @@ interface SessionStoreGateway
         ChallengesState $keypass,
         AuthenticationResult $validationData,
         string $csid,
-        \DateInterval $expiration
+        \DateInterval $expiration,
+        array $amr = []
     ): void;
 
     /**
@@ -72,6 +82,12 @@ interface SessionStoreGateway
      * Called on logout or after the authorization code has been exchanged for tokens.
      */
     public function deleteSession(string $state): void;
+
+    /**
+     * Removes the session identified by its public sid, as when a replayed refresh token
+     * compromises it.
+     */
+    public function deleteSessionBySid(string $sid): void;
 
     /**
      * Deletes all session records whose expiration timestamp is in the past.

@@ -69,8 +69,6 @@ class AuthenticateUser
                 $challenges,
                 $issuer,
                 $csid,
-                $state,
-                $nonce,
                 false,
                 $sessionId
             );
@@ -107,8 +105,6 @@ class AuthenticateUser
                 $challenges,
                 $issuer,
                 $csid,
-                $state,
-                $nonce,
                 false,
                 null
             );
@@ -147,8 +143,6 @@ class AuthenticateUser
                 $challenges,
                 $issuer,
                 $csid,
-                $state,
-                $nonce,
                 true,
                 null
             );
@@ -169,8 +163,6 @@ class AuthenticateUser
         ChallengesState $challenges,
         string $issuer,
         string $csid,
-        string $state,
-        string $nonce,
         bool $emitLoginEvent,
         ?string $activeSessionId
     ): PublicLoginAuthResponse {
@@ -187,7 +179,7 @@ class AuthenticateUser
             }
             $this->logDebug('OIDC saveIt reusing active session', ['sessionId' => $activeSessionId]);
             $this->sessionStore->addSessionClient($activeSessionId, $issuer, $request->client->id);
-            return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $activeSessionId);
+            return $this->buildResponse($validation, $request, $issuer, $activeSessionId);
         }
 
         if (!$challenges->session) {
@@ -195,7 +187,7 @@ class AuthenticateUser
             if ($existingSessionId !== null && $existingSessionId !== '') {
                 $this->logDebug('OIDC saveIt reusing csid session', ['existingSessionId' => $existingSessionId]);
                 $this->sessionStore->addSessionClient($existingSessionId, $issuer, $request->client->id);
-                return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
+                return $this->buildResponse($validation, $request, $issuer, $existingSessionId);
             }
         }
 
@@ -208,48 +200,26 @@ class AuthenticateUser
         $sessionExpiration = new DateInterval("P15D");
 
         $this->logDebug('OIDC saveIt creating new session', ['sessionId' => $sessionId, 'userId' => $validation->id ?? '']);
-        $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration);
+        // Only methods with evidence (RFC 8176): a password checked here, or a completed MFA step.
+        $amr = array_values(array_filter([$emitLoginEvent ? 'pwd' : null, $challenges->withMfa ? 'mfa' : null]));
+        $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration, $amr);
 
-        return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $sessionId);
+        return $this->buildResponse($validation, $request, $issuer, $sessionId);
     }
 
     private function buildResponse(
         AuthenticationResult $validation,
         AuthenticationRequest $request,
         string $issuer,
-        string $state,
-        string $nonce,
         string $sessionId
     ): PublicLoginAuthResponse {
-        $idData = [
-            'typ' => 'ID',
-            'nonce' => $nonce,
-            'session_state' => $sessionId,
-            's_hash' => self::generateHash($state),
-        ];
-        $sessionExpiration = new DateInterval("P15D");
-
         return new PublicLoginAuthResponse(
             tenant: $validation->tenant ?? '',
             auth: $validation,
             issuer: $issuer,
             clientId: $request->client->id,
-            authExpiration: new DateInterval("PT10M"),
-            idData: $idData,
-            idExpiration: new DateInterval("PT10M"),
             sessionId: $sessionId,
-            sessionExpiration: $sessionExpiration
+            sessionExpiration: new DateInterval("P15D")
         );
-    }
-
-    /**
-     * Computes the OIDC half-hash of a value as required by the s_hash and c_hash claims.
-     * Uses SHA-256, takes the left half of the binary digest, and encodes it as base64url.
-     */
-    public static function generateHash(string $value): string
-    {
-        $hashedValue = hash('sha256', $value, true);
-        $halfHashedValue = substr($hashedValue, 0, intdiv(strlen($hashedValue), 2));
-        return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
     }
 }

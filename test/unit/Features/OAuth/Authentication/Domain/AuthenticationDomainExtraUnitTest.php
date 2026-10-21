@@ -54,9 +54,6 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
             auth: $auth,
             issuer: 'https://iss',
             clientId: 'c',
-            authExpiration: new DateInterval('PT1H'),
-            idData: [],
-            idExpiration: new DateInterval('PT1H'),
             sessionId: 's',
             sessionExpiration: new DateInterval('P1D'),
         );

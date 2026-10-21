@@ -42,6 +42,10 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\ClaimsMapper;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenFactory;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\TokenLifetimesGateway;
+use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Jose\Component\Core\AlgorithmManager;
@@ -275,9 +279,6 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             issuer: 'https://example.com/oauth/openid/tenant1',
             clientId: 'client-123',
-            authExpiration: new \DateInterval('PT10M'),
-            idData: [],
-            idExpiration: new \DateInterval('PT10M'),
             sessionId: 'sess-123',
             sessionExpiration: new \DateInterval('PT10M')
         );
@@ -319,7 +320,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $cookies = new OidcCookieManager($context, $this->createMock(TokenSigner::class));
         $responseBuilder = new OidcResponseBuilder(
-            $this->createMock(TokenSigner::class),
+            new TokenFactory($this->createMock(TokenSigner::class), new ClaimsMapper(), $this->createMock(TokenLifetimesGateway::class)),
+            $this->createMock(SessionStoreGateway::class),
             $temporals,
             $cookies
         );

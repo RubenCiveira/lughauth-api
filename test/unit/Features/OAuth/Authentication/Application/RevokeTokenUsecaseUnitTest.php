@@ -66,10 +66,10 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
         $this->assertSame('access', $revokedType);
     }
 
-    public function test_revoke_identifies_refresh_token_by_scope(): void
+    public function test_revoke_identifies_refresh_token_by_token_use(): void
     {
         $revokedType = null;
-        $signer = $this->makeSigner(['jti' => 'jti-1', 'azp' => 'client', 'scope' => ['openid', 'refresh']]);
+        $signer = $this->makeSigner(['jti' => 'jti-1', 'azp' => 'client', 'token_use' => 'refresh', 'scope' => 'openid']);
         $revocation = $this->makeRevocation(function (string $jti, string $t, string $type) use (&$revokedType) {
             $revokedType = $type;
         });

@@ -10,7 +10,7 @@ This context owns **session state** across the authorization flow. It tracks whi
 
 | Concept | Type | Description |
 |---|---|---|
-| `SessionInfo` | ValueObject | Core session data: `csid`, `withMfa`, `issuer`, `userId`, `clientId` |
+| `SessionInfo` | ValueObject | Core session data: `csid`, `withMfa`, `issuer`, `userId`, `clientId`, plus what tokens may publish: `publicSid` (random `sid`, never the cookie), `authTime`, `amr`, `acr`, `tenantId` |
 | `TemporalAuthCode` | ValueObject | Short-lived authorization code issued after a successful authorization; consumed once |
 
 ## Ports (Gateways)

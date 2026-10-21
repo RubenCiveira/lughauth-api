@@ -102,6 +102,7 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
 
     public function testOnlyParticipantsReceiveBackChannelLogoutWithoutBlockingTheResponse(): void
     {
+        $sid = $this->publicSid();
         $response = $this->logout(self::SESSION_ID);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -115,19 +116,28 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
             $claims = $this->payload($form['logout_token']);
             $this->assertSame([self::CLIENT_ID, self::SSO_CLIENT][$index], $claims['aud']);
             $this->assertSame(self::USER_ID, $claims['sub']);
-            $this->assertSame(self::SESSION_ID, $claims['sid']);
+            // The RPs get the session's public sid, never the cookie value.
+            $this->assertSame($sid, $claims['sid']);
+            $this->assertNotSame(self::SESSION_ID, $claims['sid']);
             $this->assertSame($this->context->getIssuer(self::TENANT), $claims['iss']);
         }
     }
 
     public function testFrontChannelListsOnlyParticipantsAddingIssAndSidWhenRequired(): void
     {
+        $sid = $this->publicSid();
         $html = (string) $this->logout(self::SESSION_ID)->getBody();
 
-        $query = http_build_query(['iss' => $this->context->getIssuer(self::TENANT), 'sid' => self::SESSION_ID]);
+        $query = http_build_query(['iss' => $this->context->getIssuer(self::TENANT), 'sid' => $sid]);
         $this->assertStringContainsString(htmlspecialchars('https://rp1.example.com/fc?' . $query), $html);
         $this->assertStringContainsString('src="https://rp2.example.com/fc?x=1"', $html);
         $this->assertStringNotContainsString('foreign.example.com', $html);
+        $this->assertStringNotContainsString(self::SESSION_ID, $html);
+    }
+
+    private function publicSid(): string
+    {
+        return (string) $this->sessionStore->loadSession(self::SESSION_ID)?->publicSid;
     }
 
     public function testDisabledParticipantIsNotNotified(): void

@@ -21,10 +21,16 @@ class InMemorySessionStore implements SessionStoreGateway
         return $this->sessions[$state] ?? null;
     }
 
-    public function findActiveSession(string $sid, string $issuer): ?SessionInfo
+    public function findActiveSession(string $state, string $issuer): ?SessionInfo
     {
-        $session = $this->sessions[$sid] ?? null;
+        $session = $this->sessions[$state] ?? null;
         return $session !== null && $session->issuer === $issuer ? $session : null;
+    }
+
+    public function findActiveSessionBySid(string $sid, string $issuer): ?SessionInfo
+    {
+        $state = $this->stateOf($sid);
+        return $state !== null ? $this->findActiveSession($state, $issuer) : null;
     }
 
     public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
@@ -48,6 +54,11 @@ class InMemorySessionStore implements SessionStoreGateway
                 userId: $session->userId,
                 clientId: $session->clientId,
                 ssoClients: [...$session->ssoClients, $clientId],
+                publicSid: $session->publicSid,
+                authTime: $session->authTime,
+                amr: $session->amr,
+                acr: $session->acr,
+                tenantId: $session->tenantId,
             );
         }
     }
@@ -59,7 +70,8 @@ class InMemorySessionStore implements SessionStoreGateway
         ChallengesState $keypass,
         AuthenticationResult $validationData,
         string $csid,
-        \DateInterval $expiration
+        \DateInterval $expiration,
+        array $amr = []
     ): void {
         $this->sessions[$state] = new SessionInfo(
             csid: $csid,
@@ -67,6 +79,10 @@ class InMemorySessionStore implements SessionStoreGateway
             issuer: $issuer,
             userId: (string) $validationData->id,
             clientId: $clientDetails->id,
+            publicSid: bin2hex(random_bytes(16)),
+            authTime: new \DateTimeImmutable('@' . time()),
+            amr: $amr,
+            tenantId: $validationData->tenant,
         );
     }
 
@@ -83,8 +99,45 @@ class InMemorySessionStore implements SessionStoreGateway
         unset($this->sessions[$state]);
     }
 
+    public function deleteSessionBySid(string $sid): void
+    {
+        $state = $this->stateOf($sid);
+        if ($state !== null) {
+            $this->deleteSession($state);
+        }
+    }
+
     public function purgeExpired(): void
     {
         // In-memory store has no expiry tracking; nothing to purge.
+    }
+
+    /** Test helper: moves the authentication of the session to $at. */
+    public function authenticatedAt(string $state, \DateTimeImmutable $at): void
+    {
+        $session = $this->sessions[$state];
+        $this->sessions[$state] = new SessionInfo(
+            csid: $session->csid,
+            withMfa: $session->withMfa,
+            issuer: $session->issuer,
+            userId: $session->userId,
+            clientId: $session->clientId,
+            ssoClients: $session->ssoClients,
+            publicSid: $session->publicSid,
+            authTime: $at,
+            amr: $session->amr,
+            acr: $session->acr,
+            tenantId: $session->tenantId,
+        );
+    }
+
+    private function stateOf(string $sid): ?string
+    {
+        foreach ($this->sessions as $state => $session) {
+            if ($session->publicSid === $sid) {
+                return $state;
+            }
+        }
+        return null;
     }
 }
