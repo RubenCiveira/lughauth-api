@@ -7,8 +7,10 @@ namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven;
 
 use Override;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\SigningKeyProvisioner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
@@ -29,9 +31,11 @@ use Ramsey\Uuid\Uuid;
  * Produces and verifies RS256 compact-serialized JWTs. Each token is signed with the tenant's
  * active key and carries that key's `kid` and the token purpose (`typ`) in its header, so
  * relying parties pick the right key during rotation and each consumer rejects tokens issued
- * for another purpose. This adapter never creates keys: when the tenant has no active key,
- * signing fails with NoActiveKeyException and an error log, and the key rotation service is
- * expected to provision one. Tokens without `kid` or `typ` (issued before EP-04) are rejected.
+ * for another purpose. Keys are provisioned by the scheduled key rotation; as a fallback, when
+ * the tenant has no active key one is created on the spot, and when its chain of future keys is
+ * too short it is completed after the response. If no key can be created, signing fails with
+ * NoActiveKeyException and an error log, never with output. Tokens without `kid` or `typ`
+ * (issued before EP-04) are rejected.
  */
 class JoseTokenSigner implements TokenSigner
 {
@@ -39,7 +43,8 @@ class JoseTokenSigner implements TokenSigner
 
     public function __construct(
         private readonly KeyConfig $config,
-        private readonly TokenStoreGateway $repository
+        private readonly TokenStoreGateway $repository,
+        private readonly SigningKeyProvisioner $provisioner,
     ) {
     }
 
@@ -133,11 +138,7 @@ class JoseTokenSigner implements TokenSigner
 
     private function signAs(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string
     {
-        $key = $this->repository->currentKey($tenant);
-        if (!$key) {
-            $this->logError('There is no active signing key for tenant ' . $tenant . '; the key rotation must provision one');
-            throw new NoActiveKeyException('There is no active key for tenant: ' . $tenant);
-        }
+        $key = $this->signingKey($tenant);
         $initial = new \DateTimeImmutable();
         $data = array_merge([
                 'jti' => Uuid::uuid4()->toString(),
@@ -155,6 +156,30 @@ class JoseTokenSigner implements TokenSigner
                     ])
                     ->build();
         return (new CompactSerializer())->serialize($token, 0);
+    }
+
+    /**
+     * The tenant's active key, provisioning it (or the missing future keys) if the scheduled
+     * rotation fell behind.
+     */
+    private function signingKey(string $tenant): KeyPair
+    {
+        $key = $this->repository->currentKey($tenant);
+        try {
+            if ($key === null) {
+                $this->provisioner->provisionActiveKey($tenant);
+                $key = $this->repository->currentKey($tenant);
+            } else {
+                $this->provisioner->ensureFutureKeys($tenant);
+            }
+        } catch (\Throwable $ex) {
+            $this->logError('Cannot provision signing keys for tenant ' . $tenant . ': ' . $ex->getMessage());
+        }
+        if ($key === null) {
+            $this->logError('There is no active signing key for tenant ' . $tenant);
+            throw new NoActiveKeyException('There is no active key for tenant: ' . $tenant);
+        }
+        return $key;
     }
 
     private function hasAcceptedPurpose(JWS $jws, VerificationPolicy $policy): bool

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\integration\Features\OAuth;
 
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Exception\NoActiveKeyException;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
@@ -62,20 +63,54 @@ class TokenSigningTest extends OidcIntegrationTestCase
         $this->signer()->sign(TokenType::PreSession, ['keypass' => []], self::TENANT, new \DateInterval('PT10M'));
     }
 
-    public function testSigningWithoutActiveKeyFailsWithoutCreatingKeysOrWritingOutput(): void
+    public function testSigningWithoutActiveKeyCreatesOnlyTheActiveOneAndDefersTheRest(): void
     {
-        $store = new InMemoryTokenStore();
-        $signer = new JoseTokenSigner(new KeyConfig(), $store);
+        $material = $this->tokenStore->currentKey(self::TENANT);
+        $this->tokenStore = new InMemoryTokenStore();
+        $signer = new JoseTokenSigner(new KeyConfig(), $this->tokenStore, $this->keyRotation($this->generatorFrom($material)));
         $signer->setLogger(new \Psr\Log\NullLogger());
 
         $this->expectOutputString('');
-        try {
-            $signer->sign(TokenType::Access, ['sub' => self::USER_ID], self::TENANT, new \DateInterval('PT10M'));
-            $this->fail('Signing without an active key must fail');
-        } catch (NoActiveKeyException) {
-        }
-        $this->assertNull($store->latestExpiration(self::TENANT), 'Signing must never generate keys');
-        $this->assertCount(0, $signer->keysAsJwks(self::TENANT)->all());
+        $token = $signer->sign(TokenType::Access, ['sub' => self::USER_ID], self::TENANT, new \DateInterval('PT10M'));
+
+        $this->assertNotNull($signer->verify(self::TENANT, $token, VerificationPolicy::expecting(TokenType::Access)));
+        $this->assertCount(1, $signer->keysAsJwks(self::TENANT)->all(), 'Only the active key is created while signing');
+        $this->assertCount(1, $this->deferredKeyJobs, 'The future keys are left for after the response');
+
+        ($this->deferredKeyJobs[0])();
+        $this->assertCount((new KeyConfig())->futures + 1, $signer->keysAsJwks(self::TENANT)->all());
+    }
+
+    public function testSigningWithAShortChainDefersTheMissingFutureKeysOnce(): void
+    {
+        $this->deferredKeyJobs = [];
+
+        $this->signer()->sign(TokenType::Access, ['sub' => self::USER_ID], self::TENANT, new \DateInterval('PT10M'));
+        $this->signer()->sign(TokenType::Id, ['sub' => self::USER_ID], self::TENANT, new \DateInterval('PT10M'));
+
+        $this->assertCount(1, $this->deferredKeyJobs);
+        ($this->deferredKeyJobs[0])();
+        $this->assertGreaterThanOrEqual(
+            (new \DateTimeImmutable())->add(new \DateInterval('P21D')),
+            $this->tokenStore->latestExpiration(self::TENANT)
+        );
+    }
+
+    public function testSigningFailsWithoutOutputWhenNoKeyCanBeCreated(): void
+    {
+        $this->tokenStore = new InMemoryTokenStore();
+        $failing = new class () implements KeyPairGenerator {
+            public function generate(): KeyPair
+            {
+                throw new \RuntimeException('openssl unavailable');
+            }
+        };
+        $signer = new JoseTokenSigner(new KeyConfig(), $this->tokenStore, $this->keyRotation($failing));
+        $signer->setLogger(new \Psr\Log\NullLogger());
+
+        $this->expectOutputString('');
+        $this->expectException(NoActiveKeyException::class);
+        $signer->sign(TokenType::Access, ['sub' => self::USER_ID], self::TENANT, new \DateInterval('PT10M'));
     }
 
     public function testRetiredKeyStillVerifiesDuringRetentionWindow(): void
@@ -131,5 +166,18 @@ class TokenSigningTest extends OidcIntegrationTestCase
             ->addSignature(JWKFactory::createFromKey($key->privateKey), ['alg' => 'RS256', 'kid' => $key->kid, ...$header])
             ->build();
         return (new CompactSerializer())->serialize($jws, 0);
+    }
+
+    private function generatorFrom(KeyPair $material): KeyPairGenerator
+    {
+        return new class ($material) implements KeyPairGenerator {
+            public function __construct(private readonly KeyPair $material)
+            {
+            }
+            public function generate(): KeyPair
+            {
+                return new KeyPair(uniqid('kid-', true), 'RS256', 'sig', $this->material->privateKey, $this->material->publicKey);
+            }
+        };
     }
 }

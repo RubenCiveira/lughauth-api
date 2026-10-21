@@ -33,6 +33,9 @@ use Civi\Lughauth\Shared\Security\MagicLinkService;
  */
 class JwtVerifierMiddleware
 {
+    /** Prefix of the cached verification result of each token. */
+    public const string CACHE_PREFIX = 'verify_access_v2_';
+
     /** @var string|null JWKS endpoint URL for public key verification. */
     private readonly ?string $jwksUrl;
     /** @var string|null Required issuer for JWT validation. */
@@ -97,7 +100,8 @@ class JwtVerifierMiddleware
 
     private function verifyAuth(string $token, string $authScope): string
     {
-        $cache_key = "verify_access_{$token}";
+        // Versioned: entries cached before tokens carried kid/typ (EP-04) must not authenticate.
+        $cache_key = self::CACHE_PREFIX . $token;
         if ($this->cache->has($cache_key)) {
             $cached = json_decode($this->cache->get($cache_key), true);
             $error = null;
@@ -127,6 +131,13 @@ class JwtVerifierMiddleware
             $jwks = $this->getJwks();
             try {
                 $jwt = $this->extractJwt($token);
+                if (!is_string($jwt->getSignature(0)->getProtectedHeader()['kid'] ?? null)) {
+                    // Without kid there is no published key to pick: reject without refreshing the JWKS.
+                    $fail = 'The provided JWT does not name its signing key.';
+                    $this->logger->warning('JWT rejected: ' . $fail, ['token_prefix' => substr($token, 0, 20)]);
+                    $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), 60);
+                    throw new UnauthorizedException(message: $fail);
+                }
                 try {
                     $verified = $this->verify($jwt, $jwks);
                 } catch (\JsonException $je) {
@@ -403,11 +414,14 @@ class JwtVerifierMiddleware
     private function verify(JWS $jwt, string $jwks): bool
     {
         $jwkSet = JWKSet::createFromJson($jwks);
-        // Crear un verificador de JWS con el algoritmo correspondiente
-        $algorithmManager = new AlgorithmManager([new RS256()]);
-        $jwsVerifier = new JWSVerifier($algorithmManager);
-        // Verificar el token con el JWKSet
-        return $jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0);
+        // A token names its key: it only verifies against that published key. An unknown kid
+        // fails here, so the caller refreshes the JWKS (the key may have just rotated in).
+        $kid = $jwt->getSignature(0)->getProtectedHeader()['kid'] ?? null;
+        if (!is_string($kid) || !$jwkSet->has($kid)) {
+            return false;
+        }
+        $jwsVerifier = new JWSVerifier(new AlgorithmManager([new RS256()]));
+        return $jwsVerifier->verifyWithKeySet($jwt, new JWKSet([$jwkSet->get($kid)]), 0);
     }
 
     private function getJwks(): string

@@ -425,7 +425,7 @@ class Micro
         $def[AuditMiddleware::class] = function (Container $container, Context $appContext, AppConfig $conf): AuditMiddleware {
             $pdo = $container->get('DIRECT_PDO');
             $context = $container->get(AuditContext::class);
-            return new AuditMiddleware($pdo, $context, $appContext, $conf);
+            return new AuditMiddleware($pdo, $context, $appContext, $conf, $container->get(LockFactory::class));
         };
         $def[AuditQueryService::class] = function (Container $container): AuditQueryService {
             $pdo = $container->get('DIRECT_PDO');

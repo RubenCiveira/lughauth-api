@@ -59,7 +59,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          * Arrange: seed the cache with an error payload.
          */
         $cache = new ArrayCache([
-            'verify_access_token' => json_encode([null, null, 'fail'])
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode([null, null, 'fail'])
         ]);
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache);
 
@@ -103,7 +103,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'claims' => []
         ];
         $cache = new ArrayCache([
-            'verify_access_token' => json_encode([$connection, $identity, null])
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode([$connection, $identity, null])
         ]);
 
         $context = $this->createMock(Context::class);
@@ -134,7 +134,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'cookie-token';
         $cache = new ArrayCache([
-            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
         ]);
         $context = $this->createMock(Context::class);
         $context->expects($this->never())
@@ -174,7 +174,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'query-token';
         $cache = new ArrayCache([
-            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
         ]);
         $context = $this->createMock(Context::class);
         $context->expects($this->never())
@@ -227,6 +227,54 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     public function testRejectsUntypedToken(): void
     {
         $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'typ' => 'Bearer'], $key, null)));
+    }
+
+    public function testRejectsTokenWithoutKidEvenIfAPublishedKeySignedIt(): void
+    {
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt($claims, $key, 'at+jwt', false)));
+    }
+
+    public function testRejectsTokenWhoseKidNamesAnotherPublishedKey(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $signing = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $other = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+        $jwks = json_encode(['keys' => [$signing->jsonSerialize(), $other->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getBody')->willReturn($this->stream($jwks));
+        $client = $this->createStub(ClientInterface::class);
+        $client->method('sendRequest')->willReturn($response);
+        $cache = new ArrayCache(['jwks.verify.publickey' => $jwks]);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $this->createStub(Context::class), $client);
+        $token = (new CompactSerializer())->serialize((new JWSBuilder(new AlgorithmManager([new RS256()])))->create()
+            ->withPayload(json_encode(['sub' => 'user', 'iss' => 'issuer', 'azp' => 'app', 'nbf' => time() - 10, 'exp' => time() + 1000], JSON_THROW_ON_ERROR))
+            ->addSignature($signing, ['alg' => 'RS256', 'kid' => 'k2', 'typ' => 'at+jwt'])
+            ->build(), 0);
+
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+    }
+
+    public function testIgnoresVerificationsCachedBeforeTheCacheVersion(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        // Issued and cached as authenticated before EP-04: no kid, `typ: Bearer` in the payload.
+        $token = $this->jwt(['sub' => 'user', 'typ' => 'Bearer', 'azp' => 'app', 'nbf' => time() - 10, 'exp' => time() + 1000], $key, null, false);
+        $cache = new ArrayCache([
+            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH),
+            'jwks.verify.publickey' => json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR),
+        ]);
+        $context = $this->createMock(Context::class);
+        $context->expects($this->never())->method('setSecurityContext');
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context);
+
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
     }
 
     public function testAcceptsAccessToken(): void
@@ -441,7 +489,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $this->assertInstanceOf(UnauthorizedException::class, $exception);
         $this->assertSame('The provided JWT is not ready for use.', $exception->getMessage());
-        $this->assertTrue($cache->has("verify_access_{$token}"));
+        $this->assertTrue($cache->has(JwtVerifierMiddleware::CACHE_PREFIX . $token));
     }
 
     /**
@@ -491,7 +539,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $this->assertInstanceOf(UnauthorizedException::class, $exception);
         $this->assertSame('The provided JWT dont have valid time range.', $exception->getMessage());
-        $this->assertTrue($cache->has("verify_access_{$token}"));
+        $this->assertTrue($cache->has(JwtVerifierMiddleware::CACHE_PREFIX . $token));
     }
 
     /**
@@ -621,7 +669,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'cachedmagictoken';
         $cache = new ArrayCache([
-            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH)
         ]);
 
         $magicLinkService = $this->createMock(MagicLinkService::class);
@@ -1181,9 +1229,12 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         };
     }
 
-    private function jwt(array $payload, $key, ?string $typ = 'at+jwt'): string
+    private function jwt(array $payload, $key, ?string $typ = 'at+jwt', bool $withKid = true): string
     {
-        $header = ['alg' => 'RS256', 'kid' => 'k1'];
+        $header = ['alg' => 'RS256'];
+        if ($withKid) {
+            $header['kid'] = $key->get('kid');
+        }
         if ($typ !== null) {
             $header['typ'] = $typ;
         }

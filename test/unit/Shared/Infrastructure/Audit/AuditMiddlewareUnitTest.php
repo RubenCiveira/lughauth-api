@@ -16,6 +16,8 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditChange;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditMiddleware;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 #[AllowMockObjectsWithoutExpectations]
 final class AuditMiddlewareUnitTest extends TestCase
@@ -39,7 +41,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
-        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
+        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config, $this->locker());
 
         $request = $this->createRequest('POST', '/path', 'UA');
         $response = $this->createResponse(200);
@@ -65,7 +67,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
-        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
+        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config, $this->locker());
 
         $request = $this->createRequest('GET', '/skip', 'UA');
         $response = $this->createResponse(200);
@@ -94,7 +96,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $context->method('getIdentity')->willReturn(Identity::from(true));
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
-        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
+        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config, $this->locker());
 
         $pdo->exec("INSERT INTO _audit_action (id, occurred_at, actor_id, actor_type, actor_ip, tenant_id, session_id, client_id, user_agent, request_method, request_path, action_type)
             VALUES ('a2', '2000-01-01 00:00:00', 'user', 'user', '127.0.0.1', 't1', '', 'app', 'UA', 'POST', '/old', 'POST /old')");
@@ -114,6 +116,34 @@ final class AuditMiddlewareUnitTest extends TestCase
         }
     }
 
+    public function testConstructionDoesNotTouchTheDatabase(): void
+    {
+        // Before the first migration the audit tables do not exist yet.
+        $pdo = $this->createSqlite();
+        $config = $this->createStub(AppConfig::class);
+
+        new AuditMiddleware($pdo, new AuditContext(), $this->createStub(Context::class), $config, $this->locker());
+
+        $this->assertSame([], $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll());
+    }
+
+    public function testPurgeExpiredExportsAndDeletesRecordsPastRetention(): void
+    {
+        $pdo = $this->createSqlite();
+        $this->createAuditTables($pdo);
+        $pdo->exec("INSERT INTO _audit_action (id, occurred_at, actor_id, actor_type, actor_ip, tenant_id, session_id, client_id, user_agent, request_method, request_path, action_type)
+            VALUES ('old', '2000-01-03 00:00:00', 'user', 'user', '127.0.0.1', 't1', '', 'app', 'UA', 'POST', '/old', 'POST /old')");
+        $config = $this->createStub(AppConfig::class);
+        $config->method('get')->willReturn(1);
+
+        (new AuditMiddleware($pdo, new AuditContext(), $this->createStub(Context::class), $config, $this->locker()))->purgeExpired();
+
+        $this->assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());
+        foreach (glob(__DIR__ . '/../../../../../var/audit/audit-*.json.gz') ?: [] as $file) {
+            unlink($file);
+        }
+    }
+
     public function testExportAndDeleteBeforeSkipsWhenNoData(): void
     {
         $pdo = $this->createSqlite();
@@ -127,12 +157,35 @@ final class AuditMiddlewareUnitTest extends TestCase
         $context->method('getIdentity')->willReturn(Identity::from(true));
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
-        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
+        $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config, $this->locker());
 
         $method = new ReflectionMethod($middleware, 'exportAndDeleteBefore');
         $method->invoke($middleware, new DateTimeImmutable('2024-01-01 00:00:00'));
 
         $this->assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());
+    }
+
+    public function testPurgeLeavesRecordsAloneWhileAnotherProcessHoldsTheLock(): void
+    {
+        $pdo = $this->createSqlite();
+        $this->createAuditTables($pdo);
+        $pdo->exec("INSERT INTO _audit_action (id, occurred_at, actor_id, actor_type, actor_ip, tenant_id, session_id, client_id, user_agent, request_method, request_path, action_type)
+            VALUES ('old', '2000-01-03 00:00:00', 'user', 'user', '127.0.0.1', 't1', '', 'app', 'UA', 'POST', '/old', 'POST /old')");
+        $config = $this->createStub(AppConfig::class);
+        $config->method('get')->willReturn(1);
+        $store = new InMemoryStore();
+        $held = (new LockFactory($store))->createLock('audit_middleware_purge');
+        $this->assertTrue($held->acquire());
+
+        (new AuditMiddleware($pdo, new AuditContext(), $this->createStub(Context::class), $config, new LockFactory($store)))->purgeExpired();
+
+        $this->assertSame(1, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());
+        $held->release();
+    }
+
+    private function locker(): LockFactory
+    {
+        return new LockFactory(new InMemoryStore());
     }
 
     private function createSqlite(): PDO

@@ -11,10 +11,6 @@ use Civi\Lughauth\Bootstrap\Plugin\OAuthPlugin;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\OidcCapabilities;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driver\Rest\JwksController;
 
 class DiscoveryTest extends OidcIntegrationTestCase
@@ -45,7 +41,7 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $before = $this->jwksKids(self::TENANT);
         $otherBefore = $this->jwksKids('tenant2');
 
-        $created = $this->rotation()->rotate(self::TENANT);
+        $created = $this->keyRotation()->rotate(self::TENANT);
 
         $this->assertGreaterThan(0, $created);
         $this->assertCount(count($before) + $created, $this->jwksKids(self::TENANT), 'Future keys are published before they sign');
@@ -59,22 +55,6 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $controller = $this->container->get(JwksController::class);
         $response = $controller->get($this->makeRequest('GET', "/oauth/openid/$tenant/jwks"), new Response(200), ['tenant' => $tenant]);
         return array_column($this->decodeJson($response)['keys'] ?? [], 'kid');
-    }
-
-    /** Rotation whose generator reuses the active key material, avoiding slow RSA generation. */
-    private function rotation(): KeyRotationService
-    {
-        $material = $this->tokenStore->currentKey(self::TENANT);
-        $generator = new class ($material) implements KeyPairGenerator {
-            public function __construct(private readonly KeyPair $material)
-            {
-            }
-            public function generate(): KeyPair
-            {
-                return new KeyPair(uniqid('kid-', true), 'RS256', 'sig', $this->material->privateKey, $this->material->publicKey);
-            }
-        };
-        return new KeyRotationService(new KeyConfig(), $this->tokenStore, $generator, $this->cache);
     }
 
     private function discover(string $tenant = self::TENANT, ?OpenIdConfigurationController $controller = null): array

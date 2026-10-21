@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Sync staged OAuth PHP and SQL into the civi-generator OIDC template.
 
+Markdown docs under src/Features/OAuth/ are always synced from Git's index,
+staged or not, so the template never keeps a stale README.
+
 Use --include-unstaged-tests to also sync modified/untracked OAuth tests from
 the working tree. Without that flag, every copied file comes from Git's index.
 """
@@ -69,6 +72,20 @@ def sync_php(staged: set[str], template: Path, include_unstaged_tests: bool) -> 
     return updated
 
 
+def sync_docs(template: Path) -> int:
+    updated = 0
+    for path in sorted(paths('ls-files', '-z', '--', 'src/Features/OAuth/')):
+        if not path.endswith('.md'):
+            continue
+        content = git('show', ':' + path).decode('utf-8')
+        destination = template / 'code' / path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if not destination.exists() or destination.read_text(encoding='utf-8') != content:
+            destination.write_text(content, encoding='utf-8')
+            updated += 1
+    return updated
+
+
 def sync_sql(staged: set[str], template: Path) -> bool:
     if MIGRATION not in staged:
         return False
@@ -117,8 +134,9 @@ def main() -> None:
 
     staged = paths('diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z')
     php_count = sync_php(staged, template, args.include_unstaged_tests)
+    docs_count = sync_docs(template)
     sql_updated = sync_sql(staged, template)
-    print(f'PHP templates updated: {php_count}; SQL updated: {sql_updated}')
+    print(f'PHP templates updated: {php_count}; docs updated: {docs_count}; SQL updated: {sql_updated}')
 
 
 if __name__ == '__main__':

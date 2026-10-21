@@ -21,7 +21,12 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSigner;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
@@ -54,6 +59,8 @@ abstract class OidcIntegrationTestCase extends TestCase
     protected \DI\Container $container;
     protected Context $context;
     protected CacheInterface $cache;
+    /** @var list<callable> Key rotations the signer deferred to the end of the request. */
+    protected array $deferredKeyJobs = [];
 
     protected function setUp(): void
     {
@@ -134,7 +141,7 @@ abstract class OidcIntegrationTestCase extends TestCase
             }
         };
 
-        $signer = new JoseTokenSigner($keyConfig, $tokenStore);
+        $signer = new JoseTokenSigner($keyConfig, $tokenStore, $this->keyRotation());
 
         $builder->addDefinitions([
             ClientStoreGateway::class => $this->clientStore,
@@ -224,5 +231,34 @@ abstract class OidcIntegrationTestCase extends TestCase
         $data = $this->decodeJson($response);
         $this->assertArrayHasKey($field, $data, "Response body missing field '{$field}'");
         return (string) $data[$field];
+    }
+
+    /**
+     * Key rotation over the in-memory store whose generator reuses the tenant's key material,
+     * avoiding slow RSA generation. Deferred rotations are collected in $deferredKeyJobs.
+     */
+    protected function keyRotation(?KeyPairGenerator $generator = null): KeyRotationService
+    {
+        $generator ??= new class ($this->tokenStore->currentKey(self::TENANT)) implements KeyPairGenerator {
+            public function __construct(private readonly KeyPair $material)
+            {
+            }
+            public function generate(): KeyPair
+            {
+                return new KeyPair(uniqid('kid-', true), 'RS256', 'sig', $this->material->privateKey, $this->material->publicKey);
+            }
+        };
+        $rotation = new KeyRotationService(
+            new KeyConfig(),
+            $this->tokenStore,
+            $generator,
+            $this->cache,
+            new LockFactory(new InMemoryStore()),
+            function (callable $job): void {
+                $this->deferredKeyJobs[] = $job;
+            }
+        );
+        $rotation->setLogger(new \Psr\Log\NullLogger());
+        return $rotation;
     }
 }

@@ -15,8 +15,8 @@ use Jose\Component\Core\JWKSet;
  * Every token is signed for one purpose (TokenType), written with the signing key's `kid` in
  * the JWS header, and verified against the purposes the consumer accepts. `signKeypass`
  * produces the internal pre-session token used to carry challenges between redirect steps.
- * Signing never creates keys: they are provisioned ahead of time by the key rotation service,
- * and the JWKS returned by `keysAsJwks` contains every key still needed for verification,
+ * Keys are provisioned ahead of time by the scheduled key rotation; signing only creates them
+ * as a fallback when that rotation has fallen behind (see SigningKeyProvisioner). The JWKS returned by `keysAsJwks` contains every key still needed for verification,
  * including future keys and recently retired ones whose tokens may still be in flight.
  */
 interface TokenSigner
@@ -27,7 +27,7 @@ interface TokenSigner
      * injected unless provided. Pre-session tokens must be signed with `signKeypass`.
      *
      * @throws \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Exception\NoActiveKeyException
-     *         when the tenant has no active signing key.
+     *         when the tenant has no active signing key and none can be created.
      */
     public function sign(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string;
 

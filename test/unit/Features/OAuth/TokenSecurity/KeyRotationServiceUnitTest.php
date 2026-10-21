@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
@@ -21,6 +23,9 @@ final class KeyRotationServiceUnitTest extends TestCase
     private Psr16Cache $cache;
     private int $generated = 0;
     private bool $failNext = false;
+    private int $failAfter = PHP_INT_MAX;
+    /** @var list<callable> */
+    private array $deferred = [];
 
     protected function setUp(): void
     {
@@ -89,6 +94,61 @@ final class KeyRotationServiceUnitTest extends TestCase
         $this->assertSame([], $this->store->listKeys('acme', new \DateTimeImmutable('-1 year')), 'Keys past retention are purged');
     }
 
+    public function testKeysStoredBeforeAGenerationFailureArePublished(): void
+    {
+        $this->cache->set(KeyRotationService::jwksCacheKey('acme'), '{"keys":[]}');
+        $this->failAfter = 2;
+
+        try {
+            $this->service()->rotate('acme');
+            $this->fail('The generation failure must propagate');
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertNotNull($this->store->currentKey('acme'));
+        $this->assertFalse($this->cache->has(KeyRotationService::jwksCacheKey('acme')), 'The new keys must reach the JWKS');
+    }
+
+    public function testFallbackWithoutActiveKeyCreatesOnlyThatKeyAndDefersTheChain(): void
+    {
+        $service = $this->service();
+
+        $service->provisionActiveKey('acme');
+
+        $this->assertSame(1, $this->generated, 'Only one RSA key is generated while serving the request');
+        $this->assertNotNull($this->store->currentKey('acme'));
+        $this->assertCount(1, $this->deferred);
+        ($this->deferred[0])();
+        $this->assertSame((new KeyConfig())->futures + 1, $this->generated);
+    }
+
+    public function testFallbackDoesNotReplaceAnActiveKeyCreatedMeanwhile(): void
+    {
+        $this->store->saveKey('acme', $this->key(), new \DateTimeImmutable('-1 hour'), new \DateInterval('P7D'));
+
+        $this->service()->provisionActiveKey('acme');
+
+        $this->assertSame(1, $this->generated);
+        $this->assertSame('kid-0', $this->store->currentKey('acme')?->kid);
+    }
+
+    public function testFutureKeysAreDeferredOnlyWhenTheChainIsShort(): void
+    {
+        $covered = $this->service();
+        $covered->rotate('acme');
+        $covered->ensureFutureKeys('acme');
+        $this->assertSame([], $this->deferred, 'A full chain needs nothing');
+
+        $this->store->saveKey('globex', $this->key(), new \DateTimeImmutable('-1 hour'), new \DateInterval('P7D'));
+        $short = $this->service();
+        $short->ensureFutureKeys('globex');
+        $short->ensureFutureKeys('globex');
+        $this->assertCount(1, $this->deferred, 'One deferred rotation per tenant and request');
+
+        ($this->deferred[0])();
+        $this->assertGreaterThanOrEqual(new \DateTimeImmutable('+21 days'), $this->store->latestExpiration('globex'));
+    }
+
     public function testOpenSslGeneratorProducesUsableRs256KeyPairs(): void
     {
         $pair = (new OpenSslKeyPairGenerator())->generate();
@@ -110,7 +170,16 @@ final class KeyRotationServiceUnitTest extends TestCase
                 return $this->test->key();
             }
         };
-        $service = new KeyRotationService(new KeyConfig(), $this->store, $generator, $this->cache);
+        $service = new KeyRotationService(
+            new KeyConfig(),
+            $this->store,
+            $generator,
+            $this->cache,
+            new LockFactory(new InMemoryStore()),
+            function (callable $job): void {
+                $this->deferred[] = $job;
+            }
+        );
         $service->setLogger(new NullLogger());
         return $service;
     }
@@ -118,7 +187,7 @@ final class KeyRotationServiceUnitTest extends TestCase
     /** Key pair with a predictable kid; key material is irrelevant to rotation. */
     public function key(): KeyPair
     {
-        if ($this->failNext) {
+        if ($this->failNext || $this->generated >= $this->failAfter) {
             $this->failNext = false;
             throw new \RuntimeException('generation failed');
         }

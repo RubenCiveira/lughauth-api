@@ -27,6 +27,7 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSi
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\Listener\ProvisionTenantKeys;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\SigningKeyProvisioner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\OpenSslKeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
@@ -143,6 +144,7 @@ class OAuthPlugin extends MicroPlugin
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
         $def[TokenSigner::class] = \DI\autowire(JoseTokenSigner::class);
         $def[KeyPairGenerator::class] = \DI\autowire(OpenSslKeyPairGenerator::class);
+        $def[SigningKeyProvisioner::class] = \DI\get(KeyRotationService::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
@@ -193,7 +195,8 @@ class OAuthPlugin extends MicroPlugin
     }
 
     /**
-     * Provisions and rotates every tenant's signing keys outside of token requests.
+     * Provisions and rotates every tenant's signing keys; signing only creates keys as a fallback
+     * when this scheduled rotation has not run.
      */
     #[Override]
     public function registerSchedulers(SchedulerManager $scheduler): void

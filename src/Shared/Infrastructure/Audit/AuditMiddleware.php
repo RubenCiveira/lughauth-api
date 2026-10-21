@@ -13,6 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\Lock\LockFactory;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\AppConfig;
 
@@ -25,7 +26,10 @@ use Civi\Lughauth\Shared\AppConfig;
  *
  * - **Action logging**: Records request metadata (actor, IP, path, method).
  * - **Change tracking**: Persists entity-level changes collected by auditable statements.
- * - **Retention management**: Automatically exports and purges old audit records.
+ * - **Retention management**: after each request (at shutdown, once the response is sent) it
+ *   exports and purges old audit records. A failure (for example before the tables are migrated)
+ *   is logged and never breaks the request, and a lock keeps concurrent processes from purging
+ *   the same records.
  *
  * The retention policy exports audit data to gzip-compressed JSON files before
  * deletion, ensuring compliance and forensic capabilities.
@@ -41,6 +45,11 @@ class AuditMiddleware implements MiddlewareInterface
     /** @var string Directory path for exported audit archives. */
     private readonly string $exportDir;
 
+    private const string PURGE_LOCK = 'audit_middleware_purge';
+
+    /** @var bool Whether the retention purge is already queued for this process. */
+    private bool $purgeQueued = false;
+
     /**
      * Creates the audit middleware with required dependencies.
      *
@@ -48,6 +57,7 @@ class AuditMiddleware implements MiddlewareInterface
      * @param AuditContext $context    Request-scoped context for collecting changes.
      * @param Context      $appContext Application context providing identity and connection info.
      * @param AppConfig    $config     Configuration for retention policy settings.
+     * @param LockFactory  $locker     Cross-process lock for the retention purge.
      */
     public function __construct(
         /** @var PDO Database connection for persisting audit records. */
@@ -56,11 +66,11 @@ class AuditMiddleware implements MiddlewareInterface
         private readonly AuditContext $context,
         /** @var Context Application context with identity and connection data. */
         private readonly Context $appContext,
-        AppConfig $config
+        AppConfig $config,
+        private readonly LockFactory $locker
     ) {
         $this->retentionWeeks = intval($config->get('app.audit.retention-weeks', 0));
         $this->exportDir = __DIR__ . '/../../../../var/audit';
-        $this->clear();
     }
 
     /**
@@ -83,6 +93,16 @@ class AuditMiddleware implements MiddlewareInterface
 
         $actionId = Uuid::uuid4()->toString();
         $this->context->setActionId($actionId);
+        if (!$this->purgeQueued) {
+            $this->purgeQueued = true;
+            register_shutdown_function(function (): void {
+                try {
+                    $this->purgeExpired();
+                } catch (\Throwable $ex) {
+                    error_log('Audit retention purge failed: ' . $ex->getMessage());
+                }
+            });
+        }
 
         $response = $handler->handle($request);
 
@@ -149,14 +169,13 @@ class AuditMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Checks for and processes audit records that have exceeded the retention period.
+     * Exports and deletes the audit records that have exceeded the retention period.
      *
-     * Called during middleware construction to opportunistically clean up old
-     * audit data without requiring a dedicated cron job.
+     * Runs at the end of each request (see process()); building the middleware never touches the database.
      *
      * @return void
      */
-    private function clear(): void
+    public function purgeExpired(): void
     {
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
@@ -180,13 +199,27 @@ class AuditMiddleware implements MiddlewareInterface
      * Exports audit records older than the cutoff date and removes them from the database.
      *
      * Records are exported to a gzip-compressed JSON file organized by ISO week,
-     * then deleted within a transaction to ensure data integrity.
+     * then deleted within a transaction to ensure data integrity. Only one process does it at a
+     * time: if another one holds the lock, this call returns without touching anything.
      *
      * @param DateTimeInterface $cutoff Records older than this date will be exported and deleted.
      *
      * @return void
      */
     private function exportAndDeleteBefore(DateTimeInterface $cutoff): void
+    {
+        $lock = $this->locker->createLock(self::PURGE_LOCK, 300);
+        if (!$lock->acquire()) {
+            return;
+        }
+        try {
+            $this->exportAndDeleteLocked($cutoff);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function exportAndDeleteLocked(DateTimeInterface $cutoff): void
     {
         $cutoffStr = $cutoff->format('Y-m-d H:i:s');
         $stmt = $this->pdo->prepare("
