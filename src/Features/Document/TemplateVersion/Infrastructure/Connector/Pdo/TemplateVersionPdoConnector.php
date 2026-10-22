@@ -304,7 +304,7 @@ class TemplateVersionPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $keys = [['"document_template_version"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0]];
+                $keys = [['"document_template_version"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, false]];
                 foreach ($keys as [$column, , , , $asc]) {
                     $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
                 }

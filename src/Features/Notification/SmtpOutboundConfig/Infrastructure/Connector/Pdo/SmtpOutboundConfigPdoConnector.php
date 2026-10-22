@@ -350,7 +350,7 @@ class SmtpOutboundConfigPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $keys = [['"notification_smtp_outbound_config"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0]];
+                $keys = [['"notification_smtp_outbound_config"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, false]];
                 foreach ($keys as [$column, , , , $asc]) {
                     $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
                 }

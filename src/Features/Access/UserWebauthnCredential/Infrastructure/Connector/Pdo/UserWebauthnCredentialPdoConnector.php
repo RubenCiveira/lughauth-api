@@ -365,7 +365,7 @@ class UserWebauthnCredentialPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $keys = [['"access_user_webauthn_credential"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0]];
+                $keys = [['"access_user_webauthn_credential"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, false]];
                 foreach ($keys as [$column, , , , $asc]) {
                     $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
                 }
