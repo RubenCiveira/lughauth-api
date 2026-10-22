@@ -21,9 +21,14 @@ class Cookie
     ) {
     }
 
+    /**
+     * Tells the browser to delete the cookie: an expiry in the past (1970) and Max-Age=0, which
+     * takes precedence (RFC 6265 §5.3) and does not depend on the clocks of server and browser.
+     * The path and domain must be the ones the cookie was set with.
+     */
     public function remove(ResponseInterface $response): ResponseInterface
     {
-        return $this->attach($response);
+        return $this->createCookie($response, new \DateTimeImmutable('@0'), 0);
     }
 
     public function attach(ResponseInterface $response): ResponseInterface
@@ -31,13 +36,14 @@ class Cookie
         $now = new \DateTimeImmutable();
         return $this->createCookie($response, $this->expiration ? $now->add($this->expiration) : $now);
     }
-    public function createCookie(ResponseInterface $response, \DateTimeImmutable $expiration): ResponseInterface
+    public function createCookie(ResponseInterface $response, \DateTimeImmutable $expiration, ?int $maxAge = null): ResponseInterface
     {
         $cookieHeaderValue = sprintf(
-            '%s=%s; Expires=%s; Path=%s; %s%s%s',
+            '%s=%s; Expires=%s; %sPath=%s; %s%s%s',
             $this->name,
             null == $this->value ? '' : urlencode($this->value),
             gmdate('D, d M Y H:i:s T', $expiration->getTimestamp()),
+            $maxAge !== null ? 'Max-Age=' . $maxAge . '; ' : '',
             $this->path,
             $this->sameSite ? 'SameSite; ' : '',
             $this->secure ? 'Secure; ' : '',

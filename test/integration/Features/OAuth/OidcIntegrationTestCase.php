@@ -37,6 +37,9 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\HttpRemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway;
+use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 use Tests\integration\Features\OAuth\Stub\InMemoryClientStore;
 use Tests\integration\Features\OAuth\Stub\InMemoryDeviceAuthorizationGateway;
 use Tests\integration\Features\OAuth\Stub\InMemoryLoginGateway;
@@ -189,6 +192,11 @@ abstract class OidcIntegrationTestCase extends TestCase
 
         $this->container = $builder->build();
         $this->container->set(TenantQueryRepositoryGateway::class, $this->tenantRepository());
+        // Pages without theme: their inner content as is.
+        $decorator = $this->createStub(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(static fn ($request, string $title, string $content): string => $content);
+        $this->container->set(DecorateHtml::class, $decorator);
+        $this->container->set(MessageProvider::class, new MessageProvider(new AppConfig()));
         foreach (self::TENANT_UIDS as $name => $uid) {
             $this->clientStore->tenant($name, $uid);
         }
@@ -230,6 +238,24 @@ abstract class OidcIntegrationTestCase extends TestCase
             };
         });
         return $config;
+    }
+
+    /**
+     * ID token issued by the tenant to the client from the session, as an RP sends it as
+     * id_token_hint; $claims replaces any of its claims.
+     *
+     * @param array<string, mixed> $claims
+     */
+    protected function idTokenHint(string $sessionId, array $claims = []): string
+    {
+        $session = $this->sessionStore->loadSession($sessionId);
+        return $this->container->get(TokenSigner::class)->sign(TokenType::Id, $claims + [
+            'iss' => $this->context->getIssuer(self::TENANT),
+            'sub' => $session?->userId ?? self::USER_ID,
+            'aud' => self::CLIENT_ID,
+            'azp' => self::CLIENT_ID,
+            'sid' => $session?->publicSid ?? 'unknown-sid',
+        ], self::TENANT, new \DateInterval('PT10M'));
     }
 
     protected function makeRequest(string $method, string $uri, array $body = [], array $server = []): \Psr\Http\Message\ServerRequestInterface

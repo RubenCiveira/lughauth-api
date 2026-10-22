@@ -100,7 +100,7 @@ final class ConsentUsecasesUnitTest extends TestCase
             {
                 return [$this->sp];
             }
-            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
+            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes, array $declinedScopes = []): void
             {
             }
         };
@@ -121,7 +121,7 @@ final class ConsentUsecasesUnitTest extends TestCase
             {
                 return [];
             }
-            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
+            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes, array $declinedScopes = []): void
             {
                 $this->stored = $approvedScopes;
             }
@@ -271,7 +271,7 @@ final class ConsentUsecasesUnitTest extends TestCase
             {
                 return [];
             }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a, array $declinedScopes = []): void
             {
                 $this->stored = $a;
             }
@@ -294,7 +294,7 @@ final class ConsentUsecasesUnitTest extends TestCase
             {
                 return [];
             }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a, array $declinedScopes = []): void
             {
             }
         };
@@ -310,7 +310,7 @@ final class ConsentUsecasesUnitTest extends TestCase
             {
                 return $this->pending;
             }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a, array $declinedScopes = []): void
             {
             }
         };

@@ -56,4 +56,10 @@ interface ClientStoreGateway
      * or the client is disabled. Useful as a fallback when the caller did not supply a redirect_uri.
      */
     public function defaultRedirectUri(string $tenant, string $clientId): ?string;
+
+    /**
+     * True when the client is enabled and has the post-logout redirect URI registered exactly, so
+     * logout never redirects through the wildcards accepted for the authorization redirect.
+     */
+    public function allowsPostLogoutRedirect(string $tenant, string $clientId, string $redirectUri): bool;
 }

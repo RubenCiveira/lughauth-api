@@ -1,7 +1,7 @@
 # 031 — Implementar prompt, max_age y vigencia SSO
 
-- **Estado:** pendiente. **Prioridad:** media.
-- **Evidencia:** [OidcFlowContext](../../src/Features/OAuth/Authentication/Domain/OidcFlowContext.php) extrae `prompt`, pero [AuthorizeHtml](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) trata solo `none`; no extrae `max_age`; sesión persiste `auth_time` en [SessionStoreSqlAdapter](../../src/Features/OAuth/Session/Infrastructure/Driven/SessionStoreSqlAdapter.php).
+- **Estado:** hecho (EP-09). **Prioridad:** media.
+- **Evidencia:** [OidcFlowContext](../../../src/Features/OAuth/Authentication/Domain/OidcFlowContext.php) extrae `prompt`, pero [AuthorizeHtml](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) trata solo `none`; no extrae `max_age`; sesión persiste `auth_time` en [SessionStoreSqlAdapter](../../../src/Features/OAuth/Session/Infrastructure/Driven/SessionStoreSqlAdapter.php).
 - **Impacto:** RP no puede exigir reautenticación ni controlar antigüedad de sesión.
 - **Por hacer:** semántica de `login`, `select_account`, `consent`, `none`/combinaciones y `max_age`, TTL SSO por tenant usando tiempo real de autenticación.
 - **Aceptación:** sesión vieja no satisface `max_age`; `prompt=login` fuerza login y `none` falla sin interacción.

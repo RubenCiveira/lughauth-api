@@ -150,6 +150,21 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     /**
+     * Moves auth_time to now, and amr to the given methods unless empty, for a session the user
+     * has just authenticated again (prompt=login, max_age or an SSO lifetime that ran out).
+     */
+    #[Override]
+    public function renewAuthentication(string $state, string $issuer, array $amr = []): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE _oauth_session SET auth_time = :auth_time, amr = COALESCE(:amr, amr) WHERE session = :session AND issuer = :issuer');
+        $stmt->bindValue('auth_time', (new DateTimeImmutable())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue('amr', $amr === [] ? null : implode(' ', $amr), $amr === [] ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue('session', $state, PDO::PARAM_STR);
+        $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    /**
      * Replaces the opaque state key for an existing session without altering any other column.
      * Used during mid-flow state rotation to prevent session fixation attacks.
      *

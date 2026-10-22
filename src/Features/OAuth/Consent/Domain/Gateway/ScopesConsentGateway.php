@@ -32,9 +32,11 @@ interface ScopesConsentGateway
 
     /**
      * Persists the user's approval of the specified scopes for the given client so that future
-     * authorization requests for the same scopes skip the consent screen.
+     * authorization requests for the same scopes skip the consent screen. Scopes the user was
+     * shown and declined are withdrawn from an earlier approval (prompt=consent).
      *
      * @param string[] $approvedScopes
+     * @param string[] $declinedScopes
      */
-    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void;
+    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes, array $declinedScopes = []): void;
 }

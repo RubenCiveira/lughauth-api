@@ -72,6 +72,15 @@ interface SessionStoreGateway
     ): void;
 
     /**
+     * Records that the user of the session has just authenticated again: auth_time becomes now
+     * and, when given, amr the methods used. Does nothing when the session was opened under
+     * another issuer.
+     *
+     * @param string[] $amr authentication methods actually used (RFC 8176); empty keeps the current ones
+     */
+    public function renewAuthentication(string $state, string $issuer, array $amr = []): void;
+
+    /**
      * Rotates the session by replacing oldState with newState in the backing store.
      * Used during mid-flow state transitions to prevent session fixation.
      */

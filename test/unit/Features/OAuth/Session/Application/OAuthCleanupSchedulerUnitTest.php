@@ -184,6 +184,9 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             public function saveSession(string $state, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp, array $amr = []): void
             {
             }
+            public function renewAuthentication(string $state, string $issuer, array $amr = []): void
+            {
+            }
             public function updateSession(string $newState, string $oldState): void
             {
             }

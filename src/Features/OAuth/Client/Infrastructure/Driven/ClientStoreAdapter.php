@@ -183,6 +183,25 @@ class ClientStoreAdapter implements ClientStoreGateway
     }
 
     /**
+     * Exact match only, among the client's registered redirect URIs: no localhost wildcard.
+     */
+    #[Override]
+    public function allowsPostLogoutRedirect(string $tenant, string $clientId, string $redirectUri): bool
+    {
+        $client = $this->clients->findForTenantName($tenant, $clientId);
+        if ($client === null || !$client->isEnabled() || $redirectUri === '') {
+            return false;
+        }
+        foreach ($client->getAllowedRedirects() ?? [] as $redirect) {
+            if ($redirect?->getUrl() === $redirectUri) {
+                return true;
+            }
+        }
+        $this->notAllowed($clientId, $redirectUri);
+        return false;
+    }
+
+    /**
      * Matches a registered "http://localhost[:port][/path]*" pattern against a redirect URI.
      * The redirect is parsed so that userinfo tricks ("http://localhost:4200@evil.com") or
      * look-alike hosts cannot satisfy a plain string prefix. An empty port in the pattern

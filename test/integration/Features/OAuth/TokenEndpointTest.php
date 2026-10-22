@@ -1207,7 +1207,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->container->set(StreamFactoryInterface::class, $this->createStub(StreamFactoryInterface::class));
         $request = $this->makeRequest('GET', '/oauth/openid/tenant1/logout')
             ->withCookieParams(['AUTH_SESSION_ID_' . strtoupper(self::TENANT) => $sessionId])
-            ->withQueryParams(['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+            ->withQueryParams(['id_token_hint' => $this->idTokenHint($sessionId), 'post_logout_redirect_uri' => 'https://app.example.com/']);
         return $this->container->get(LogoutController::class)->logout($request, new Response(200), ['tenant' => self::TENANT]);
     }
 

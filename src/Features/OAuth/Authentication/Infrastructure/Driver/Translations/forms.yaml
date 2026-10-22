@@ -163,6 +163,11 @@ delegated:
   title: Signing in
   unsupported-method: "This sign-in provider uses an unsupported method ({0})."
 
+logout:
+  confirm:
+    title: Sign out
+    help: Do you want to sign out? You will be signed out of every application that uses this session.
+    submit: Sign out
 authorize:
   check-session:
     title: Verifying the sign-in source...

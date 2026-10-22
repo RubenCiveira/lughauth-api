@@ -52,6 +52,8 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\TokenLifetimesGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\TenantConfigTokenLifetimesAdapter;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\SessionSsoTtlGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\TenantConfigSessionSsoTtlAdapter;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\TemporalKeysSqlAdapter;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
@@ -156,6 +158,7 @@ class OAuthPlugin extends MicroPlugin
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
         $def[TokenSigner::class] = \DI\autowire(JoseTokenSigner::class);
         $def[TokenLifetimesGateway::class] = \DI\autowire(TenantConfigTokenLifetimesAdapter::class);
+        $def[SessionSsoTtlGateway::class] = \DI\autowire(TenantConfigSessionSsoTtlAdapter::class);
         $def[KeyPairGenerator::class] = \DI\autowire(OpenSslKeyPairGenerator::class);
         $def[SigningKeyProvisioner::class] = \DI\get(KeyRotationService::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
@@ -288,6 +291,7 @@ class OAuthPlugin extends MicroPlugin
             $group->post('/userinfo', [UserInfoController::class, 'post'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
 
             $group->get('/logout', [LogoutController::class, 'logout']);
+            $group->post('/logout', [LogoutController::class, 'logout']);
             $group->post('/revoke', [LogoutController::class, 'revoke']);
 
             $group->get('/authorize', [AuthorizeHtml::class, 'authorize']);

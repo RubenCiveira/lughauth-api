@@ -52,7 +52,7 @@ final class ScopeConsentFormStepUnitTest extends FormsTestCase
             ]);
         $gateway->expects($this->once())
             ->method('storeAcceptedScopes')
-            ->with('tenant1', 'user-1', 'client-123', ['openid', 'email']);
+            ->with('tenant1', 'user-1', 'client-123', ['openid', 'email'], []);
 
         $scopesConsent = new ScopesConsentUsecase($gateway);
 
@@ -90,6 +90,31 @@ final class ScopeConsentFormStepUnitTest extends FormsTestCase
         $this->assertSame($input->challenges, $result->challenges);
     }
 
+    /**
+     * With prompt=consent every requested scope is shown again, and an optional one left
+     * unchecked is withdrawn even if an earlier consent granted it.
+     */
+    public function testReconsentWithdrawsTheOptionalScopesLeftUnchecked(): void
+    {
+        $input = $this->buildInputWithScope(['optional_scopes' => ['email']], new ChallengesState(username: 'user-1'), 'openid email profile', ['prompt' => 'consent']);
+
+        $gateway = $this->createMock(ScopesConsentGateway::class);
+        $gateway->expects($this->never())->method('pendingScopes');
+        $gateway->expects($this->once())
+            ->method('storeAcceptedScopes')
+            ->with('tenant1', 'user-1', 'client-123', ['openid', 'email'], ['profile']);
+
+        $form = new ScopeConsentForm(
+            $this->createMock(MessageProvider::class),
+            $this->createMock(AuthenticateUser::class),
+            new ScopesConsentUsecase($gateway),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(HtmlSecurer::class)
+        );
+
+        $form->authenticate($input);
+    }
+
     public function testAuthenticateRejectsWhenNoScopesApproved(): void
     {
         $input = $this->buildInputWithScope([], new ChallengesState(username: 'user-1'), 'openid email');
@@ -122,7 +147,7 @@ final class ScopeConsentFormStepUnitTest extends FormsTestCase
         }
     }
 
-    private function buildInputWithScope(array $body, ChallengesState $state, string $scope): StepInput
+    private function buildInputWithScope(array $body, ChallengesState $state, string $scope, array $query = []): StepInput
     {
         $body = array_merge(['csid' => 'csid-123'], $body);
         $request = (new ServerRequestFactory())
@@ -134,6 +159,7 @@ final class ScopeConsentFormStepUnitTest extends FormsTestCase
                 'redirect_uri' => 'https://client.example/callback',
                 'scope' => $scope,
                 'nonce' => 'nonce-abc',
+                ...$query,
             ]);
 
         $builder = new ContainerBuilder();

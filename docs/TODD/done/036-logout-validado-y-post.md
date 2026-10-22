@@ -1,7 +1,7 @@
 # 036 — Validar logout antes de destruir sesión y añadir POST
 
-- **Estado:** pendiente. **Prioridad:** alta.
-- **Evidencia:** [LogoutController::logout](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/LogoutController.php) elimina sesión antes de validar `client_id`/redirect; [OAuthPlugin](../../src/Bootstrap/Plugin/OAuthPlugin.php) registra solo GET.
+- **Estado:** hecho (EP-09). **Prioridad:** alta.
+- **Evidencia:** [LogoutController::logout](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/LogoutController.php) elimina sesión antes de validar `client_id`/redirect; [OAuthPlugin](../../../src/Bootstrap/Plugin/OAuthPlugin.php) registra solo GET.
 - **Impacto:** logout inducido por terceros o solicitud inválida destruye sesión; falta flujo de confirmación.
 - **Por hacer:** validar `id_token_hint`, cliente y post-logout URI antes de revocar; añadir POST y confirmación/mitigación CSRF cuando no hay hint válido; unir a destinatarios filtrados de 021.
 - **Aceptación:** GET inválido no cierra sesión; POST/confirmación válida sí y redirige a URI registrada.

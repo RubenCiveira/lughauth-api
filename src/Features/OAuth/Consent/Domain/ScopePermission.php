@@ -31,6 +31,12 @@ final class ScopePermission
     ) {
     }
 
+    /** A requested scope without configured label: only openid is required. */
+    public static function requested(string $scope): self
+    {
+        return new self(scope: $scope, required: $scope === 'openid');
+    }
+
     /**
      * Returns the configured label if present, or derives a readable label from the scope
      * identifier by replacing hyphens and underscores with spaces and uppercasing the result.

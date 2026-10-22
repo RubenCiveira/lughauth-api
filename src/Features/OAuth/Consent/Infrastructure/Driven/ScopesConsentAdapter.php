@@ -83,16 +83,13 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
             if ($scope === '' || isset($acceptedMap[$scope])) {
                 continue;
             }
-            $pending[] = new ScopePermission(
-                scope: $scope,
-                required: $scope === 'openid'
-            );
+            $pending[] = ScopePermission::requested($scope);
         }
         return $pending;
     }
 
     #[Override]
-    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
+    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes, array $declinedScopes = []): void
     {
         $theTenant = $this->tenants->findOneByName($tenant);
         if ($theTenant === null) {
@@ -120,7 +117,10 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
         $approved = $this->normalizeScopes($approvedScopes);
 
         if ($existing !== null) {
-            $merged = array_values(array_unique([...$this->splitScopeString($existing->getScope() ?? ''), ...$approved]));
+            $merged = array_values(array_diff(
+                array_unique([...$this->splitScopeString($existing->getScope() ?? ''), ...$approved]),
+                $this->normalizeScopes($declinedScopes)
+            ));
             $updated = $existing->update(
                 (new UserConsentedScopesAttributes())
                     ->scope(implode(' ', $merged))

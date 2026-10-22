@@ -209,6 +209,146 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         }
     }
 
+    public function testWithoutHintTheUserConfirmsBeforeTheSessionEnds(): void
+    {
+        $query = ['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/', 'state' => 'st'];
+
+        $page = $this->logout(self::SESSION_ID, $query);
+        $this->runJobs();
+
+        $this->assertSame(200, $page->getStatusCode());
+        $this->assertSame('no-store', $page->getHeaderLine('Cache-Control'));
+        $this->assertNotNull($this->sessionStore->loadSession(self::SESSION_ID));
+        $this->assertSame([], $this->sentUris());
+        $html = (string) $page->getBody();
+        $this->assertStringContainsString('action="http://localhost/oauth/openid/tenant1/logout"', $html);
+        $this->assertStringNotContainsString(self::SESSION_ID, $html);
+
+        $confirmed = $this->logout(self::SESSION_ID, $query + [LogoutController::CONFIRMATION_PARAM => $this->confirmationToken($html)], 'POST');
+
+        // The participants' front-channel page, which then redirects to the RP.
+        $this->assertStringContainsString('window.location.replace("https://app.example.com/?state=st")', (string) $confirmed->getBody());
+        $this->assertNull($this->sessionStore->loadSession(self::SESSION_ID));
+    }
+
+    /**
+     * A third party cannot confirm for the user: a token of another session, or one sent by GET,
+     * only shows the confirmation page again.
+     */
+    public function testConfirmationOnlyCountsFromThisSessionByPost(): void
+    {
+        $query = ['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/'];
+        $this->openSession('other-session', $this->context->getIssuer(self::TENANT), 'other-csid');
+        $foreignToken = $this->confirmationToken((string) $this->logout('other-session', $query)->getBody());
+        $ownToken = $this->confirmationToken((string) $this->logout(self::SESSION_ID, $query)->getBody());
+
+        foreach ([
+            [$query + [LogoutController::CONFIRMATION_PARAM => $foreignToken], 'POST'],
+            [$query + [LogoutController::CONFIRMATION_PARAM => ''], 'POST'],
+            [$query + [LogoutController::CONFIRMATION_PARAM => $ownToken], 'GET'],
+        ] as [$params, $method]) {
+            $response = $this->logout(self::SESSION_ID, $params, $method);
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertNotNull($this->sessionStore->loadSession(self::SESSION_ID));
+        }
+    }
+
+    /**
+     * The cookies are removed with the path they were set with (OidcCookieManager), or the
+     * browser keeps them.
+     */
+    public function testLogoutRemovesTheSessionCookiesWithTheirPath(): void
+    {
+        $cookies = $this->logout(self::SESSION_ID)->getHeader('Set-Cookie');
+
+        $this->assertCount(2, $cookies);
+        foreach ($cookies as $cookie) {
+            $this->assertStringContainsString('; Path=/oauth/openid/tenant1/;', $cookie);
+        }
+    }
+
+    public function testPostWithHintOfTheSessionLogsOut(): void
+    {
+        $response = $this->logout(self::SESSION_ID, method: 'POST');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('rp1.example.com/fc', (string) $response->getBody());
+        $this->assertNull($this->sessionStore->loadSession(self::SESSION_ID));
+    }
+
+    /** RPs usually send the last ID token they got, long expired. */
+    public function testExpiredHintIsAccepted(): void
+    {
+        $hint = $this->idTokenHint(self::SESSION_ID, ['iat' => time() - 7200, 'nbf' => time() - 7200, 'exp' => time() - 3600]);
+
+        $this->logout(self::SESSION_ID, ['id_token_hint' => $hint, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+
+        $this->assertNull($this->sessionStore->loadSession(self::SESSION_ID));
+    }
+
+    public function testHintOfAnotherSessionAsksForConfirmation(): void
+    {
+        $hint = $this->idTokenHint(self::SESSION_ID, ['sid' => 'sid-of-an-older-session']);
+
+        $response = $this->logout(self::SESSION_ID, ['id_token_hint' => $hint, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString(LogoutController::CONFIRMATION_PARAM, (string) $response->getBody());
+        $this->assertNotNull($this->sessionStore->loadSession(self::SESSION_ID));
+    }
+
+    /**
+     * @return iterable<string, array{0: array<string, mixed>, 1: array<string, string>}>
+     */
+    public static function invalidHints(): iterable
+    {
+        yield 'issued by another tenant' => [['iss' => 'http://localhost/oauth/openid/tenant2'], []];
+        yield 'issued to another client' => [['aud' => self::SSO_CLIENT, 'azp' => self::SSO_CLIENT], []];
+        yield 'client_id other than the hint' => [[], ['client_id' => self::SSO_CLIENT]];
+        yield 'forged' => [['forged' => true], []];
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     * @param array<string, string> $query
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidHints')]
+    public function testInvalidHintKeepsSessionAndNotifiesNobody(array $claims, array $query): void
+    {
+        $hint = $this->idTokenHint(self::SESSION_ID, $claims);
+        if (isset($claims['forged'])) {
+            [$header, , $signature] = explode('.', $hint);
+            $payload = rtrim(strtr(base64_encode((string) json_encode(['sub' => 'attacker'] + $this->payload($hint))), '+/', '-_'), '=');
+            $hint = "{$header}.{$payload}.{$signature}";
+        }
+
+        $response = $this->logout(self::SESSION_ID, $query + ['id_token_hint' => $hint, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+        $this->runJobs();
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertNotNull($this->sessionStore->loadSession(self::SESSION_ID));
+        $this->assertSame([], $this->sentUris());
+    }
+
+    public function testPostLogoutRedirectMustBeRegisteredExactly(): void
+    {
+        foreach (['https://app.example.com', 'https://app.example.com/other', 'https://app.example.com/?next=evil'] as $uri) {
+            $response = $this->logout(self::SESSION_ID, ['id_token_hint' => $this->idTokenHint(self::SESSION_ID), 'post_logout_redirect_uri' => $uri]);
+
+            $this->assertSame(400, $response->getStatusCode(), $uri);
+            $this->assertNotNull($this->sessionStore->loadSession(self::SESSION_ID));
+        }
+    }
+
+    public function testWithoutSessionThereIsNothingToConfirm(): void
+    {
+        $response = $this->logout('', ['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('https://app.example.com/', $response->getHeaderLine('Location'));
+    }
+
     public function testCsidOfAnotherTenantIsNotReusedNorJoined(): void
     {
         $foreignIssuer = $this->context->getIssuer('tenant2');
@@ -229,6 +369,58 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         $this->assertNotSame('tenant2-session', $auth->sessionId);
         $this->assertSame($this->context->getIssuer(self::TENANT), $this->sessionStore->loadSession($auth->sessionId)?->issuer);
         $this->assertSame([self::CLIENT_ID], $this->sessionStore->loadSession('tenant2-session')?->clients());
+    }
+
+    /**
+     * Signing in again (prompt=login, max_age) on the browser of the session renews its auth_time,
+     * or max_age would never be met.
+     */
+    public function testSigningInAgainRenewsTheAuthTimeOfTheCsidSession(): void
+    {
+        $this->sessionStore->authenticatedAt(self::SESSION_ID, new \DateTimeImmutable('-2 hours'));
+
+        $auth = $this->signIn('csid');
+
+        $this->assertSame(self::SESSION_ID, $auth->sessionId);
+        $this->assertEqualsWithDelta(time(), $this->sessionStore->loadSession(self::SESSION_ID)?->authTime?->getTimestamp(), 5);
+        $this->assertSame(['pwd'], $this->sessionStore->loadSession(self::SESSION_ID)?->amr);
+    }
+
+    /**
+     * Another account signing in on the same browser gets a session of its own, never the
+     * previous user's one.
+     */
+    public function testCsidSessionOfAnotherUserIsNotReused(): void
+    {
+        $this->sessionStore->saveSession(
+            'other-user-session',
+            $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID),
+            $this->context->getIssuer(self::TENANT),
+            new ChallengesState(),
+            new AuthenticationResult(valid: true, id: 'other-user'),
+            'shared-csid',
+            new \DateInterval('P1D')
+        );
+
+        $auth = $this->signIn('shared-csid');
+
+        $this->assertNotSame('other-user-session', $auth->sessionId);
+        $this->assertSame(self::USER_ID, $this->sessionStore->loadSession($auth->sessionId)?->userId);
+    }
+
+    private function signIn(string $csid): \Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse
+    {
+        return $this->authenticateUser()->authenticate(
+            new AuthenticationRequest($this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID), 'openid', 'https://app.example.com/callback'),
+            new ChallengesState(),
+            self::TENANT,
+            self::USERNAME,
+            self::PASSWORD,
+            $this->context->getIssuer(self::TENANT),
+            $csid,
+            'state',
+            'nonce'
+        );
     }
 
     public function testAuthorizationFromSessionOfAnotherTenantIsRejectedAndDoesNotJoinIt(): void
@@ -258,13 +450,23 @@ class LogoutEndpointTest extends OidcIntegrationTestCase
         return $this->container->get(AuthenticateUser::class);
     }
 
-    /** @param array<string, string>|null $query logout parameters; null sends a valid request */
-    private function logout(string $sessionId, ?array $query = null): ResponseInterface
+    /**
+     * @param array<string, string>|null $query logout parameters; null sends a valid request with
+     *                                          an id_token_hint issued from the session
+     */
+    private function logout(string $sessionId, ?array $query = null, string $method = 'GET'): ResponseInterface
     {
-        $request = $this->makeRequest('GET', '/oauth/openid/tenant1/logout')
-            ->withCookieParams(['AUTH_SESSION_ID_' . strtoupper(self::TENANT) => $sessionId])
-            ->withQueryParams($query ?? ['client_id' => self::CLIENT_ID, 'post_logout_redirect_uri' => 'https://app.example.com/']);
+        $query ??= ['id_token_hint' => $this->idTokenHint($sessionId), 'post_logout_redirect_uri' => 'https://app.example.com/'];
+        $request = $this->makeRequest($method, '/oauth/openid/tenant1/logout')
+            ->withCookieParams(['AUTH_SESSION_ID_' . strtoupper(self::TENANT) => $sessionId]);
+        $request = $method === 'POST' ? $request->withParsedBody($query) : $request->withQueryParams($query);
         return $this->container->get(LogoutController::class)->logout($request, new Response(200), ['tenant' => self::TENANT]);
+    }
+
+    private function confirmationToken(string $html): string
+    {
+        $this->assertSame(1, preg_match('/name="' . LogoutController::CONFIRMATION_PARAM . '" value="([^"]+)"/', $html, $match));
+        return $match[1];
     }
 
     private function runJobs(): void

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\Prompt;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
@@ -76,8 +77,8 @@ final class OidcFlowContext
     public readonly array $audiences;
 
     /**
-     * Requested prompt behaviour (e.g., "none", "login", "consent") controlling the UI flow.
-     * An empty string means the IdP may apply its default behaviour.
+     * Requested prompt behaviour (e.g., "none", "login", "consent") controlling the UI flow, as
+     * sent; see prompts() for its values. An empty string means the IdP may apply its default behaviour.
      */
     public readonly string $prompt;
 
@@ -141,6 +142,12 @@ final class OidcFlowContext
      */
     public readonly ?string $requestedResponseMode;
 
+    /**
+     * The max_age the client requested, as sent, or null when it requested none; see maxAge().
+     * URLs back to /authorize must carry it so /check-session applies it again.
+     */
+    public readonly ?string $requestedMaxAge;
+
     public function __construct(
         string $tenant,
         string $clientId,
@@ -161,6 +168,7 @@ final class OidcFlowContext
         ?string $requestRef = null,
         ?string $uiLocales = null,
         ?string $requestedResponseMode = null,
+        ?string $requestedMaxAge = null,
     ) {
         $this->tenant = $tenant;
         $this->clientId = $clientId;
@@ -181,6 +189,27 @@ final class OidcFlowContext
         $this->requestRef = $requestRef;
         $this->uiLocales = $uiLocales;
         $this->requestedResponseMode = $requestedResponseMode;
+        $this->requestedMaxAge = $requestedMaxAge;
+    }
+
+    public function prompts(): Prompt
+    {
+        return Prompt::fromString($this->prompt);
+    }
+
+    /**
+     * Maximum age in seconds of the user's authentication, or null when the client set no limit
+     * or sent an invalid one (rejected by the authorization endpoint, see hasValidMaxAge()).
+     */
+    public function maxAge(): ?int
+    {
+        return $this->hasValidMaxAge() && $this->requestedMaxAge !== null ? (int) $this->requestedMaxAge : null;
+    }
+
+    /** False when max_age is present but not a non-negative integer. */
+    public function hasValidMaxAge(): bool
+    {
+        return $this->requestedMaxAge === null || ctype_digit($this->requestedMaxAge);
     }
 
     /**
@@ -206,7 +235,7 @@ final class OidcFlowContext
 
     /**
      * Parameters every URL back to /authorize must carry so the next step continues this request:
-     * the reference of a PAR/JAR request, the requested UI language and response mode.
+     * the reference of a PAR/JAR request, the requested UI language, response mode and max_age.
      *
      * @return array<string, string>
      */
@@ -216,6 +245,7 @@ final class OidcFlowContext
             ResolvedAuthorizationRequest::REFERENCE_PARAM => $this->requestRef,
             'ui_locales' => $this->uiLocales,
             'response_mode' => $this->requestedResponseMode,
+            'max_age' => $this->requestedMaxAge,
         ], static fn (?string $value): bool => $value !== null && $value !== '');
     }
 
@@ -253,6 +283,7 @@ final class OidcFlowContext
             requestRef: $requestRef,
             uiLocales: isset($query['ui_locales']) && $query['ui_locales'] !== '' ? (string) $query['ui_locales'] : null,
             requestedResponseMode: isset($query['response_mode']) && $query['response_mode'] !== '' ? (string) $query['response_mode'] : null,
+            requestedMaxAge: isset($query['max_age']) && $query['max_age'] !== '' ? (string) $query['max_age'] : null,
         );
     }
 

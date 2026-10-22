@@ -32,6 +32,14 @@ final class CookieUnitTest extends TestCase
         $cookie->remove($response);
 
         $this->assertStringContainsString('session=value', $this->lastHeader);
+        $this->assertStringContainsString('Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/;', $this->lastHeader);
+    }
+
+    public function testAttachSendsNoMaxAge(): void
+    {
+        (new Cookie('session', 'value', new DateInterval('PT1H')))->attach($this->createResponse());
+
+        $this->assertStringNotContainsString('Max-Age', $this->lastHeader);
     }
 
     private ?string $lastHeader = null;

@@ -86,6 +86,26 @@ class InMemorySessionStore implements SessionStoreGateway
         );
     }
 
+    public function renewAuthentication(string $state, string $issuer, array $amr = []): void
+    {
+        $session = $this->findActiveSession($state, $issuer);
+        if ($session !== null) {
+            $this->sessions[$state] = new SessionInfo(
+                csid: $session->csid,
+                withMfa: $session->withMfa,
+                issuer: $session->issuer,
+                userId: $session->userId,
+                clientId: $session->clientId,
+                ssoClients: $session->ssoClients,
+                publicSid: $session->publicSid,
+                authTime: new \DateTimeImmutable('@' . time()),
+                amr: $amr !== [] ? $amr : $session->amr,
+                acr: $session->acr,
+                tenantId: $session->tenantId,
+            );
+        }
+    }
+
     public function updateSession(string $newState, string $oldState): void
     {
         if (isset($this->sessions[$oldState])) {

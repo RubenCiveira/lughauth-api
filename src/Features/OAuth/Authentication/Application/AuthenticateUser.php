@@ -182,10 +182,19 @@ class AuthenticateUser
             return $this->buildResponse($validation, $request, $issuer, $activeSessionId);
         }
 
+        // Only methods with evidence (RFC 8176): a password checked here, or a completed MFA step.
+        $amr = array_values(array_filter([$emitLoginEvent ? 'pwd' : null, $challenges->withMfa ? 'mfa' : null]));
+
         if (!$challenges->session) {
             $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid, $issuer);
-            if ($existingSessionId !== null && $existingSessionId !== '') {
+            // Only the same user's session: another account signing in on this browser
+            // (prompt=login or select_account) gets a session of its own.
+            if ($existingSessionId !== null && $existingSessionId !== ''
+                && $this->sessionStore->findActiveSession($existingSessionId, $issuer)?->userId === $validation->id
+            ) {
                 $this->logDebug('OIDC saveIt reusing csid session', ['existingSessionId' => $existingSessionId]);
+                // The user has just authenticated in this flow, so max_age and the SSO lifetime count from now.
+                $this->sessionStore->renewAuthentication($existingSessionId, $issuer, $amr);
                 $this->sessionStore->addSessionClient($existingSessionId, $issuer, $request->client->id);
                 return $this->buildResponse($validation, $request, $issuer, $existingSessionId);
             }
@@ -200,8 +209,6 @@ class AuthenticateUser
         $sessionExpiration = new DateInterval("P15D");
 
         $this->logDebug('OIDC saveIt creating new session', ['sessionId' => $sessionId, 'userId' => $validation->id ?? '']);
-        // Only methods with evidence (RFC 8176): a password checked here, or a completed MFA step.
-        $amr = array_values(array_filter([$emitLoginEvent ? 'pwd' : null, $challenges->withMfa ? 'mfa' : null]));
         $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration, $amr);
 
         return $this->buildResponse($validation, $request, $issuer, $sessionId);

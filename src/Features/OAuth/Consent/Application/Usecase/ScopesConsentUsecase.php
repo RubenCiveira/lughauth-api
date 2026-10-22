@@ -30,23 +30,29 @@ class ScopesConsentUsecase
     /**
      * Returns the subset of requested scopes that the user has not yet approved for the given
      * client, as a list of ScopePermission value objects ready to be rendered by the consent UI.
+     * With $reconsent (prompt=consent) every requested scope is returned, approved or not.
      *
      * @return ScopePermission[]
      */
-    public function pendingScopes(string $tenant, string $username, string $clientId, string $scope): array
+    public function pendingScopes(string $tenant, string $username, string $clientId, string $scope, bool $reconsent = false): array
     {
-        return $this->gateway->pendingScopes($tenant, $username, $clientId, $this->normalizeScopeList(explode(' ', $scope)));
+        $requested = $this->normalizeScopeList(explode(' ', $scope));
+        return $reconsent
+            ? array_map(ScopePermission::requested(...), $requested)
+            : $this->gateway->pendingScopes($tenant, $username, $clientId, $requested);
     }
 
     /**
      * Persists the user's approved scope list for the given client after normalizing the values
-     * to ensure consistent storage regardless of the input format.
+     * to ensure consistent storage regardless of the input format. Declined scopes are withdrawn
+     * from an earlier approval.
      *
      * @param string[] $approvedScopes
+     * @param string[] $declinedScopes
      */
-    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
+    public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes, array $declinedScopes = []): void
     {
-        $this->gateway->storeAcceptedScopes($tenant, $username, $clientId, $this->normalizeScopeList($approvedScopes));
+        $this->gateway->storeAcceptedScopes($tenant, $username, $clientId, $this->normalizeScopeList($approvedScopes), $this->normalizeScopeList($declinedScopes));
     }
 
     /**

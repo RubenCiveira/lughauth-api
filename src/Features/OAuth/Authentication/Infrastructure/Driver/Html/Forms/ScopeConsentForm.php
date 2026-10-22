@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\Prompt;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
@@ -25,7 +26,8 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  * Login step form that presents the OAuth scope consent screen to the authenticated user.
  *
  * This form is triggered when ScopesConsentUsecase detects that the current request includes
- * scopes for which the user has not yet granted consent to the requesting client. It renders
+ * scopes for which the user has not yet granted consent to the requesting client, or when the
+ * client asks for the consent again (prompt=consent): then every requested scope is listed. It renders
  * two separate sections: required scopes (shown with disabled checkboxes and a required
  * marker) and optional scopes (shown with user-selectable checkboxes). Both sections are
  * presented in a scrollable container within the HTML page.
@@ -91,7 +93,7 @@ class ScopeConsentForm implements StepForm
             : '';
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
-        $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
+        $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope, $input->context->prompts()->has(Prompt::CONSENT));
         [$required, $optional] = $this->splitScopes($pending);
 
         $requiredBlock = $required ? $this->renderRequiredBlock($requiredTitle, $required, $translator) : '';
@@ -148,7 +150,7 @@ class ScopeConsentForm implements StepForm
         $clientId = $input->authRequest->client->id;
         $csid = (string) ($input->body['csid'] ?? '');
 
-        $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
+        $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope, $input->context->prompts()->has(Prompt::CONSENT));
         if (!$pending) {
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
@@ -174,7 +176,8 @@ class ScopeConsentForm implements StepForm
             throw new LoginException(auth: AuthenticationResult::scopesConsentRequired('missing_scopes_consent'));
         }
 
-        $this->scopesConsent->storeAcceptedScopes($tenant, $username, $clientId, $approvedScopes);
+        // An optional scope left unchecked is withdrawn, also when an earlier consent granted it.
+        $this->scopesConsent->storeAcceptedScopes($tenant, $username, $clientId, $approvedScopes, array_values(array_diff($optionalScopes, $selectedOptional)));
 
         $scopeString = $this->buildScopeString($input->authRequest->scope, $approvedScopes);
         $authRequest = new AuthenticationRequest(

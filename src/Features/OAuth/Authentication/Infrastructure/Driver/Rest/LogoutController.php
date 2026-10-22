@@ -9,31 +9,39 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\BackChannelLogoutDispatcher;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\IdTokenHintVerifier;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
+use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use OpenApi\Attributes as OA;
 
 /**
  * REST controller that implements RP-Initiated Logout and OAuth 2.0 Token Revocation (RFC 7009).
  *
- * The logout action (GET /logout) terminates the user's server-side session, dispatches
- * back-channel logout notifications to the relying parties that took part in that session via
- * BackChannelLogoutDispatcher, and — when any of them has a front-channel logout URI — renders a
- * small HTML page with hidden iframes that trigger each client's own logout handler (adding iss
- * and sid when the client requires them) before redirecting the user to the post_logout_redirect_uri. When no front-channel URIs exist
- * the redirect is immediate. The post-logout redirect URI is validated against the client's
- * registered URIs to prevent open-redirect attacks; an invalid request is rejected before the session
- * is touched, so the session is either kept intact or ended together with the RP notifications.
+ * The logout action (GET or POST /logout, the same parameters in the query or the form) terminates
+ * the user's server-side session, dispatches back-channel logout notifications to the relying
+ * parties that took part in that session via BackChannelLogoutDispatcher, and — when any of them
+ * has a front-channel logout URI — renders a small HTML page with hidden iframes that trigger each
+ * client's own logout handler (adding iss and sid when the client requires them) before
+ * redirecting the user to the post_logout_redirect_uri. When no front-channel URIs exist the
+ * redirect is immediate.
+ *
+ * Nothing is ended before the request is validated (task 036): an id_token_hint must be an ID
+ * token of this tenant for the client (IdTokenHintVerifier, expired accepted), and the
+ * post-logout redirect URI must be registered exactly for the client, to prevent open redirects.
+ * An invalid request is rejected with 400 and keeps the session. A valid request ends the session
+ * only when the hint was issued from it; otherwise (no hint, or a hint of another session) the
+ * user confirms on a page whose POST carries a token bound to the session cookie, so a third
+ * party cannot log the user out.
  *
  * The revoke action (POST /revoke) implements RFC 7009 token revocation. It authenticates the
  * calling client (HTTP Basic or body credentials), then delegates to RevokeTokenUsecase. Per
@@ -41,49 +49,82 @@ use OpenApi\Attributes as OA;
  * known or had already been revoked, to avoid leaking revocation state.
  *
  * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
- * removal, ClientStoreGateway for client validation, TokenSigner for id_token_hint parsing,
+ * removal, ClientStoreGateway for client validation, IdTokenHintVerifier for the id_token_hint,
  * RevokeTokenUsecase for revocation, TrustedClientFinder for the participants' logout URIs, and
  * BackChannelLogoutDispatcher for back-channel notifications.
  */
 class LogoutController
 {
-    private readonly string $base;
+    /** Form field of the confirmation page that proves the user, not a third party, asked to log out. */
+    public const string CONFIRMATION_PARAM = 'logout_confirmation';
 
     public function __construct(
         private readonly Context $context,
         private readonly SessionManager $sessionManager,
         private readonly SessionStoreGateway $sessionStore,
         private readonly ClientStoreGateway $clients,
-        private readonly TokenSigner $keys,
+        private readonly IdTokenHintVerifier $hints,
         private readonly RevokeTokenUsecase $revokeTokenUsecase,
         private readonly TrustedClientFinder $trustedClients,
         private readonly BackChannelLogoutDispatcher $backChannelLogout,
+        private readonly DecorateHtml $decorator,
+        private readonly MessageProvider $messages,
+        private readonly OidcCookieManager $cookies,
     ) {
-        $this->base = $this->context->getBaseUrl() . '/oauth';
     }
 
     #[OA\Get(
         path: '/oauth/openid/{tenant}/logout',
         summary: 'RP-Initiated Logout',
-        description: 'Ends the user session. Dispatches back-channel logout notifications and renders front-channel logout iframes if registered.',
+        description: 'Ends the user session. Without an id_token_hint issued from the session, asks the user to confirm first. Dispatches back-channel logout notifications and renders front-channel logout iframes if registered.',
         tags: ['OIDC'],
         parameters: [
             new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'id_token_hint', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'post_logout_redirect_uri', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'client_id', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'id_token_hint', in: 'query', required: false, description: 'ID token issued by this tenant to the client; expired ones are accepted', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'post_logout_redirect_uri', in: 'query', required: true, description: 'Must be registered exactly for the client', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'client_id', in: 'query', required: false, description: 'Required without id_token_hint; must match it otherwise', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'ui_locales', in: 'query', required: false, description: 'Language of the confirmation page', schema: new OA\Schema(type: 'string')),
         ],
         responses: [
             new OA\Response(response: 302, description: 'Redirect to post_logout_redirect_uri'),
-            new OA\Response(response: 200, description: 'Logout page with front-channel iframes'),
-            new OA\Response(response: 400, description: 'Invalid request (missing or disallowed redirect URI)'),
+            new OA\Response(response: 200, description: 'Confirmation page, or logout page with front-channel iframes'),
+            new OA\Response(response: 400, description: 'Invalid request (invalid hint, unknown client or disallowed redirect URI); the session is kept'),
+        ]
+    )]
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/logout',
+        summary: 'RP-Initiated Logout (form post)',
+        description: 'Same as GET with the parameters in the form; also receives the confirmation page.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'id_token_hint', type: 'string'),
+                    new OA\Property(property: 'post_logout_redirect_uri', type: 'string'),
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'state', type: 'string'),
+                    new OA\Property(property: 'ui_locales', type: 'string'),
+                    new OA\Property(property: self::CONFIRMATION_PARAM, type: 'string', description: 'Set by the confirmation page'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(response: 302, description: 'Redirect to post_logout_redirect_uri'),
+            new OA\Response(response: 200, description: 'Confirmation page, or logout page with front-channel iframes'),
+            new OA\Response(response: 400, description: 'Invalid request; the session is kept'),
         ]
     )]
     /**
      * Ends the authenticated session and redirects the user to the post-logout URI.
      *
-     * Validates the client and post-logout URI first (400 without touching the session), then
+     * Validates the id_token_hint, client and post-logout URI first (400 without touching the
+     * session). When a session exists and neither the hint was issued from it nor the user
+     * confirmed (POST with the confirmation token), renders the confirmation page instead. Then
      * removes the server-side session, dispatches back-channel logout notifications, renders
      * front-channel logout iframes when applicable, clears session cookies, and finally
      * redirects to the validated post_logout_redirect_uri with the optional state parameter.
@@ -92,26 +133,34 @@ class LogoutController
     {
         $tenant = $args['tenant'];
         $cookies = $request->getCookieParams();
-        $query = $request->getQueryParams();
+        $isPost = $request->getMethod() === 'POST';
+        $query = $isPost ? (array) ($request->getParsedBody() ?? []) : $request->getQueryParams();
 
-        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '';
-        $redirectUri = $query['post_logout_redirect_uri'] ?? '';
-        $clientId = $query['client_id'] ?? '';
+        $sessionId = (string) ($cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '');
+        $redirectUri = (string) ($query['post_logout_redirect_uri'] ?? '');
+        $clientId = (string) ($query['client_id'] ?? '');
 
-        if ($clientId === '' && isset($query['id_token_hint'])) {
-            $payload = $this->keys->verify($tenant, $query['id_token_hint'], VerificationPolicy::expecting(TokenType::Id)->ignoringTime());
-            $clientId = $payload['azp'] ?? '';
+        $hint = null;
+        if ((string) ($query['id_token_hint'] ?? '') !== '') {
+            $hint = $this->hints->verify($tenant, (string) $query['id_token_hint'], $clientId !== '' ? $clientId : null);
+            if ($hint === null) {
+                return $this->invalidRequest($response);
+            }
+            $clientId = $hint->clientId;
         }
 
         // Validate before ending anything: an invalid request keeps the session and notifies nobody
-        if ($redirectUri === '' || $clientId === '' || !$this->isAllowedRedirect($clientId, $tenant, $redirectUri)) {
-            $response->getBody()->write('{"error":"invalid_request"}');
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        if ($clientId === '' || !$this->clients->allowsPostLogoutRedirect($tenant, $clientId, $redirectUri)) {
+            return $this->invalidRequest($response);
         }
 
         // Load the tenant's session before deletion: only its participant RPs are notified
         $issuer = $this->context->getIssuer($tenant);
         $session = $sessionId !== '' ? $this->sessionStore->findActiveSession($sessionId, $issuer) : null;
+        $confirmed = $isPost && hash_equals($this->confirmationToken($sessionId), (string) ($query[self::CONFIRMATION_PARAM] ?? ''));
+        if ($session !== null && !$confirmed && !$hint?->isFor($session->publicSid, $session->userId)) {
+            return $this->renderConfirmationPage($request, $response, $tenant, $sessionId, $clientId, $redirectUri, $query);
+        }
         $participants = [];
         if ($session !== null) {
             $participants = $this->participants($tenant, $session);
@@ -136,7 +185,8 @@ class LogoutController
             $frontChannelUris[] = $uri;
         }
 
-        $response = $this->clearCookies($response, $tenant);
+        // Same path the cookies were set with, or the browser keeps them.
+        $response = $this->cookies->clearSession($response, $tenant);
 
         if ($frontChannelUris !== []) {
             return $this->renderFrontChannelLogoutPage($response, $frontChannelUris, $redirectUri, $query['state'] ?? '');
@@ -226,6 +276,75 @@ class LogoutController
         return $clients;
     }
 
+    private function invalidRequest(ResponseInterface $response): ResponseInterface
+    {
+        $response->getBody()->write('{"error":"invalid_request"}');
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Token of the confirmation form: an HMAC keyed by the session cookie, which a third party
+     * never knows, so only the user's browser can post a valid confirmation; it reveals nothing
+     * about the cookie.
+     */
+    private function confirmationToken(string $sessionId): string
+    {
+        return hash_hmac('sha256', 'logout-confirmation', $sessionId);
+    }
+
+    /**
+     * Asks the user to confirm the logout, posting the validated request back to /logout with the
+     * confirmation token. Never cached, as it carries that token.
+     *
+     * @param array<string, mixed> $params
+     */
+    private function renderConfirmationPage(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        string $tenant,
+        string $sessionId,
+        string $clientId,
+        string $redirectUri,
+        array $params,
+    ): ResponseInterface {
+        $locale = UiLocale::negotiate((string) ($params['ui_locales'] ?? ''), $request->getHeaderLine('accept-language'));
+        $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../Translations');
+        $title = htmlspecialchars($translator->get('logout.confirm.title'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $fields = '';
+        foreach ([
+            'client_id' => $clientId,
+            'post_logout_redirect_uri' => $redirectUri,
+            'state' => (string) ($params['state'] ?? ''),
+            'ui_locales' => (string) ($params['ui_locales'] ?? ''),
+            self::CONFIRMATION_PARAM => $this->confirmationToken($sessionId),
+        ] as $name => $value) {
+            if ($value !== '') {
+                $fields .= '<input type="hidden" name="' . $name . '" value="' . htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" />';
+            }
+        }
+        $action = htmlspecialchars($this->context->getIssuer($tenant) . '/logout', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $help = htmlspecialchars($translator->get('logout.confirm.help'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $submit = htmlspecialchars($translator->get('logout.confirm.submit'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $response->getBody()->write($this->decorator->getFullPage(
+            $request,
+            $title,
+            <<<HTML
+                <h1>{$title}</h1>
+                <p>{$help}</p>
+                <form method="POST" action="{$action}">
+                    {$fields}
+                    <input class="primary-button" type="submit" value="{$submit}" />
+                </form>
+            HTML,
+            $locale,
+            'index',
+            $tenant
+        ));
+        return $response->withStatus(200)
+            ->withHeader('Content-Type', 'text/html; charset=UTF-8')
+            ->withHeader('Cache-Control', 'no-store');
+    }
+
     private function renderFrontChannelLogoutPage(
         ResponseInterface $response,
         array $uris,
@@ -262,14 +381,6 @@ class LogoutController
         return $response->withStatus(200)->withHeader('Content-Type', 'text/html; charset=UTF-8');
     }
 
-    private function clearCookies(ResponseInterface $response, string $tenant): ResponseInterface
-    {
-        $path = $this->base . '/openid/' . $tenant . '/';
-        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $path);
-        $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $path);
-        return $preCookie->remove($authCookie->remove($response));
-    }
-
     private function authenticateClient(string $tenant, array $body): ?ClientData
     {
         // Confidential client: Basic auth
@@ -290,10 +401,5 @@ class LogoutController
 
         // Public client (SPA): client_id only — security relies on azp claim validation in the usecase
         return $this->clients->preValidatedClient($tenant, $clientId);
-    }
-
-    private function isAllowedRedirect(string $clientId, string $tenant, string $redirectUri): bool
-    {
-        return $this->clients->publicClientData($clientId, $tenant, $redirectUri, '') !== null;
     }
 }

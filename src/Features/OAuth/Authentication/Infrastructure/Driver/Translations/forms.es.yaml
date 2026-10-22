@@ -163,6 +163,11 @@ delegated:
   title: Iniciando sesión
   unsupported-method: "Este proveedor de acceso usa un método no admitido ({0})."
 
+logout:
+  confirm:
+    title: Cerrar sesión
+    help: ¿Quieres cerrar la sesión? Se cerrará en todas las aplicaciones que la usan.
+    submit: Cerrar sesión
 authorize:
   check-session:
     title: Verificando el origen del acceso...

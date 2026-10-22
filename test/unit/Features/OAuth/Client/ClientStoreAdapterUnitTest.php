@@ -40,6 +40,22 @@ final class ClientStoreAdapterUnitTest extends TestCase
         self::assertNull($store->publicClientData('angular-client', 'tenant1', 'http://localhost:4200.evil/callback', 'openid'));
     }
 
+    public function testPostLogoutRedirectMustBeRegisteredExactly(): void
+    {
+        $store = $this->storeWithRedirect('https://app.example.com/callback');
+
+        self::assertTrue($store->allowsPostLogoutRedirect('tenant1', 'angular-client', 'https://app.example.com/callback'));
+        self::assertFalse($store->allowsPostLogoutRedirect('tenant1', 'angular-client', 'https://app.example.com/callback/'));
+        self::assertFalse($store->allowsPostLogoutRedirect('tenant1', 'unknown-client', 'https://app.example.com/callback'));
+    }
+
+    public function testPostLogoutRedirectIgnoresTheLocalhostWildcard(): void
+    {
+        $store = $this->storeWithRedirect('http://localhost:4200/*');
+
+        self::assertFalse($store->allowsPostLogoutRedirect('tenant1', 'angular-client', 'http://localhost:4200/'));
+    }
+
     /**
      * @return iterable<string, array{string, string, bool}>
      */

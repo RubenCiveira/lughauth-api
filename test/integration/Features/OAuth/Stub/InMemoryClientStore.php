@@ -14,6 +14,8 @@ class InMemoryClientStore implements ClientStoreGateway
     private array $clients = [];
     /** @var array<string, string> tenant uid of each tenant name */
     private array $tenants = [];
+    /** @var array<string, list<string>> registered redirect URIs of each client */
+    private array $redirects = [];
 
     public function register(string $clientId, string $clientSecret, ClientData $data): void
     {
@@ -45,6 +47,21 @@ class InMemoryClientStore implements ClientStoreGateway
     public function defaultRedirectUri(string $tenant, string $clientId): ?string
     {
         return null;
+    }
+
+    /**
+     * Registers the exact redirect URIs of a client, used as its post-logout redirect URIs.
+     *
+     * @param list<string> $uris
+     */
+    public function redirects(string $clientId, array $uris): void
+    {
+        $this->redirects[$clientId] = $uris;
+    }
+
+    public function allowsPostLogoutRedirect(string $tenant, string $clientId, string $redirectUri): bool
+    {
+        return $this->visible($tenant, $clientId) !== null && in_array($redirectUri, $this->redirects[$clientId] ?? [], true);
     }
 
     public function preValidatedClient(string $tenant, string $clientId): ?ClientData
@@ -85,6 +102,7 @@ class InMemoryClientStore implements ClientStoreGateway
                 allowedAudiences: ['api-resource', 'other-resource'],
             )
         );
+        $store->redirects('test-client', ['https://app.example.com/', 'https://app.example.com/callback']);
         return $store;
     }
 }

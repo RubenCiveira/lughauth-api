@@ -115,6 +115,25 @@ final class SessionStoreSqlAdapterTest extends TestCase
         $this->assertNull($store->loadSession($session));
     }
 
+    public function testRenewedAuthenticationMovesAuthTimeOnlyForItsIssuer(): void
+    {
+        $pdo = $this->connect();
+        $store = new SessionStoreSqlAdapter($pdo);
+        $session = $this->openSession($store, ['pwd']);
+        $pdo->prepare('UPDATE _oauth_session SET auth_time = :old WHERE session = :session')
+            ->execute(['old' => (new \DateTimeImmutable('-2 hours'))->format('Y-m-d H:i:s'), 'session' => $session]);
+
+        $store->renewAuthentication($session, 'https://issuer.example/other-tenant', ['mfa']);
+        $this->assertLessThan(time() - 3600, $store->loadSession($session)?->authTime?->getTimestamp());
+
+        $store->renewAuthentication($session, self::ISSUER);
+        $this->assertEqualsWithDelta(time(), $store->loadSession($session)?->authTime?->getTimestamp(), 5);
+        $this->assertSame(['pwd'], $store->loadSession($session)?->amr, 'no methods keep the current ones');
+
+        $store->renewAuthentication($session, self::ISSUER, ['pwd', 'mfa']);
+        $this->assertSame(['pwd', 'mfa'], $store->loadSession($session)?->amr);
+    }
+
     public function testSessionWithoutEvidenceHasNoAmr(): void
     {
         $store = new SessionStoreSqlAdapter($this->connect());

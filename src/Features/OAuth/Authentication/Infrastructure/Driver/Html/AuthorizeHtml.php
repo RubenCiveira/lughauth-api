@@ -20,6 +20,10 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionSufficiencyPolicy;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\SessionDecision;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\Prompt;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\AuthorizationResponseWriter;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -59,6 +63,12 @@ use OpenApi\Attributes as OA;
  * for the client; before that they are local. Cookies for both the pre-session state and the
  * authenticated session are managed via OidcCookieManager.
  *
+ * Whether the browser session serves the request (prompt, max_age and the tenant's SSO lifetime)
+ * is decided by SessionSufficiencyPolicy, both when the request arrives and again at
+ * check-session, so posting there directly cannot skip it. prompt=consent shows the scope consent
+ * screen again after the login or on top of the session, and prompt=none never shows any UI: it
+ * fails with login_required, consent_required or interaction_required (task 031).
+ *
  * Relationships: depends on AuthenticateUser (domain service), SessionManager, OidcStepRouter
  * (step dispatch), OidcResponseBuilder (successful response), AuthorizationResponseWriter (error
  * responses), HtmlSecurer (CSRF token verification), and DecorateHtml (themed page wrapping).
@@ -81,6 +91,7 @@ class AuthorizeHtml
         private readonly AuthorizationRequestResolver $requestResolver,
         private readonly MessageProvider $messages,
         private readonly AuthorizationResponseWriter $responses,
+        private readonly SessionSufficiencyPolicy $sessionPolicy,
     ) {
     }
 
@@ -103,7 +114,8 @@ class AuthorizeHtml
             new OA\Parameter(name: 'request', in: 'query', required: false, description: 'Signed request object (RFC 9101); only its claims are used', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'nonce', in: 'query', required: false, description: 'Required when the response type includes id_token', schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'prompt', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
+            new OA\Parameter(name: 'prompt', in: 'query', required: false, description: 'Space-separated; none must stand alone and select_account behaves as login', schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
+            new OA\Parameter(name: 'max_age', in: 'query', required: false, description: 'Maximum seconds since the user authenticated for the session to be reused', schema: new OA\Schema(type: 'integer', minimum: 0)),
         ],
         responses: [
             new OA\Response(response: 200, description: 'HTML login form'),
@@ -115,7 +127,7 @@ class AuthorizeHtml
      *
      * Resolves PAR or request-object parameters (redirecting to their reference when consumed now),
      * validates the client, and either resumes an existing session silently or renders the first
-     * login step. When prompt=none and no active session exists, it immediately redirects with an error.
+     * login step. When prompt=none and no session serves the request, it immediately redirects with an error.
      */
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -145,10 +157,11 @@ class AuthorizeHtml
             'sessionId' => (string) ($flow->sessionId ?? ''),
             'sessionFound' => $sess ? 'true' : 'false',
         ]);
-        if ($sess) {
+        $decision = $this->sessionPolicy->decide($flow, $sess);
+        if ($decision === SessionDecision::Reuse) {
             return $this->cisdPage($request, $response, $flow, $authRequest);
-        } elseif ("none" === $flow->prompt) {
-            return $this->redirectError($flow, 'login_required', $response);
+        } elseif ($decision === SessionDecision::LoginRequired) {
+            return $this->silentError($flow, 'login_required', $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
             try {
@@ -166,8 +179,10 @@ class AuthorizeHtml
      * Handles the check-session POST that resumes an authenticated session silently.
      *
      * Verifies the CSRF token (csid), reloads the session, and immediately completes
-     * the authorization flow without showing any login UI. If the session has expired
-     * or the csid is invalid, the user is redirected back to the login form.
+     * the authorization flow without showing any login UI. If the session has expired, no longer
+     * serves the request (SessionSufficiencyPolicy) or the csid is invalid, the user is redirected
+     * back to the login form. prompt=consent renders the scope consent step first, and with
+     * prompt=none any step that needs the user becomes an error for the client instead.
      *
      * When sessionAuthenticated requires an intermediate step (e.g. terms consent), the step
      * form is rendered WITHOUT clearing the session cookie so subsequent submissions come back
@@ -206,7 +221,7 @@ class AuthorizeHtml
             return $this->redirectToLogin($response, $flow, $authRequest);
         }
         $sess = $this->sessions->findActiveSession($flow->sessionId ?? '', $flow->issuer);
-        if ($sess) {
+        if ($sess && $this->sessionPolicy->decide($flow, $sess) === SessionDecision::Reuse) {
             $this->logDebug('OIDC check-session session loaded', [
                 'tenant' => $tenant,
                 'sessionId' => (string) ($flow->sessionId ?? ''),
@@ -223,6 +238,9 @@ class AuthorizeHtml
                 return $this->runSessionStep($step, $csid, $tenant, $flow, $client, $authRequest, $input, $request, $response);
             }
             try {
+                if ($flow->prompts()->has(Prompt::CONSENT)) {
+                    throw new LoginException(AuthenticationResult::scopesConsentRequired());
+                }
                 $auth = $this->authenticator->sessionAuthenticated(
                     $authRequest,
                     $challenges,
@@ -235,6 +253,10 @@ class AuthorizeHtml
                 );
                 return $this->completeAuthorization($flow, $auth, $client, $authRequest, $response);
             } catch (LoginException $ex) {
+                if ($flow->prompts()->has(Prompt::NONE)) {
+                    // The session stays: only this request needed the user.
+                    return $this->silentError($flow, self::interactionError($ex->auth), $response);
+                }
                 // Render the step form (e.g. consent) but keep the session cookie intact so the
                 // user's next submission hits this same endpoint with the session still valid.
                 $result = $this->executeStep($input, $response, $ex->auth, null, null);
@@ -244,7 +266,7 @@ class AuthorizeHtml
                 return $result->response;
             }
         } else {
-            $this->logWarning('OIDC check-session missing session', [
+            $this->logWarning('OIDC check-session missing or insufficient session', [
                 'tenant' => $tenant,
                 'sessionId' => (string) ($flow->sessionId ?? ''),
             ]);
@@ -265,6 +287,10 @@ class AuthorizeHtml
     ): ResponseInterface {
         try {
             $result = $this->executeStep($input, $response, null, $step, $csid);
+            if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse && self::consentPending($flow, $step)) {
+                // Rendered without clearing the session cookie, like any other session step.
+                $result = $this->executeStep($input, $response, AuthenticationResult::scopesConsentRequired(), null, null);
+            }
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
                 return $this->completeAuthorization($flow, $result->authResponse, $client, $authRequest, $response);
             }
@@ -279,12 +305,14 @@ class AuthorizeHtml
             ], true);
             if ($isConsentStep) {
                 // Consent was stored but the current DB snapshot (REPEATABLE READ) doesn't reflect
-                // the write yet. Redirect to GET /authorize so a fresh DB connection picks it up.
+                // the write yet. Redirect to GET /authorize so a fresh DB connection picks it up,
+                // without prompt and max_age: the user just went through them, so asking again loops.
+                $continuation = $flow->continuationParams();
+                unset($continuation['max_age']);
                 $url = $this->urlBuilder->authorizeUrl($authRequest, $tenant, $flow->state, $flow->nonce, array_filter([
-                    'prompt' => $flow->prompt,
                     'code_challenge' => $flow->codeChallenge,
                     'code_challenge_method' => $flow->codeChallengeMethod,
-                ]) + $flow->continuationParams());
+                ]) + $continuation);
                 return $response->withStatus(302)->withHeader('Location', $url);
             }
             return $this->renderSessionError($flow, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
@@ -322,7 +350,8 @@ class AuthorizeHtml
      *
      * Reads the current step and pre-session cookie, executes the appropriate step handler
      * (credential check, MFA, consent, etc.), and either redirects with an authorization code
-     * on success or re-renders the step with an error message on failure.
+     * on success or re-renders the step with an error message on failure. With prompt=consent,
+     * a successful step other than the scope consent itself leads to the scope consent step.
      */
     public function formAuthorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -357,6 +386,9 @@ class AuthorizeHtml
 
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
+                if (self::consentPending($flow, $step)) {
+                    return $this->renderStep(null, AuthenticationResult::scopesConsentRequired(), $input, $response, null, $result->challenges);
+                }
                 return $this->completeAuthorization($flow, $result->authResponse, $client, $clientRequest, $response);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
@@ -392,6 +424,8 @@ class AuthorizeHtml
      * - an unknown response_mode, or the query for a response with tokens (invalid_request);
      * - an ID token in the front channel without the openid scope or without nonce, which binds
      *   it to this request (invalid_request, task 070);
+     * - prompt=none combined with other values, or a max_age that is not a non-negative integer
+     *   (invalid_request, task 031);
      * - an audience not registered for the client (invalid_target): only approved audiences reach
      *   the code;
      * - PKCE missing for a client that requires it (public or require-pkce), incomplete (a method
@@ -407,10 +441,41 @@ class AuthorizeHtml
             !$responseType->isAmong($client->responseTypes) => 'unauthorized_client',
             ResponseMode::resolve($responseType, $flow->requestedResponseMode) === null => 'invalid_request',
             $responseType->has('id_token') && (!ScopeSet::fromString($flow->scope)->has('openid') || $flow->nonce === '') => 'invalid_request',
+            !$flow->prompts()->isValid() || !$flow->hasValidMaxAge() => 'invalid_request',
             !$client->allowsAudiences($flow->audiences) => 'invalid_target',
             default => $this->pkceError($flow, $client),
         };
         return $error === null ? null : $this->redirectError($flow, $error, $response);
+    }
+
+    /**
+     * True when prompt=consent still asks for the scope consent: any step but the scope consent
+     * itself has run, whichever endpoint (/authorize or /check-session) it was posted to.
+     */
+    private static function consentPending(OidcFlowContext $flow, ?string $step): bool
+    {
+        return $flow->prompts()->has(Prompt::CONSENT) && $step !== StepName::SCOPES_CONSENT->value;
+    }
+
+    /**
+     * Error of a prompt=none request, returned to the client without touching any cookie: the
+     * session may still serve other requests (one without max_age, or an interactive one).
+     */
+    private function silentError(OidcFlowContext $flow, string $error, ResponseInterface $response): ResponseInterface
+    {
+        $this->logWarning('OIDC prompt=none error', ['tenant' => $flow->tenant, 'redirect' => $flow->redirect, 'error' => $error]);
+        return $this->responses->error($flow, $error, $response);
+    }
+
+    /**
+     * Error for prompt=none when the session needs the user for a step: consent_required for a
+     * consent (terms or scopes), interaction_required for anything else (MFA, new password...).
+     */
+    private static function interactionError(AuthenticationResult $auth): string
+    {
+        return in_array($auth->error, [AuthenticationResult::ERR_CONSENT_REQUIRED, AuthenticationResult::ERR_SCOPES_CONSENT_REQUIRED], true)
+            ? 'consent_required'
+            : 'interaction_required';
     }
 
     private function pkceError(OidcFlowContext $flow, ClientData $client): ?string
@@ -570,8 +635,8 @@ class AuthorizeHtml
             'prompt' => $flow->prompt,
             'sessionId' => (string) ($flow->sessionId ?? ''),
         ]);
-        if ($flow->prompt === 'none') {
-            return $this->redirectError($flow, 'login_required', $response);
+        if ($flow->prompts()->has(Prompt::NONE)) {
+            return $this->silentError($flow, 'login_required', $response);
         } else {
             $url = $this->urlBuilder->authorizeUrl(
                 $authRequest,

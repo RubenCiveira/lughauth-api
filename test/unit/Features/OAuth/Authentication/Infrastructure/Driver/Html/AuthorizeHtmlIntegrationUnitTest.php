@@ -17,6 +17,9 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionSufficiencyPolicy;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\SessionSsoTtlGateway;
+use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms\TermsAndGdprConsentForm;
@@ -161,7 +164,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $router,
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -228,7 +232,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -353,7 +358,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $router,
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -444,7 +450,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         try {
@@ -531,7 +538,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $response = $authorize->refresh($request, new Response(), ['tenant' => 'tenant1']);
@@ -625,7 +633,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $router,
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         // The verified request object is consumed: the browser continues with its reference only.
@@ -692,7 +701,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $this->expectException(UnauthorizedException::class);
@@ -769,7 +779,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $location = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1'])->getHeaderLine('Location');
@@ -889,7 +900,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         ))->authorize($request, new Response(), ['tenant' => 'tenant1']);
     }
 
@@ -925,7 +937,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $clients->method('publicClientData')->willReturn(new ClientData('client-123', ['code'], true));
         $sessions = $this->createMock(SessionManager::class);
         $sessions->method('findActiveSession')->willReturn(
-            $activeSession ? $this->createStub(\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo::class) : null
+            $activeSession ? new SessionInfo('csid', false, 'https://example.com/oauth/openid/tenant1', 'user-1', 'client-123', authTime: new DateTimeImmutable()) : null
         );
         $loginForm = $this->createMock(LoginForm::class);
         $loginForm->method('render')->willThrowException(new \Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException(
@@ -963,12 +975,238 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ),
             $this->buildRequestResolver($clients),
             $this->messages(),
-            new AuthorizationResponseWriter()
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
         );
 
         $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
 
         $this->assertSame($title, $pageTitle);
+    }
+
+    /**
+     * @return iterable<string, array{0: array<string, string>, 1: ?int, 2: string}>
+     */
+    public static function sessionSufficiency(): iterable
+    {
+        yield 'fresh session is reused' => [[], 60, 'check-session'];
+        yield 'prompt=login forces the login' => [['prompt' => 'login'], 60, 'login'];
+        yield 'select_account behaves as login' => [['prompt' => 'select_account'], 60, 'login'];
+        yield 'prompt=consent keeps the session' => [['prompt' => 'consent'], 60, 'check-session'];
+        yield 'max_age=0 forces the login' => [['max_age' => '0'], 60, 'login'];
+        yield 'session within max_age is reused' => [['max_age' => '120'], 60, 'check-session'];
+        yield 'session older than the SSO lifetime' => [[], 3601, 'login'];
+        yield 'no session' => [[], null, 'login'];
+        yield 'prompt=none with a fresh session' => [['prompt' => 'none'], 60, 'check-session'];
+        yield 'prompt=none beyond max_age' => [['prompt' => 'none', 'max_age' => '30'], 60, 'error=login_required'];
+        yield 'prompt=none beyond the SSO lifetime' => [['prompt' => 'none'], 3601, 'error=login_required'];
+        yield 'none combined with login' => [['prompt' => 'none login'], 60, 'error=invalid_request'];
+        yield 'max_age not a number' => [['max_age' => 'soon'], 60, 'error=invalid_request'];
+        yield 'negative max_age' => [['max_age' => '-1'], 60, 'error=invalid_request'];
+    }
+
+    /**
+     * The browser session serves the request only when prompt, max_age and the tenant's SSO
+     * lifetime, counted from the real auth_time, allow it (task 031).
+     *
+     * @param array<string, string> $query
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('sessionSufficiency')]
+    public function testAuthorizeReusesTheSessionOnlyWhenItServesTheRequest(array $query, ?int $authenticatedSecondsAgo, string $outcome): void
+    {
+        $session = $authenticatedSecondsAgo !== null ? $this->sessionAuthenticated($authenticatedSecondsAgo) : null;
+
+        $response = $this->promptAuthorize($session)->authorize($this->promptRequest('GET', $query), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertStringContainsString($outcome, $response->getHeaderLine('Location') . $response->getBody());
+    }
+
+    /**
+     * Posting to check-session directly cannot skip max_age or prompt=login.
+     */
+    public function testCheckSessionAppliesThePolicyAgain(): void
+    {
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->never())->method('sessionAuthenticated');
+
+        foreach ([['max_age' => '30'], ['prompt' => 'login']] as $query) {
+            $response = $this->promptAuthorize($this->sessionAuthenticated(60), $authenticator)
+                ->refresh($this->promptRequest('POST', $query, ['csid' => 'signed']), new Response(), ['tenant' => 'tenant1']);
+
+            $this->assertSame(302, $response->getStatusCode());
+            $this->assertStringContainsString('/oauth/openid/tenant1/authorize?', $response->getHeaderLine('Location'));
+        }
+    }
+
+    public function testCheckSessionShowsTheConsentAgainForPromptConsent(): void
+    {
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->never())->method('sessionAuthenticated');
+
+        $response = $this->promptAuthorize($this->sessionAuthenticated(60), $authenticator)
+            ->refresh($this->promptRequest('POST', ['prompt' => 'consent'], ['csid' => 'signed']), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('consent', (string) $response->getBody());
+    }
+
+    /**
+     * prompt=none never shows a step: the client gets the error, and the session is kept.
+     */
+    public function testPromptNoneTurnsASessionStepIntoAnError(): void
+    {
+        foreach ([
+            'consent_required' => AuthenticationResult::scopesConsentRequired(),
+            'interaction_required' => AuthenticationResult::mfaRequired(),
+        ] as $error => $step) {
+            $authenticator = $this->createMock(AuthenticateUser::class);
+            $authenticator->method('sessionAuthenticated')->willThrowException(new \Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException($step));
+
+            $response = $this->promptAuthorize($this->sessionAuthenticated(60), $authenticator)
+                ->refresh($this->promptRequest('POST', ['prompt' => 'none'], ['csid' => 'signed']), new Response(), ['tenant' => 'tenant1']);
+
+            $this->assertStringContainsString('error=' . $error, $response->getHeaderLine('Location'));
+            $this->assertSame([], $response->getHeader('Set-Cookie'));
+        }
+    }
+
+    /**
+     * A step posted to check-session cannot skip prompt=consent: only the scope consent step
+     * itself completes the authorization.
+     */
+    public function testCheckSessionStepsCannotSkipPromptConsent(): void
+    {
+        foreach ([StepName::LOGIN->value => 'consent', StepName::SCOPES_CONSENT->value => 'completed'] as $step => $outcome) {
+            $response = $this->promptAuthorize($this->sessionAuthenticated(60))
+                ->refresh($this->promptRequest('POST', ['prompt' => 'consent'], ['csid' => 'signed', 'step' => $step]), new Response(), ['tenant' => 'tenant1']);
+
+            $this->assertSame($outcome, (string) $response->getBody(), $step);
+        }
+    }
+
+    /**
+     * login_required for prompt=none keeps the session cookie: the session may still serve
+     * another request.
+     */
+    public function testPromptNoneLoginRequiredKeepsTheSessionCookie(): void
+    {
+        $authorize = $this->promptAuthorize($this->sessionAuthenticated(60));
+
+        foreach ([
+            $authorize->authorize($this->promptRequest('GET', ['prompt' => 'none', 'max_age' => '30']), new Response(), ['tenant' => 'tenant1']),
+            $authorize->refresh($this->promptRequest('POST', ['prompt' => 'none', 'max_age' => '30'], ['csid' => 'signed']), new Response(), ['tenant' => 'tenant1']),
+        ] as $response) {
+            $this->assertStringContainsString('error=login_required', $response->getHeaderLine('Location'));
+            $this->assertSame([], $response->getHeader('Set-Cookie'));
+        }
+    }
+
+    public function testFormAuthorizeShowsTheConsentAfterTheLoginForPromptConsent(): void
+    {
+        $response = $this->promptAuthorize(null)
+            ->formAuthorize($this->promptRequest('POST', ['prompt' => 'consent'], ['csid' => 'signed', 'step' => StepName::LOGIN->value]), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('consent', (string) $response->getBody());
+    }
+
+    public function testFormAuthorizeCompletesOnceTheConsentIsGiven(): void
+    {
+        $response = $this->promptAuthorize(null)
+            ->formAuthorize($this->promptRequest('POST', ['prompt' => 'consent'], ['csid' => 'signed', 'step' => StepName::SCOPES_CONSENT->value]), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('completed', (string) $response->getBody());
+    }
+
+    private function sessionAuthenticated(int $secondsAgo): SessionInfo
+    {
+        return new SessionInfo('csid', false, 'https://example.com/oauth/openid/tenant1', 'user-1', 'client-123', authTime: new DateTimeImmutable("-{$secondsAgo} seconds"));
+    }
+
+    /**
+     * @param array<string, string> $query
+     * @param array<string, string> $body
+     */
+    private function promptRequest(string $method, array $query, array $body = []): \Psr\Http\Message\ServerRequestInterface
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest($method, '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'state' => 'st',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
+                ...$query,
+            ]);
+        return $body === [] ? $request : $request->withParsedBody($body);
+    }
+
+    /**
+     * AuthorizeHtml of a tenant whose SSO lasts an hour, with the given browser session, a CSRF
+     * token that always verifies and step forms whose page is their name: the login form signs in
+     * and the scope consent form accepts. A completed authorization writes "completed"; the
+     * check-session page is titled "check-session".
+     */
+    private function promptAuthorize(?SessionInfo $session, ?AuthenticateUser $authenticator = null): AuthorizeHtml
+    {
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context(new ContainerBuilder(), $config);
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')->willReturn(new ClientData('client-123', ['code'], true));
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->method('findActiveSession')->willReturn($session);
+        $securer = $this->createMock(HtmlSecurer::class);
+        $securer->method('verifyToken')->willReturn('csid');
+        $decorator = $this->createMock(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(static fn ($request, string $title): string => $title === 'Verificando el origen del acceso...' ? 'check-session' : $title);
+        $page = static function (string $body): StepResult {
+            $response = new Response();
+            $response->getBody()->write($body);
+            return StepResult::render($response, new ChallengesState());
+        };
+        $auth = new PublicLoginAuthResponse('tenant1', new AuthenticationResult(valid: true, id: 'user-1'), 'https://example.com/oauth/openid/tenant1', 'client-123', 'sess-1', new \DateInterval('PT1H'));
+        $login = $this->createMock(LoginForm::class);
+        $login->method('render')->willReturn($page('login'));
+        $login->method('authenticate')->willReturn(StepResult::proceed($auth, (new ChallengesState())->withUsername('user-1')));
+        $consent = $this->createMock(ScopeConsentForm::class);
+        $consent->method('render')->willReturn($page('consent'));
+        $consent->method('authenticate')->willReturn(StepResult::proceed($auth, (new ChallengesState())->withUsername('user-1')));
+        $responses = $this->createMock(OidcResponseBuilder::class);
+        $responses->method('buildSuccessRedirect')->willReturnCallback(static function ($flow, $auth, $client, $request, ResponseInterface $response): ResponseInterface {
+            $response->getBody()->write('completed');
+            return $response;
+        });
+
+        return new AuthorizeHtml(
+            $context,
+            $clients,
+            $sessions,
+            $authenticator ?? $this->createMock(AuthenticateUser::class),
+            $securer,
+            $decorator,
+            $responses,
+            new OidcCookieManager($context, $this->createMock(TokenSigner::class)),
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $consent,
+                $login,
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            $this->buildRequestResolver($clients),
+            $this->messages(),
+            new AuthorizationResponseWriter(),
+            $this->sessionPolicy()
+        );
     }
 
     private function buildRequestObjectJwt(object $privateJwk, array $payload): string
@@ -998,6 +1236,14 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $jwksJson = (string) json_encode(['keys' => [$publicJwk->all()]]);
 
         return [$privateJwk, $jwksJson];
+    }
+
+    /** Policy of a tenant whose SSO lasts an hour. */
+    private function sessionPolicy(): SessionSufficiencyPolicy
+    {
+        $ttl = $this->createStub(SessionSsoTtlGateway::class);
+        $ttl->method('forTenant')->willReturn(3600);
+        return new SessionSufficiencyPolicy($ttl);
     }
 
     private function messages(): MessageProvider

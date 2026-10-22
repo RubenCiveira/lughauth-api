@@ -336,6 +336,10 @@ final class ParUnitTest extends TestCase
             {
                 return null;
             }
+            public function allowsPostLogoutRedirect(string $tenant, string $clientId, string $redirectUri): bool
+            {
+                return false;
+            }
         };
     }
 
