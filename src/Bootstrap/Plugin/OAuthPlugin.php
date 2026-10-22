@@ -29,6 +29,7 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\KeyRotationService;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\Listener\ProvisionTenantKeys;
+use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\KeyPairGenerator;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\SigningKeyProvisioner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\OpenSslKeyPairGenerator;
@@ -273,16 +274,18 @@ class OAuthPlugin extends MicroPlugin
             $group->post('/token', [TokenController::class, 'post']);
             $group->post('/introspect', [IntrospectionController::class, 'post']);
             $group->post('/par', [ParController::class, 'post']);
-            $group->post('/register', [DynamicClientController::class, 'post']);
-            $group->get('/register/{client_id}', [DynamicClientController::class, 'get']);
-            $group->put('/register/{client_id}', [DynamicClientController::class, 'put']);
-            $group->delete('/register/{client_id}', [DynamicClientController::class, 'delete']);
+            // Their bearer is an initial or registration access token, which the controller verifies.
+            $group->post('/register', [DynamicClientController::class, 'post'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
+            $group->get('/register/{client_id}', [DynamicClientController::class, 'get'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
+            $group->put('/register/{client_id}', [DynamicClientController::class, 'put'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
+            $group->delete('/register/{client_id}', [DynamicClientController::class, 'delete'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
             $group->post('/device', [DeviceAuthorizationController::class, 'post']);
             $group->get('/device/verify', [DeviceVerificationHtml::class, 'verify']);
             $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);
             $group->post('/api-key/validate', [ApiKeyController::class, 'post']);
-            $group->get('/userinfo', [UserInfoController::class, 'get']);
-            $group->post('/userinfo', [UserInfoController::class, 'post']);
+            // Its access token is aimed at the client; UserInfo verifies it for the tenant of the route.
+            $group->get('/userinfo', [UserInfoController::class, 'get'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
+            $group->post('/userinfo', [UserInfoController::class, 'post'])->setArgument(JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, 'true');
 
             $group->get('/logout', [LogoutController::class, 'logout']);
             $group->post('/revoke', [LogoutController::class, 'revoke']);

@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
@@ -62,10 +63,7 @@ final class WebAuthnController
     public function registerBegin(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';
-        $identity = $this->context->getIdentity();
-        if ($identity->isAnonymous()) {
-            throw new UnauthorizedException('Authentication required for WebAuthn registration');
-        }
+        $identity = $this->userOfTenant($tenant);
 
         $userUid = $identity->getId() ?? '';
         [$rpId, $rpName] = $this->resolveRp($tenant);
@@ -96,10 +94,7 @@ final class WebAuthnController
     public function registerFinish(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';
-        $identity = $this->context->getIdentity();
-        if ($identity->isAnonymous()) {
-            throw new UnauthorizedException('Authentication required for WebAuthn registration');
-        }
+        $this->userOfTenant($tenant);
 
         $body = $this->parseJsonBody($request);
         $challengeId = (string) ($body['challengeId'] ?? '');
@@ -230,5 +225,18 @@ final class WebAuthnController
             }
         }
         return [];
+    }
+
+    /**
+     * The authenticated user, whose token must come from this tenant's own issuer: the JWT
+     * middleware accepts any trusted issuer and does not look at the tenant of the route.
+     */
+    private function userOfTenant(string $tenant): Identity
+    {
+        $identity = $this->context->getIdentity();
+        if ($identity->isAnonymous() || $identity->getIssuer() !== $this->context->getIssuer($tenant)) {
+            throw new UnauthorizedException('Authentication required for WebAuthn registration');
+        }
+        return $identity;
     }
 }

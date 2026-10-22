@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Bootstrap\Middleware;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -28,18 +29,52 @@ use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\AuthenticationContext;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
+use Civi\Lughauth\Shared\Security\AccessTokenClaims;
 
 /**
  * Validates incoming JWTs and sets the security context.
+ *
+ * Any application verifies the token with what it carries: the signature against the JWKS, the
+ * `at+jwt` type and the claims of AccessTokenClaims (window, issuer and tenant present, configured
+ * issuer and audience). The JWKS is the configured one (`security.jwt.verify.publickey.location`)
+ * or, without it, the one of the token's issuer when it is under the trusted issuer root
+ * (`security.jwt.verify.issuer.root`), so tokens of every tenant of that server are verified.
+ *
+ * A JWT cannot tell whether it was revoked: only its issuer knows. With introspection credentials
+ * (`security.jwt.verify.introspection.client-id` and `.client-secret`) the token is also checked
+ * with the issuer's introspection endpoint (RFC 7662), found in its discovery document; without
+ * them a revoked token is accepted until it expires. The middleware knows nothing of the
+ * authorization server's code: it only talks to it over HTTP, also when it is this application.
  */
 class JwtVerifierMiddleware
 {
+    /**
+     * Route argument (set to `'true'`) of a route that verifies its own bearer token, such as one
+     * that is not an access token for this application: the middleware leaves it alone.
+     */
+    public const string OWN_BEARER_ARGUMENT = 'verifies-own-bearer';
     /** Prefix of the cached verification result (claims or rejection) of each token. */
     public const string CACHE_PREFIX = 'verify_access_v3_';
+    /**
+     * A JWKS is downloaded at most once in this time: to refresh it for an unknown `kid`, or to
+     * retry one that could not be downloaded. Keys are published before they sign (EP-04).
+     */
+    public const int JWKS_MIN_REFETCH_SECONDS = 60;
+    /** Prefix of the cached introspection answer (active or not) of each token. */
+    public const string INTROSPECTION_CACHE_PREFIX = 'verify_introspection_v1_';
+    /**
+     * Longest time an introspection answer is reused: a revocation reaches the middleware in at
+     * most this time. A discovery document or endpoint that fails is not asked again in it either.
+     */
+    public const int INTROSPECTION_CACHE_SECONDS = 60;
 
     /** @var string|null JWKS endpoint URL for public key verification. */
     private readonly ?string $jwksUrl;
+    /**
+     * @var string|null Trusted root of the issuers whose own JWKS (`iss` + `/jwks`) verifies their
+     * tokens when no JWKS is configured; it always ends with `/`.
+     */
+    private readonly ?string $issuerRoot;
     /** @var string|null Required issuer for JWT validation. */
     private readonly ?string $requiredIssuer;
     /**
@@ -49,6 +84,10 @@ class JwtVerifierMiddleware
     private readonly array $requiredAudiences;
     /** @var string|null Path to roles within the JWT payload. */
     private readonly ?string $rolesPath;
+    /** @var string|null Client this application introspects tokens as, or null not to introspect. */
+    private readonly ?string $introspectionClientId;
+    /** @var string Secret of the introspection client (client_secret_post). */
+    private readonly string $introspectionClientSecret;
 
     /**
      * Creates a new JWT verifier middleware.
@@ -66,15 +105,20 @@ class JwtVerifierMiddleware
         private readonly ClientInterface $client,
         /** @var MagicLinkService Magic link handler for temporary auth. */
         private readonly MagicLinkService $magicLinkService,
-        /** @var AccessTokenPolicy Issuer, audience, tenant and revocation checks. */
-        private readonly AccessTokenPolicy $policy,
+        /** @var StreamFactoryInterface Factory for the introspection request body. */
+        private readonly StreamFactoryInterface $streamFactory,
         private readonly LoggerInterface $logger = new NullLogger(),
     ) {
         $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
+        $issuerRoot = trim((string) $config->get('security.jwt.verify.issuer.root', ''));
+        $this->issuerRoot = $issuerRoot !== '' ? rtrim($issuerRoot, '/') . '/' : null;
         $this->requiredIssuer = $config->get('security.jwt.verify.issuer');
         $audiences = array_values(array_filter(array_map('trim', explode(',', (string) $config->get('security.jwt.verify.audiences', ''))), 'strlen'));
         $this->requiredAudiences = $audiences !== [] ? $audiences : [$config->name];
         $this->rolesPath = $config->get('security.jwt.verify.path.roles');
+        $clientId = trim((string) $config->get('security.jwt.verify.introspection.client-id', ''));
+        $this->introspectionClientId = $clientId !== '' ? $clientId : null;
+        $this->introspectionClientSecret = (string) $config->get('security.jwt.verify.introspection.client-secret', '');
     }
 
     /**
@@ -82,17 +126,17 @@ class JwtVerifierMiddleware
      */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if ($this->jwksUrl !== '-') {
-            $route = $request->getAttribute(RouteContext::ROUTE);
-            $routeTenant = $route instanceof RouteInterface ? $route->getArgument('tenant') : null;
+        $route = $request->getAttribute(RouteContext::ROUTE);
+        $ownBearer = $route instanceof RouteInterface && $route->getArgument(self::OWN_BEARER_ARGUMENT) === 'true';
+        if (($this->jwksUrl !== '-' || $this->issuerRoot !== null) && !$ownBearer) {
             $bearer = $this->bearer($request->getHeader('Authorization')[0] ?? null);
             if ($bearer !== null) {
-                $this->verifyAuth($bearer, Identity::AUTH_SCOPE_BOTH, $routeTenant);
+                $this->verifyAuth($bearer, Identity::AUTH_SCOPE_BOTH);
             } else {
                 $magic = $this->magicLinkService->consume($request);
                 if ($magic !== null) {
                     if ($magic['token'] !== null) {
-                        $this->verifyAuth($this->bearer($magic['token']) ?? '', Identity::AUTH_SCOPE_BOTH, $routeTenant);
+                        $this->verifyAuth($this->bearer($magic['token']) ?? '', Identity::AUTH_SCOPE_BOTH);
                     } elseif ($magic['identity'] instanceof Identity) {
                         $connection = $magic['connection'] instanceof Connection
                             ? $magic['connection']
@@ -119,36 +163,132 @@ class JwtVerifierMiddleware
     }
 
     /**
-     * Verifies a bearer access token and sets the security context from its claims.
-     *
-     * Endpoints of a tenant (routes with a `{tenant}` argument) verify it with that tenant's own
-     * keys; the other routes with the configured JWKS, as a resource server. Either way,
-     * AccessTokenPolicy applies the issuer, audience, tenant and revocation checks on every
-     * request, also when the signature verification comes from the cache.
+     * Verifies a bearer access token against the JWKS (jwksUrlFor), checks its claims on every
+     * request, also when the signature verification comes from the cache, asks its issuer whether
+     * it is still active when introspection is configured, and sets the security context.
      */
-    private function verifyAuth(string $token, string $authScope, ?string $routeTenant): void
+    private function verifyAuth(string $token, string $authScope): void
     {
         try {
-            if ($routeTenant !== null) {
-                $claims = $this->policy->verify($routeTenant, $token);
-            } else {
-                $claims = $this->remoteClaims($token);
-                $issuer = (string) ($claims['iss'] ?? '');
-                $tenant = $this->policy->tenantOfIssuer($issuer);
-                if ($tenant === null || ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $issuer !== $this->requiredIssuer)) {
-                    throw new UnauthorizedException(message: 'The issuer is not valid.');
-                }
-                $this->policy->check($claims, $tenant, $this->requiredAudiences);
+            $claims = $this->remoteClaims($token);
+            AccessTokenClaims::assertActive($claims);
+            AccessTokenClaims::assertIssuerAndTenant($claims);
+            if ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $claims['iss'] !== $this->requiredIssuer) {
+                throw new UnauthorizedException(message: 'The issuer is not valid.');
             }
+            AccessTokenClaims::assertAudience($claims, $this->requiredAudiences);
+            $this->assertActiveAtIssuer($token, (string) $claims['iss'], (int) $claims['exp']);
         } catch (UnauthorizedException $e) {
-            $this->logger->warning('JWT rejected: ' . $e->getMessage(), ['token_prefix' => substr($token, 0, 20), 'tenant' => $routeTenant]);
+            $this->logger->warning('JWT rejected: ' . $e->getMessage(), ['token_prefix' => substr($token, 0, 20)]);
             throw $e;
         }
         $this->authenticate($claims, $authScope);
     }
 
     /**
-     * Verifies the signature (refreshing the JWKS once, in case the key has just rotated in),
+     * Asks the issuer whether the token is still active (RFC 7662), as the configured client and
+     * at the `introspection_endpoint` of its discovery document. The answer is reused for
+     * INTROSPECTION_CACHE_SECONDS at most; an issuer that cannot answer rejects the token, never
+     * accepts it unchecked.
+     */
+    private function assertActiveAtIssuer(string $token, string $issuer, int $exp): void
+    {
+        if ($this->introspectionClientId === null) {
+            return;
+        }
+        $key = self::INTROSPECTION_CACHE_PREFIX . hash('sha256', $token);
+        $cached = $this->cache->get($key);
+        if ($cached === 'inactive') {
+            throw new UnauthorizedException(message: 'The provided JWT is not active.');
+        }
+        if ($cached === 'active') {
+            return;
+        }
+        $endpoint = $this->introspectionEndpoint($issuer);
+        $request = $this->requestFactory->createRequest('POST', $endpoint)
+            ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
+            ->withHeader('Accept', 'application/json')
+            ->withBody($this->streamFactory->createStream(http_build_query([
+                'token' => $token,
+                'token_type_hint' => 'access_token',
+                'client_id' => $this->introspectionClientId,
+                'client_secret' => $this->introspectionClientSecret,
+            ], '', '&')));
+        $answer = $this->fetchJson($request, $endpoint);
+        $active = ($answer['active'] ?? null) === true;
+        $ttl = $active ? min(self::INTROSPECTION_CACHE_SECONDS, max(1, $exp - time())) : self::INTROSPECTION_CACHE_SECONDS;
+        $this->cache->set($key, $active ? 'active' : 'inactive', $ttl);
+        if (!$active) {
+            throw new UnauthorizedException(message: 'The provided JWT is not active.');
+        }
+    }
+
+    /**
+     * The `introspection_endpoint` of the issuer's discovery document (RFC 8414), cached for an hour.
+     * It must be on the issuer's own origin, as the client secret is sent to it.
+     */
+    private function introspectionEndpoint(string $issuer): string
+    {
+        $key = 'verify_introspection_endpoint_' . hash('sha256', $issuer);
+        $cached = $this->cache->get($key);
+        if (is_string($cached)) {
+            return $cached;
+        }
+        $discovery = rtrim($issuer, '/') . '/.well-known/openid-configuration';
+        $document = $this->fetchJson($this->requestFactory->createRequest('GET', $discovery), $discovery);
+        $endpoint = $document['introspection_endpoint'] ?? null;
+        if (!is_string($endpoint) || self::origin($endpoint) === null || self::origin($endpoint) !== self::origin($issuer)) {
+            $this->cache->set(self::unavailableKey($discovery), '1', self::INTROSPECTION_CACHE_SECONDS);
+            throw new UnauthorizedException(message: 'The issuer does not publish an introspection endpoint.');
+        }
+        $this->cache->set($key, $endpoint, new \DateInterval('PT1H'));
+        return $endpoint;
+    }
+
+    /**
+     * Sends a request to the issuer and decodes its JSON answer. A URL that fails (network, HTTP
+     * error or not JSON) is not asked again for INTROSPECTION_CACHE_SECONDS.
+     *
+     * @return array<string, mixed>
+     */
+    private function fetchJson(\Psr\Http\Message\RequestInterface $request, string $url): array
+    {
+        $unavailable = self::unavailableKey($url);
+        if ($this->cache->has($unavailable)) {
+            throw new UnauthorizedException(message: 'The issuer could not confirm the token.');
+        }
+        try {
+            $response = $this->client->sendRequest($request);
+            $json = $response->getStatusCode() < 400 ? json_decode((string) $response->getBody(), true) : null;
+        } catch (\Psr\Http\Client\ClientExceptionInterface) {
+            $json = null;
+        }
+        if (!is_array($json)) {
+            $this->cache->set($unavailable, '1', self::INTROSPECTION_CACHE_SECONDS);
+            throw new UnauthorizedException(message: 'The issuer could not confirm the token.');
+        }
+        return $json;
+    }
+
+    /** Marks an issuer URL that could not answer, so it is not asked again for a while. */
+    private static function unavailableKey(string $url): string
+    {
+        return 'verify_issuer_unavailable_' . hash('sha256', $url);
+    }
+
+    /** Scheme, host and port of a URL, or null when it has no scheme or host. */
+    private static function origin(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+        return strtolower($parts['scheme']) . '://' . strtolower($parts['host']) . (isset($parts['port']) ? ':' . $parts['port'] : '');
+    }
+
+    /**
+     * Verifies the signature (refreshing the JWKS once, in case the key has just rotated in, unless
+     * it was downloaded less than JWKS_MIN_REFETCH_SECONDS ago),
      * the purpose and the time window. Only the resulting claims, or the rejection, are cached.
      *
      * @return array<string, mixed>
@@ -173,8 +313,9 @@ class JwtVerifierMiddleware
             // Without kid there is no published key to pick: reject without refreshing the JWKS.
             throw $this->rejected($cache_key, 'The provided JWT does not name its signing key.', 60);
         }
+        $jwksUrl = $this->jwksUrlFor($jwt, $cache_key);
         try {
-            if (!$this->verify($jwt, $this->getJwks()) && !$this->verify($jwt, $this->fetchAndCacheJwks())) {
+            if (!$this->verify($jwt, $this->getJwks($jwksUrl)) && !$this->verify($jwt, $this->refreshJwks($jwksUrl))) {
                 throw new UnauthorizedException(message: 'The provided JWT could not be verified.');
             }
         } catch (\JsonException) {
@@ -197,8 +338,30 @@ class JwtVerifierMiddleware
         if (!$this->isAccessToken($jwt)) {
             throw new UnauthorizedException(message: 'The provided JWT is not an access token.');
         }
-        $this->cache->set($cache_key, json_encode(['claims' => $claims]), min(AccessTokenPolicy::MAX_CACHE_TTL, max(1, (int) $exp - $now)));
+        $this->cache->set($cache_key, json_encode(['claims' => $claims]), min(AccessTokenClaims::MAX_CACHE_TTL, max(1, (int) $exp - $now)));
         return $claims;
+    }
+
+    /**
+     * The configured JWKS always wins. Without it, the JWKS of the token's issuer (`iss` + `/jwks`)
+     * when that issuer is under the trusted root: path segments below it, none of them `.` or `..`,
+     * and no query or fragment. The issuer is read before the signature is verified, which then
+     * has to match one of that issuer's own keys.
+     */
+    private function jwksUrlFor(JWS $jwt, string $cacheKey): string
+    {
+        if ($this->jwksUrl !== '-' || $this->issuerRoot === null) {
+            return (string) $this->jwksUrl;
+        }
+        $claims = json_decode($jwt->getPayload() ?? '{}', true);
+        $issuer = is_array($claims) ? ($claims['iss'] ?? null) : null;
+        $segment = '[A-Za-z0-9_~-][A-Za-z0-9._~-]*';
+        if (!is_string($issuer) || !str_starts_with($issuer, $this->issuerRoot)
+            || preg_match("#^(?:{$segment}/)*{$segment}$#", substr($issuer, strlen($this->issuerRoot))) !== 1
+        ) {
+            throw $this->rejected($cacheKey, 'The issuer is not trusted.', 60);
+        }
+        return $issuer . '/jwks';
     }
 
     private function rejected(string $cacheKey, string $fail, int $ttl): UnauthorizedException
@@ -207,7 +370,7 @@ class JwtVerifierMiddleware
         return new UnauthorizedException(message: $fail);
     }
 
-    /** @param array<string, mixed> $claims claims accepted by AccessTokenPolicy */
+    /** @param array<string, mixed> $claims claims accepted by verifyAuth */
     private function authenticate(array $claims, string $authScope): void
     {
         $payload = json_decode(json_encode($claims) ?: '{}');
@@ -305,30 +468,60 @@ class JwtVerifierMiddleware
         return $jwsVerifier->verifyWithKeySet($jwt, new JWKSet([$jwkSet->get($kid)]), 0);
     }
 
-    private function getJwks(): string
+    private function getJwks(string $jwksUrl): string
     {
-        if ($this->jwksUrl === null || $this->jwksUrl === '') {
+        if ($jwksUrl === '') {
             throw new \RuntimeException('JWKS URL is not configured');
         }
-        $cache_key = 'jwks.verify.publickey';
-        if ($this->cache->has($cache_key)) {
-            $cached = $this->cache->get($cache_key);
-            if (is_string($cached)) {
-                return $cached;
-            }
-        }
-        return $this->fetchAndCacheJwks();
+        $cached = $this->cache->get($this->jwksCacheKey($jwksUrl));
+        return is_string($cached) ? $cached : $this->fetchAndCacheJwks($jwksUrl);
     }
 
-    private function fetchAndCacheJwks(): string
+    /**
+     * The JWKS downloaded again for a key it did not have, or the cached one when it was
+     * downloaded too recently: tokens with made-up `kid`s cannot make it download on every request.
+     */
+    private function refreshJwks(string $jwksUrl): string
     {
-        if ($this->jwksUrl === null || $this->jwksUrl === '') {
+        $key = $this->jwksCacheKey($jwksUrl);
+        $cached = $this->cache->get($key);
+        return is_string($cached) && $this->cache->has($key . '.fetched')
+            ? $cached
+            : $this->fetchAndCacheJwks($jwksUrl);
+    }
+
+    /**
+     * Downloads a JWKS. One that cannot be downloaded is not asked for again for
+     * JWKS_MIN_REFETCH_SECONDS, so tokens naming issuers without keys do not send a request each.
+     */
+    private function fetchAndCacheJwks(string $jwksUrl): string
+    {
+        if ($jwksUrl === '') {
             throw new \RuntimeException('JWKS URL is not configured');
         }
-        $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $this->jwksUrl));
+        $key = $this->jwksCacheKey($jwksUrl);
+        if ($this->cache->has($key . '.unavailable')) {
+            throw new UnauthorizedException(message: 'The keys of the issuer are not available.');
+        }
+        try {
+            $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $jwksUrl));
+        } catch (\Psr\Http\Client\ClientExceptionInterface) {
+            $response = null;
+        }
+        if ($response === null || $response->getStatusCode() >= 400) {
+            $this->cache->set($key . '.unavailable', '1', self::JWKS_MIN_REFETCH_SECONDS);
+            throw new UnauthorizedException(message: 'The keys of the issuer are not available.');
+        }
         $item = (string) $response->getBody();
-        $this->cache->set('jwks.verify.publickey', $item, new \DateInterval('PT1H'));
+        $this->cache->set($key, $item, new \DateInterval('PT1H'));
+        $this->cache->set($key . '.fetched', '1', self::JWKS_MIN_REFETCH_SECONDS);
         return $item;
+    }
+
+    /** The configured JWKS keeps its historical cache key; each issuer's JWKS has its own. */
+    private function jwksCacheKey(string $jwksUrl): string
+    {
+        return $jwksUrl === $this->jwksUrl ? 'jwks.verify.publickey' : 'jwks.verify.' . hash('sha256', $jwksUrl);
     }
 
     /**

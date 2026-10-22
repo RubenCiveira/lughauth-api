@@ -23,7 +23,9 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 /**
  * EP-06 end to end over HTTP: the real routes of OAuthPlugin behind the routing middleware,
  * JwtVerifierMiddleware and the ErrorsPlugin handlers, wired in the same order as Micro. A
- * resource route (`/api/whoami`) stands for the APIs the middleware protects with the JWKS.
+ * resource route (`/api/whoami`) stands for the APIs the middleware protects with the JWKS. The
+ * middleware introspects every token as a client, and its HTTP client reaches this same app, as
+ * an application that is its own authorization server does: it only talks to it over HTTP.
  */
 class BearerHttpTest extends OidcIntegrationTestCase
 {
@@ -31,12 +33,15 @@ class BearerHttpTest extends OidcIntegrationTestCase
 
     private App $app;
 
+    /** @var list<string> URLs the middleware asked the authorization server for. */
+    private array $issuerCalls = [];
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->container->set(ClientInterface::class, $this->createStub(ClientInterface::class));
-        $this->container->set(RequestFactoryInterface::class, $this->createStub(RequestFactoryInterface::class));
-        $this->container->set(StreamFactoryInterface::class, $this->createStub(StreamFactoryInterface::class));
+        $this->container->set(ClientInterface::class, $this->issuerClient());
+        $this->container->set(RequestFactoryInterface::class, new \Slim\Psr7\Factory\RequestFactory());
+        $this->container->set(StreamFactoryInterface::class, new \Slim\Psr7\Factory\StreamFactory());
         $this->container->set(ProfileGateway::class, $this->createStub(ProfileGateway::class));
         $this->container->set(TrustedClientQueryRepositoryGateway::class, $this->createStub(TrustedClientQueryRepositoryGateway::class));
         // The JWKS the resource routes trust: the published keys of the tenant.
@@ -63,6 +68,8 @@ class BearerHttpTest extends OidcIntegrationTestCase
         $config->method('get')->willReturnCallback(fn (string $key, mixed $default = null): mixed => match ($key) {
             'security.jwt.verify.publickey.location' => 'http://jwks.invalid',
             'security.jwt.verify.audiences' => self::RESOURCE,
+            'security.jwt.verify.introspection.client-id' => self::CLIENT_ID,
+            'security.jwt.verify.introspection.client-secret' => self::CLIENT_SECRET,
             default => $base->get($key, $default),
         });
         return $config;
@@ -80,7 +87,8 @@ class BearerHttpTest extends OidcIntegrationTestCase
     {
         $token = $this->tokens()['access_token'];
 
-        // In the header the middleware rejects it; in the body, UserInfo itself.
+        // UserInfo verifies its own bearer (the middleware leaves the route alone) for the tenant
+        // of its route, in the header and in the body.
         $this->assertInvalidToken($this->send('GET', '/oauth/openid/tenant2/userinfo', bearer: $token));
         $this->assertInvalidToken($this->send('POST', '/oauth/openid/tenant2/userinfo', ['access_token' => $token]));
     }
@@ -116,10 +124,53 @@ class BearerHttpTest extends OidcIntegrationTestCase
         $revoke = $this->send('POST', '/oauth/openid/tenant1/revoke', ['token' => $token, ...$this->clientCredentials()]);
 
         $this->assertSame(200, $revoke->getStatusCode());
-        $this->assertInvalidToken($this->send('GET', '/api/whoami', bearer: $token));
+        // UserInfo checks the revocation itself on every request.
         $this->assertInvalidToken($this->send('GET', '/oauth/openid/tenant1/userinfo', bearer: $token));
+        // The middleware reuses the issuer's answer for up to a minute; once it expires, it asks again.
+        $this->cache->delete(JwtVerifierMiddleware::INTROSPECTION_CACHE_PREFIX . hash('sha256', $token));
+        $this->assertInvalidToken($this->send('GET', '/api/whoami', bearer: $token));
         $introspection = $this->send('POST', '/oauth/openid/tenant1/introspect', ['token' => $token, ...$this->clientCredentials()]);
         $this->assertSame(['active' => false], $this->decodeJson($introspection));
+    }
+
+    public function testTheMiddlewareAsksTheIssuerOnceAndReusesItsAnswer(): void
+    {
+        $token = $this->tokens(self::RESOURCE)['access_token'];
+
+        $this->send('GET', '/api/whoami', bearer: $token);
+        $this->send('GET', '/api/whoami', bearer: $token);
+
+        $this->assertSame([
+            'GET http://localhost/oauth/openid/tenant1/.well-known/openid-configuration',
+            'POST http://localhost/oauth/openid/tenant1/introspect',
+        ], $this->issuerCalls);
+    }
+
+    /**
+     * HTTP client that sends the middleware's requests to this same app, with their form body
+     * parsed as the body parsing middleware would.
+     */
+    private function issuerClient(): ClientInterface
+    {
+        return new class ($this) implements ClientInterface {
+            public function __construct(private readonly BearerHttpTest $test)
+            {
+            }
+
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): ResponseInterface
+            {
+                return $this->test->handleIssuerRequest($request);
+            }
+        };
+    }
+
+    /** @internal for issuerClient */
+    public function handleIssuerRequest(\Psr\Http\Message\RequestInterface $request): ResponseInterface
+    {
+        $this->issuerCalls[] = $request->getMethod() . ' ' . $request->getUri();
+        $server = (new ServerRequestFactory())->createServerRequest($request->getMethod(), (string) $request->getUri());
+        parse_str((string) $request->getBody(), $body);
+        return $this->app->handle($body !== [] ? $server->withParsedBody($body) : $server);
     }
 
     private function assertInvalidToken(ResponseInterface $response): void

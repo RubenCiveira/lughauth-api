@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Application;
 use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Shared\Security\AccessTokenClaims;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
@@ -14,7 +15,9 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 
 /**
- * Single verifier of bearer access tokens, shared by the JWT middleware, UserInfo and introspection.
+ * Single verifier of bearer access tokens of this server, shared by UserInfo and introspection.
+ * The JWT middleware never calls it: resource servers, this one included, reach it over HTTP
+ * through the introspection endpoint (RFC 7662).
  *
  * A token is accepted only when:
  * 1. its signature, `typ: at+jwt` purpose and nbf/exp window are valid (TokenSigner);
@@ -24,13 +27,13 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
  * 4. the `tenant` claim is present and is that tenant (by name or uid), with no `main` default;
  * 5. its `jti` has not been revoked for that tenant.
  *
- * Only step 1 is cached, as the verified claims, for at most MAX_CACHE_TTL seconds. Steps 2 to 5,
- * and the expiry, are evaluated on every call, so a revocation applies to the next request.
+ * The window and audience checks are those of any resource server (AccessTokenClaims); steps 2,
+ * 4 and 5 need this server's data. Only step 1 is cached, as the verified claims, for at most
+ * AccessTokenClaims::MAX_CACHE_TTL seconds. Steps 2 to 5, and the expiry, are evaluated on every
+ * call, so a revocation applies to the next request.
  */
 final class AccessTokenPolicy
 {
-    /** Longest time a verified signature is reused before the token is verified again. */
-    public const int MAX_CACHE_TTL = 300;
     private const string CACHE_PREFIX = 'access_token_claims_v1_';
     private const string TENANT_UID_PREFIX = 'access_token_tenant_uid_';
 
@@ -67,20 +70,11 @@ final class AccessTokenPolicy
      */
     public function check(array $claims, string $tenant, array $audiences = []): void
     {
-        $now = time();
-        if (!is_numeric($claims['exp'] ?? null) || (int) $claims['exp'] < $now) {
-            throw new UnauthorizedException(message: 'The provided JWT is expired.');
-        }
-        if (is_numeric($claims['nbf'] ?? null) && (int) $claims['nbf'] > $now) {
-            throw new UnauthorizedException(message: 'The provided JWT is not ready for use.');
-        }
+        AccessTokenClaims::assertActive($claims);
         if (($claims['iss'] ?? null) !== $this->context->getIssuer($tenant)) {
             throw new UnauthorizedException(message: 'The issuer is not valid.');
         }
-        $aud = array_values(array_filter((array) ($claims['aud'] ?? []), 'is_string'));
-        if ($aud === [] || ($audiences !== [] && array_intersect($aud, $audiences) === [])) {
-            throw new UnauthorizedException(message: 'The audience is not valid.');
-        }
+        AccessTokenClaims::assertAudience($claims, $audiences);
         if (!$this->isTenant($claims['tenant'] ?? null, $tenant)) {
             throw new UnauthorizedException(message: 'The tenant is not valid.');
         }
@@ -115,7 +109,7 @@ final class AccessTokenPolicy
         if ($claims === null) {
             throw new UnauthorizedException(message: 'The provided JWT could not be verified.');
         }
-        $ttl = min(self::MAX_CACHE_TTL, (int) ($claims['exp'] ?? 0) - time());
+        $ttl = min(AccessTokenClaims::MAX_CACHE_TTL, (int) ($claims['exp'] ?? 0) - time());
         if ($ttl > 0) {
             $this->cache->set($key, json_encode($claims), $ttl);
         }
@@ -142,7 +136,7 @@ final class AccessTokenPolicy
         }
         $uid = $this->tenants->findOneByName($tenant)?->uid();
         if ($uid !== null) {
-            $this->cache->set($key, $uid, self::MAX_CACHE_TTL);
+            $this->cache->set($key, $uid, AccessTokenClaims::MAX_CACHE_TTL);
         }
         return $uid;
     }

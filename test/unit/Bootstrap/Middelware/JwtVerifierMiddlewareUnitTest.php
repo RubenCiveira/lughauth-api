@@ -21,12 +21,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
-use Slim\Interfaces\RouteInterface;
-use Slim\Routing\RouteContext;
+use Civi\Lughauth\Shared\Security\AccessTokenClaims;
 
 /**
  * Unit tests for JwtVerifierMiddleware.
@@ -34,7 +29,7 @@ use Slim\Routing\RouteContext;
 #[AllowMockObjectsWithoutExpectations]
 final class JwtVerifierMiddlewareUnitTest extends TestCase
 {
-    /** Canonical issuer of the `main` tenant, as AccessTokenPolicy computes it. */
+    /** Issuer of the test tokens. */
     private const string ISSUER = 'https://idp/oauth/openid/main';
 
     /**
@@ -555,9 +550,10 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
     }
 
-    public function testRejectsTokenOfAForeignIssuer(): void
+    public function testResourceServerAcceptsAnyIssuerWithoutAConfiguredOne(): void
     {
-        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'iss' => 'https://other/oauth/openid/main'], $key)));
+        // Without a configured issuer, any issuer whose key is in the configured JWKS is trusted.
+        $this->assertTrue($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'iss' => 'https://other/oauth/openid/main'], $key)));
     }
 
     public function testRejectsTokenWithoutIssuer(): void
@@ -580,11 +576,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $claims = $this->claims();
         unset($claims['tenant']);
         $this->assertFalse($this->authenticates(fn ($key) => $this->jwt($claims, $key)));
-    }
-
-    public function testRejectsTokenOfAnotherTenantThanItsIssuer(): void
-    {
-        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'tenant' => 'other'], $key)));
     }
 
     public function testRejectsTokenWithoutAudience(): void
@@ -638,19 +629,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $middleware($this->request(rtrim($scheme) === $scheme ? "{$scheme} token" : "{$scheme}token"), $this->handler());
     }
 
-    public function testRejectsRevokedTokenAlsoWhenItsVerificationIsCached(): void
-    {
-        $revocations = $this->revocations();
-        $cache = new ArrayCache([JwtVerifierMiddleware::CACHE_PREFIX . 'token' => $this->cachedClaimsJson()]);
-        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $this->createStub(Context::class), revocations: $revocations);
-        $middleware($this->request('Bearer token'), $this->handler());
-
-        $revocations->revokeJti('jti-1', 'main', 'access', new \DateTimeImmutable('+1 hour'));
-
-        $this->expectException(UnauthorizedException::class);
-        $middleware($this->request('Bearer token'), $this->handler());
-    }
-
     public function testCachesTheVerificationForABoundedTime(): void
     {
         $_SERVER['REQUEST_URI'] = '/';
@@ -663,37 +641,284 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
 
         $middleware($this->request('Bearer ' . $token), $this->handler());
 
-        $this->assertLessThanOrEqual(AccessTokenPolicy::MAX_CACHE_TTL, $cache->ttl(JwtVerifierMiddleware::CACHE_PREFIX . $token));
+        $this->assertLessThanOrEqual(AccessTokenClaims::MAX_CACHE_TTL, $cache->ttl(JwtVerifierMiddleware::CACHE_PREFIX . $token));
     }
 
-    public function testVerifiesTokensOfATenantRouteWithTheTenantKeys(): void
+    /**
+     * Without a configured JWKS, a token is verified with the JWKS of its own issuer when that
+     * issuer is under the trusted root, so tokens of every tenant of that server are accepted.
+     */
+    public function testVerifiesWithTheJwksOfAnIssuerUnderTheTrustedRoot(): void
+    {
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware(['https://idp/oauth/openid/acme/jwks' => $this->jwksOf($key)], $requested);
+
+        $middleware($this->request('Bearer ' . $this->jwt([...$this->claims(), 'iss' => 'https://idp/oauth/openid/acme'], $key)), $this->handler());
+
+        $this->assertSame(['https://idp/oauth/openid/acme/jwks'], $requested);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function untrustedIssuers(): array
+    {
+        return [
+            'another server' => ['https://evil/oauth/openid/acme'],
+            'a sibling of the root' => ['https://idp/oauth/openidevil/acme'],
+            'the root itself' => ['https://idp/oauth/openid/'],
+            'a dot segment' => ['https://idp/oauth/openid/../admin'],
+            'a query' => ['https://idp/oauth/openid/acme?x=1'],
+            'a fragment' => ['https://idp/oauth/openid/acme#x'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('untrustedIssuers')]
+    public function testRejectsIssuersOutsideTheTrustedRootWithoutFetchingTheirKeys(string $issuer): void
+    {
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware([], $requested);
+
+        try {
+            $middleware($this->request('Bearer ' . $this->jwt([...$this->claims(), 'iss' => $issuer], $key)), $this->handler());
+            $this->fail('An untrusted issuer must be rejected');
+        } catch (UnauthorizedException) {
+            $this->assertSame([], $requested);
+        }
+    }
+
+    public function testTheConfiguredJwksWinsOverTheTrustedRoot(): void
+    {
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware(['http://jwks' => $this->jwksOf($key)], $requested, ['security.jwt.verify.publickey.location' => 'http://jwks']);
+
+        $middleware($this->request('Bearer ' . $this->jwt([...$this->claims(), 'iss' => 'https://idp/oauth/openid/acme'], $key)), $this->handler());
+
+        $this->assertSame(['http://jwks'], $requested);
+    }
+
+    public function testAnIssuerWithoutKeysIsNotAskedAgainForAWhile(): void
+    {
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware([], $requested);
+        $claims = [...$this->claims(), 'iss' => 'https://idp/oauth/openid/unknown'];
+
+        foreach (['jti-1', 'jti-2'] as $jti) {
+            try {
+                $middleware($this->request('Bearer ' . $this->jwt([...$claims, 'jti' => $jti], $key)), $this->handler());
+                $this->fail('A token of an issuer without keys must be rejected');
+            } catch (UnauthorizedException) {
+            }
+        }
+
+        $this->assertSame(['https://idp/oauth/openid/unknown/jwks'], $requested);
+    }
+
+    public function testUnknownKidsDoNotDownloadTheJwksMoreThanOnceAMinute(): void
+    {
+        $published = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware(['https://idp/oauth/openid/acme/jwks' => $this->jwksOf($published)], $requested);
+
+        foreach (['k2', 'k3', 'k4'] as $kid) {
+            $unpublished = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => $kid]);
+            try {
+                $middleware($this->request('Bearer ' . $this->jwt([...$this->claims(), 'iss' => 'https://idp/oauth/openid/acme'], $unpublished)), $this->handler());
+                $this->fail('A token of an unpublished key must be rejected');
+            } catch (UnauthorizedException) {
+            }
+        }
+
+        $this->assertSame(['https://idp/oauth/openid/acme/jwks'], $requested);
+    }
+
+    public function testAKeyPublishedAfterTheCachedJwksIsAcceptedOnceItCanBeRefreshed(): void
+    {
+        $old = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $new = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+        $url = 'https://idp/oauth/openid/acme/jwks';
+        // Cached more than a minute ago: the refresh marker has expired, the JWKS has not.
+        $cache = new ArrayCache(['jwks.verify.' . hash('sha256', $url) => $this->jwksOf($old)]);
+        $requested = [];
+        $middleware = $this->issuerRootMiddleware([$url => json_encode(['keys' => [$old->toPublic()->jsonSerialize(), $new->toPublic()->jsonSerialize()]], JSON_THROW_ON_ERROR)], $requested, cache: $cache);
+
+        $middleware($this->request('Bearer ' . $this->jwt([...$this->claims(), 'iss' => 'https://idp/oauth/openid/acme'], $new)), $this->handler());
+
+        $this->assertSame([$url], $requested);
+    }
+
+    public function testRoutesThatVerifyTheirOwnBearerAreLeftAlone(): void
+    {
+        $route = $this->createStub(\Slim\Interfaces\RouteInterface::class);
+        $route->method('getArgument')->willReturnMap([[JwtVerifierMiddleware::OWN_BEARER_ARGUMENT, null, 'true']]);
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getAttribute')->willReturnCallback(fn (string $name) => $name === \Slim\Routing\RouteContext::ROUTE ? $route : null);
+        $request->method('getHeader')->willReturn(['Bearer not-an-access-token']);
+        $context = $this->createMock(Context::class);
+        $context->expects($this->never())->method('setSecurityContext');
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], null, $context);
+
+        $this->assertSame(200, $middleware($request, $this->handler())->getStatusCode());
+    }
+
+    public function testWithoutIntrospectionCredentialsTheIssuerIsNeverAsked(): void
+    {
+        $sent = [];
+        $middleware = $this->introspectingMiddleware([], $sent, ['security.jwt.verify.introspection.client-id' => '']);
+
+        $middleware($this->request('Bearer ' . $this->signedToken()), $this->handler());
+
+        $this->assertSame([], $sent);
+    }
+
+    public function testAnActiveTokenIsAskedOnceAsTheConfiguredClient(): void
+    {
+        $sent = [];
+        $middleware = $this->introspectingMiddleware([self::INTROSPECT => [200, '{"active":true}']], $sent);
+        $token = $this->signedToken();
+
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        $this->assertSame(['GET ' . self::DISCOVERY, 'POST ' . self::INTROSPECT], array_keys($sent));
+        parse_str($sent['POST ' . self::INTROSPECT], $body);
+        $this->assertSame(['token' => $token, 'token_type_hint' => 'access_token', 'client_id' => 'rs', 'client_secret' => 's3cret'], $body);
+    }
+
+    public function testAnInactiveTokenIsRejected(): void
+    {
+        $sent = [];
+        $middleware = $this->introspectingMiddleware([self::INTROSPECT => [200, '{"active":false}']], $sent);
+
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $this->signedToken()), $this->handler());
+    }
+
+    public function testAnIssuerThatCannotAnswerRejectsAndIsNotAskedAgainForAWhile(): void
+    {
+        $sent = [];
+        $middleware = $this->introspectingMiddleware([self::INTROSPECT => [500, 'down']], $sent);
+
+        foreach (['jti-1', 'jti-2'] as $jti) {
+            try {
+                $middleware($this->request('Bearer ' . $this->signedToken(['jti' => $jti])), $this->handler());
+                $this->fail('A token the issuer cannot confirm must be rejected');
+            } catch (UnauthorizedException) {
+            }
+        }
+
+        $this->assertSame(['GET ' . self::DISCOVERY, 'POST ' . self::INTROSPECT], array_keys($sent));
+    }
+
+    public function testTheSecretIsNeverSentToAnEndpointOutsideTheIssuerOrigin(): void
+    {
+        $sent = [];
+        $middleware = $this->introspectingMiddleware([
+            self::DISCOVERY => [200, '{"introspection_endpoint":"https://evil/introspect"}'],
+        ], $sent);
+
+        try {
+            $middleware($this->request('Bearer ' . $this->signedToken()), $this->handler());
+            $this->fail('An endpoint on another origin must be refused');
+        } catch (UnauthorizedException) {
+            $this->assertSame(['GET ' . self::DISCOVERY], array_keys($sent));
+        }
+    }
+
+    private const string DISCOVERY = 'https://idp/oauth/openid/acme/.well-known/openid-configuration';
+    private const string INTROSPECT = 'https://idp/oauth/openid/acme/introspect';
+
+    /** Signed with the key the introspecting middleware trusts, issued by https://idp/oauth/openid/acme. */
+    private function signedToken(array $claims = []): string
+    {
+        return $this->jwt([...$this->claims(), 'iss' => 'https://idp/oauth/openid/acme', ...$claims], $this->introspectionKey());
+    }
+
+    private ?\Jose\Component\Core\JWK $introspectionKey = null;
+
+    private function introspectionKey(): \Jose\Component\Core\JWK
+    {
+        return $this->introspectionKey ??= JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+    }
+
+    /**
+     * Middleware with a configured JWKS and introspection credentials (rs / s3cret), whose issuer
+     * answers by URL ([status, body]; the discovery document by default, 404 otherwise) and records
+     * the body of every request it gets, keyed by method and URL.
+     *
+     * @param array<string, array{int, string}> $answers
+     * @param array<string, string> $sent
+     */
+    private function introspectingMiddleware(array $answers, array &$sent, array $config = []): JwtVerifierMiddleware
     {
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $signer = $this->createMock(TokenSigner::class);
-        $signer->expects($this->once())->method('verify')->with('tenant1', 'local-token')
-            ->willReturn([...$this->claims(), 'iss' => 'https://idp/oauth/openid/tenant1', 'tenant' => 'tenant1']);
-        $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->never())->method('sendRequest');
-        $context = $this->createMock(Context::class);
-        $context->expects($this->once())->method('setSecurityContext');
-        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks', 'security.jwt.verify.audiences' => 'resource-api'], null, $context, $client, signer: $signer);
+        $answers += [self::DISCOVERY => [200, json_encode(['introspection_endpoint' => self::INTROSPECT])]];
+        $client = $this->createStub(ClientInterface::class);
+        $client->method('sendRequest')->willReturnCallback(function ($request) use ($answers, &$sent) {
+            $url = (string) $request->getUri();
+            $sent[$request->getMethod() . ' ' . $url] = (string) $request->getBody();
+            [$status, $body] = $answers[$url] ?? [404, ''];
+            return new \Slim\Psr7\Response($status, null, $this->stream($body));
+        });
 
-        $response = $middleware($this->request('Bearer local-token', 'tenant1'), $this->handler());
-
-        $this->assertSame(200, $response->getStatusCode());
+        return $this->middleware(
+            [
+                'security.jwt.verify.publickey.location' => 'http://jwks',
+                'security.jwt.verify.introspection.client-id' => 'rs',
+                'security.jwt.verify.introspection.client-secret' => 's3cret',
+                ...$config,
+            ],
+            new ArrayCache(['jwks.verify.publickey' => $this->jwksOf($this->introspectionKey())]),
+            $this->createStub(Context::class),
+            $client,
+            requestFactory: new \Slim\Psr7\Factory\RequestFactory(),
+        );
     }
 
-    public function testRejectsTokenOfAnotherTenantOnATenantRoute(): void
+    /**
+     * Middleware trusting the issuers under https://idp/oauth/openid/, whose HTTP client answers
+     * the given JWKS by URL (404 otherwise) and records every URL it is asked for.
+     *
+     * @param array<string, string> $jwksByUrl
+     * @param list<string> $requested
+     */
+    private function issuerRootMiddleware(array $jwksByUrl, array &$requested, array $config = [], ?ArrayCache $cache = null): JwtVerifierMiddleware
     {
-        $signer = $this->createStub(TokenSigner::class);
-        // A tenant2 route only verifies with tenant2 keys: a token of tenant1 does not verify.
-        $signer->method('verify')->willReturnCallback(fn (string $tenant) => $tenant === 'tenant1' ? $this->claims() : null);
-        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], signer: $signer);
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $requestFactory = $this->createStub(RequestFactoryInterface::class);
+        $requestFactory->method('createRequest')->willReturnCallback(function (string $method, string $url) {
+            $request = $this->createStub(\Psr\Http\Message\RequestInterface::class);
+            // The client reads the requested URL back through this header.
+            $request->method('getHeaderLine')->willReturn($url);
+            return $request;
+        });
+        $client = $this->createStub(ClientInterface::class);
+        $client->method('sendRequest')->willReturnCallback(function ($request) use ($jwksByUrl, &$requested) {
+            $url = $request->getHeaderLine('x-url');
+            $requested[] = $url;
+            return isset($jwksByUrl[$url])
+                ? new \Slim\Psr7\Response(200, null, $this->stream($jwksByUrl[$url]))
+                : new \Slim\Psr7\Response(404);
+        });
 
-        $this->expectException(UnauthorizedException::class);
-        $middleware($this->request('Bearer local-token', 'tenant2'), $this->handler());
+        return $this->middleware(
+            ['security.jwt.verify.issuer.root' => 'https://idp/oauth/openid', ...$config],
+            $cache ?? new ArrayCache(),
+            $this->createStub(Context::class),
+            $client,
+            requestFactory: $requestFactory,
+        );
+    }
+
+    private function jwksOf($key): string
+    {
+        return json_encode(['keys' => [$key->toPublic()->jsonSerialize()]], JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -738,7 +963,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         /*
          * Act: invoke the JWKS retrieval method.
          */
-        $result = $method->invoke($middleware);
+        $result = $method->invoke($middleware, 'http://jwks');
 
         /*
          * Assert: verify the JWKS data is returned and cached.
@@ -1199,7 +1424,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          * Act: invoke getJwks with an empty URL.
          */
         $this->expectException(\RuntimeException::class);
-        $method->invoke($middleware);
+        $method->invoke($middleware, '');
 
         /*
          * Assert: verify a RuntimeException is thrown.
@@ -1221,7 +1446,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          * Act: invoke fetchAndCacheJwks with an empty URL.
          */
         $this->expectException(\RuntimeException::class);
-        $method->invoke($middleware);
+        $method->invoke($middleware, '');
 
         /*
          * Assert: verify a RuntimeException is thrown.
@@ -1278,8 +1503,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         ?Context $context = null,
         ?ClientInterface $client = null,
         ?MagicLinkService $magicLinkService = null,
-        ?TokenRevocationGateway $revocations = null,
-        ?TokenSigner $signer = null,
+        ?RequestFactoryInterface $requestFactory = null,
     ): JwtVerifierMiddleware {
         $config = new class ($configOverrides) extends AppConfig {
             public function __construct(private readonly array $overrides)
@@ -1297,24 +1521,16 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
 
         $context = $context ?? $this->createMock(Context::class);
         $cache = $cache ?? new ArrayCache();
-        $requestFactory = $this->createMock(RequestFactoryInterface::class);
-        $request = $this->createMock(\Psr\Http\Message\RequestInterface::class);
-        $request->method('withHeader')->willReturnSelf();
-        $requestFactory->method('createRequest')->willReturn($request);
+        if ($requestFactory === null) {
+            $requestFactory = $this->createMock(RequestFactoryInterface::class);
+            $request = $this->createMock(\Psr\Http\Message\RequestInterface::class);
+            $request->method('withHeader')->willReturnSelf();
+            $requestFactory->method('createRequest')->willReturn($request);
+        }
         $client = $client ?? $this->createMock(ClientInterface::class);
         $magicLinkService = $magicLinkService ?? $this->createMock(MagicLinkService::class);
 
-        $issuers = $this->createStub(Context::class);
-        $issuers->method('getIssuer')->willReturnCallback(fn (string $tenant): string => 'https://idp/oauth/openid/' . $tenant);
-        $policy = new AccessTokenPolicy(
-            $signer ?? $this->createStub(TokenSigner::class),
-            $revocations ?? $this->revocations(),
-            $this->createStub(TenantQueryRepositoryGateway::class),
-            $issuers,
-            $cache,
-        );
-
-        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService, $policy);
+        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService, new \Slim\Psr7\Factory\StreamFactory());
     }
 
     /** @return array<string, mixed> claims of a valid access token of the `main` tenant */
@@ -1323,51 +1539,9 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         return ['sub' => 'user', 'iss' => self::ISSUER, 'aud' => ['client', 'app'], 'azp' => 'client', 'tenant' => 'main', 'jti' => 'jti-1', 'nbf' => time() - 10, 'exp' => time() + 1000];
     }
 
-    private function revocations(): TokenRevocationGateway
+    private function request(string $authorization): ServerRequestInterface
     {
-        return new class () implements TokenRevocationGateway {
-            /** @var array<string, true> */
-            private array $revoked = [];
-
-            public function revokeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): void
-            {
-                $this->revoked["{$tenantId}:{$jti}"] = true;
-            }
-
-            public function isRevoked(string $jti, string $tenantId): bool
-            {
-                return isset($this->revoked["{$tenantId}:{$jti}"]);
-            }
-
-            public function consumeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): bool
-            {
-                return true;
-            }
-
-            public function revokeFamily(string $familyId, string $tenantId, \DateTimeImmutable $expiresAt): void
-            {
-            }
-
-            public function isFamilyRevoked(string $familyId, string $tenantId): bool
-            {
-                return false;
-            }
-
-            public function cleanup(): void
-            {
-            }
-        };
-    }
-
-    private function request(string $authorization, ?string $routeTenant = null): ServerRequestInterface
-    {
-        $route = null;
-        if ($routeTenant !== null) {
-            $route = $this->createStub(RouteInterface::class);
-            $route->method('getArgument')->willReturnMap([['tenant', null, $routeTenant]]);
-        }
         $request = $this->createMock(ServerRequestInterface::class);
-        $request->method('getAttribute')->willReturnCallback(fn (string $name) => $name === RouteContext::ROUTE ? $route : null);
         $request->method('getHeader')->willReturn([$authorization]);
         $request->method('getMethod')->willReturn('GET');
         return $request;
