@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Oidc\Domain;
 
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
 
 /**
@@ -19,9 +21,9 @@ final class OidcCapabilities
     public function __construct(
         /** OAuth 2.0 grant types accepted by the token endpoint (TokenController). */
         public readonly array $grantTypes,
-        /** response_type values handled by OidcResponseBuilder. */
+        /** response_type values accepted by AuthorizeHtml and issued by OidcResponseBuilder. */
         public readonly array $responseTypes,
-        /** response_mode values used to deliver the authorization response. */
+        /** response_mode values AuthorizationResponseWriter delivers the authorization response in. */
         public readonly array $responseModes,
         /** Subject identifier types; pairwise is not implemented yet (056). */
         public readonly array $subjectTypes,
@@ -64,14 +66,15 @@ final class OidcCapabilities
         return new self(
             grantTypes: [
                 'authorization_code',
+                // Only through the hybrid response types, which RFC 7591 §2.1 ties to this grant.
                 'implicit',
                 'refresh_token',
                 'client_credentials',
                 'password',
                 'urn:ietf:params:oauth:grant-type:device_code',
             ],
-            responseTypes: ['code', 'token', 'id_token'],
-            responseModes: ['query', 'fragment'],
+            responseTypes: ResponseType::SUPPORTED,
+            responseModes: array_map(static fn (ResponseMode $mode): string => $mode->value, ResponseMode::cases()),
             subjectTypes: ['public'],
             codeChallengeMethods: ['S256'],
             tokenEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'none'],
@@ -81,7 +84,7 @@ final class OidcCapabilities
             requestObjectSigningAlgs: ['RS256', 'ES256', 'PS256'],
             requestParameter: true,
             claimsParameter: false,
-            authorizationResponseIssParameter: false,
+            authorizationResponseIssParameter: true,
             requirePushedAuthorizationRequests: $requirePushedAuthorizationRequests,
             backchannelLogout: true,
             frontchannelLogout: true,

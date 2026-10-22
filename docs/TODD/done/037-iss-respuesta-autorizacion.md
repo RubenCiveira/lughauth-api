@@ -1,7 +1,7 @@
 # 037 — Incluir `iss` en respuestas OAuth de autorización
 
-- **Estado:** pendiente. **Prioridad:** media. **Dependencia:** 015, 027.
-- **Evidencia:** [OpenIdConfiguration](../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia `authorization_response_iss_parameter_supported: true`; [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) no lo añade.
+- **Estado:** hecho (EP-08). **Prioridad:** media. **Dependencia:** 015, 027.
+- **Evidencia:** [OpenIdConfiguration](../../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia `authorization_response_iss_parameter_supported: true`; [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) no lo añade.
 - **Impacto:** RP que confían en RFC 9207 no pueden validar origen de la respuesta.
 - **Por hacer:** adjuntar issuer canónico correctamente codificado a éxitos y errores redirigibles; no anunciar soporte antes de implementarlo.
 - **Aceptación:** code y hybrid incluyen `iss` idéntico al discovery del tenant.

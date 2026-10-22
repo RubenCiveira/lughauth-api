@@ -34,6 +34,7 @@ use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\AuthorizationResponseWriter;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
@@ -159,7 +160,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             new OidcUrlBuilder($context),
             $router,
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -225,13 +227,14 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
 
         $this->assertSame(302, $response->getStatusCode());
-        $this->assertSame('https://client.example/callback#error=invalid_target', $response->getHeaderLine('Location'));
+        $this->assertSame('https://client.example/callback?error=invalid_target&state=state-xyz&iss=' . rawurlencode('https://example.com/oauth/openid/tenant1'), $response->getHeaderLine('Location'));
     }
 
     /**
@@ -332,7 +335,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             new TokenFactory($this->createMock(TokenSigner::class), new ClaimsMapper(), $this->createMock(TokenLifetimesGateway::class)),
             $this->createMock(SessionStoreGateway::class),
             $temporals,
-            $cookies
+            $cookies,
+            new AuthorizationResponseWriter()
         );
         $urlBuilder = new OidcUrlBuilder($context);
 
@@ -348,7 +352,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $urlBuilder,
             $router,
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -419,7 +424,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 new TokenFactory($this->createMock(TokenSigner::class), new ClaimsMapper(), $this->createMock(TokenLifetimesGateway::class)),
                 $this->createMock(SessionStoreGateway::class),
                 $temporals,
-                $cookies
+                $cookies,
+                new AuthorizationResponseWriter()
             ),
             $cookies,
             new OidcUrlBuilder($context),
@@ -437,7 +443,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         try {
@@ -451,7 +458,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $this->assertStringContainsString('code=temp-code', $first->getHeaderLine('Location'));
 
         $replayed = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
-        $this->assertSame('https://client.example/callback#error=invalid_request', $replayed->getHeaderLine('Location'));
+        $this->assertSame('https://client.example/callback?error=invalid_request&state=state-xyz&iss=' . rawurlencode('https://example.com/oauth/openid/tenant1'), $replayed->getHeaderLine('Location'));
     }
 
     public function testRefreshWithInvalidCsidRedirectsToLogin(): void
@@ -523,7 +530,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $response = $authorize->refresh($request, new Response(), ['tenant' => 'tenant1']);
@@ -616,7 +624,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             new OidcUrlBuilder($context),
             $router,
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         // The verified request object is consumed: the browser continues with its reference only.
@@ -682,7 +691,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $this->expectException(UnauthorizedException::class);
@@ -758,12 +768,129 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $location = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1'])->getHeaderLine('Location');
 
-        $this->assertSame($rejected ? 'https://client.example/callback#error=invalid_request' : '', $location);
+        $this->assertSame($rejected ? 'https://client.example/callback?error=invalid_request&iss=' . rawurlencode('https://example.com/oauth/openid/tenant1') : '', $location);
+    }
+
+    /**
+     * Requests rejected before the login, with the error in the mode of their response type and
+     * the state and iss of the request (EP-08). Null: the login is shown.
+     */
+    public static function responseTypeCases(): array
+    {
+        $hybrid = ['code', 'code id_token', 'code id_token token'];
+        return [
+            'code' => [['code'], ['response_type' => 'code'], null],
+            'hybrid registered in another order' => [['id_token code'], ['response_type' => 'code id_token'], null],
+            'hybrid by form_post' => [$hybrid, ['response_type' => 'code id_token', 'response_mode' => 'form_post'], null],
+            'missing response_type' => [$hybrid, ['response_type' => ''], ['?', 'invalid_request']],
+            'implicit is retired' => [['id_token token'], ['response_type' => 'id_token token'], ['#', 'unsupported_response_type']],
+            'implicit id_token' => [$hybrid, ['response_type' => 'id_token'], ['#', 'unsupported_response_type']],
+            'hybrid not registered' => [['code'], ['response_type' => 'code id_token'], ['#', 'unauthorized_client']],
+            'tokens in the query' => [$hybrid, ['response_type' => 'code id_token', 'response_mode' => 'query'], ['#', 'invalid_request']],
+            'unknown mode' => [$hybrid, ['response_type' => 'code', 'response_mode' => 'jwt'], ['?', 'invalid_request']],
+            'id_token without nonce' => [$hybrid, ['response_type' => 'code id_token', 'nonce' => ''], ['#', 'invalid_request']],
+            'id_token without openid' => [$hybrid, ['response_type' => 'code id_token', 'scope' => 'profile'], ['#', 'invalid_request']],
+            'code without nonce' => [$hybrid, ['response_type' => 'code', 'nonce' => ''], null],
+            'error by fragment when asked' => [['code'], ['response_type' => 'code', 'response_mode' => 'fragment', 'audience' => 'foreign'], ['#', 'invalid_target']],
+        ];
+    }
+
+    /**
+     * @param list<string> $registered
+     * @param array{0: string, 1: string}|null $error separator and code of the expected error
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('responseTypeCases')]
+    public function testAuthorizeValidatesTheResponseTypeAndModeBeforeTheLogin(array $registered, array $query, ?array $error): void
+    {
+        $response = $this->authorizeWith(new ClientData('client-123', ['code'], true, responseTypes: $registered), [
+            'redirect_uri' => 'https://client.example/callback',
+            'scope' => 'openid',
+            'state' => 'a&b=c',
+            'nonce' => 'nonce-abc',
+            ...$query,
+        ]);
+
+        $expected = $error === null ? '' : 'https://client.example/callback' . $error[0] . 'error=' . $error[1]
+            . '&state=a%26b%3Dc&iss=' . rawurlencode('https://example.com/oauth/openid/tenant1');
+        $this->assertSame($expected, $response->getHeaderLine('Location'));
+    }
+
+    public function testPromptNoneWithoutSessionReturnsLoginRequired(): void
+    {
+        $response = $this->authorizeWith(new ClientData('client-123', ['code'], true), [
+            'response_type' => 'code',
+            'redirect_uri' => 'https://client.example/callback',
+            'scope' => 'openid',
+            'state' => 'st',
+            'prompt' => 'none',
+        ]);
+
+        $this->assertSame('https://client.example/callback?error=login_required&state=st&iss=' . rawurlencode('https://example.com/oauth/openid/tenant1'), $response->getHeaderLine('Location'));
+    }
+
+    /**
+     * A redirect URI not registered for the client never receives the error: it is a local one.
+     */
+    public function testUnregisteredRedirectGetsALocalErrorWithoutRedirect(): void
+    {
+        $this->expectException(UnauthorizedException::class);
+
+        $this->authorizeWith(null, [
+            'response_type' => 'id_token token',
+            'redirect_uri' => 'https://evil.example/callback',
+            'scope' => 'openid',
+            'state' => 'st',
+        ]);
+    }
+
+    private function authorizeWith(?ClientData $client, array $query): ResponseInterface
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams(['client_id' => 'client-123', ...$query]);
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context(new ContainerBuilder(), $config);
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')->willReturn($client);
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->method('clearSession')->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
+
+        return (new AuthorizeHtml(
+            $context,
+            $clients,
+            $this->createMock(SessionManager::class),
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $loginForm,
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            $this->buildRequestResolver($clients),
+            $this->messages(),
+            new AuthorizationResponseWriter()
+        ))->authorize($request, new Response(), ['tenant' => 'tenant1']);
     }
 
     /**
@@ -835,7 +962,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(MagicLinkLoginForm::class)
             ),
             $this->buildRequestResolver($clients),
-            $this->messages()
+            $this->messages(),
+            new AuthorizationResponseWriter()
         );
 
         $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);

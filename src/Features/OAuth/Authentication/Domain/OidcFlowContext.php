@@ -7,6 +7,8 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
 
 /**
@@ -49,8 +51,9 @@ final class OidcFlowContext
     public readonly string $scope;
 
     /**
-     * OAuth response_type parameter (e.g., "code") indicating the desired response mode.
-     * Validated against the client's permitted response types before the flow proceeds.
+     * OAuth response_type parameter (e.g., "code" or "code id_token"), normalised as a set by
+     * fromRequest() (ResponseType). Validated against the supported and the client's registered
+     * response types before the flow proceeds.
      */
     public readonly string $responseType;
 
@@ -132,6 +135,12 @@ final class OidcFlowContext
      */
     public readonly ?string $uiLocales;
 
+    /**
+     * The response_mode the client requested, as sent, or null when it requested none; see
+     * responseMode() for the mode actually used. URLs back to /authorize must carry it.
+     */
+    public readonly ?string $requestedResponseMode;
+
     public function __construct(
         string $tenant,
         string $clientId,
@@ -151,6 +160,7 @@ final class OidcFlowContext
         ?string $codeChallengeMethod,
         ?string $requestRef = null,
         ?string $uiLocales = null,
+        ?string $requestedResponseMode = null,
     ) {
         $this->tenant = $tenant;
         $this->clientId = $clientId;
@@ -170,11 +180,33 @@ final class OidcFlowContext
         $this->codeChallengeMethod = $codeChallengeMethod;
         $this->requestRef = $requestRef;
         $this->uiLocales = $uiLocales;
+        $this->requestedResponseMode = $requestedResponseMode;
+    }
+
+    /**
+     * Mode of the authorization response: the requested one or the default for the response type.
+     * When the requested mode is not valid for it, the default, so the invalid_request error can
+     * still be returned; rejecting such a request is up to the authorization endpoint.
+     */
+    public function responseMode(): ResponseMode
+    {
+        $responseType = ResponseType::fromString($this->responseType);
+        return ResponseMode::resolve($responseType, $this->requestedResponseMode) ?? ResponseMode::defaultFor($responseType);
+    }
+
+    /**
+     * True for a plain code delivered in the query: the only authorization response a channel
+     * outside this flow can give, such as the magic link sent by email, which redirects with a
+     * code and nothing else (EP-08).
+     */
+    public function isCodeInQuery(): bool
+    {
+        return $this->responseType === 'code' && $this->responseMode() === ResponseMode::Query;
     }
 
     /**
      * Parameters every URL back to /authorize must carry so the next step continues this request:
-     * the reference of a PAR/JAR request and the requested UI language.
+     * the reference of a PAR/JAR request, the requested UI language and response mode.
      *
      * @return array<string, string>
      */
@@ -183,6 +215,7 @@ final class OidcFlowContext
         return array_filter([
             ResolvedAuthorizationRequest::REFERENCE_PARAM => $this->requestRef,
             'ui_locales' => $this->uiLocales,
+            'response_mode' => $this->requestedResponseMode,
         ], static fn (?string $value): bool => $value !== null && $value !== '');
     }
 
@@ -205,7 +238,7 @@ final class OidcFlowContext
             clientId: (string) ($query['client_id'] ?? ''),
             redirect: (string) ($query['redirect_uri'] ?? ''),
             scope: (string) ($query['scope'] ?? ''),
-            responseType: (string) ($query['response_type'] ?? ''),
+            responseType: ResponseType::fromString((string) ($query['response_type'] ?? ''))->toString(),
             state: (string) ($query['state'] ?? ''),
             nonce: (string) ($query['nonce'] ?? ''),
             audiences: $audiences,
@@ -219,6 +252,7 @@ final class OidcFlowContext
             codeChallengeMethod: isset($query['code_challenge_method']) && $query['code_challenge_method'] !== '' ? (string) $query['code_challenge_method'] : null,
             requestRef: $requestRef,
             uiLocales: isset($query['ui_locales']) && $query['ui_locales'] !== '' ? (string) $query['ui_locales'] : null,
+            requestedResponseMode: isset($query['response_mode']) && $query['response_mode'] !== '' ? (string) $query['response_mode'] : null,
         );
     }
 

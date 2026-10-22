@@ -102,7 +102,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
         );
 
         $this->requestController = new MagicLinkRequestController($requestUsecase);
-        $this->verifyController = new MagicLinkVerifyHtml($verifyUsecase, $decorator, $cookies);
+        $this->verifyController = new MagicLinkVerifyHtml($verifyUsecase, $decorator, $cookies, $this->context);
     }
 
     // --- REQUEST endpoint ---

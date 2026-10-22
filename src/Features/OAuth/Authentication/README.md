@@ -24,6 +24,8 @@ This context owns the **multi-step authentication pipeline**: it coordinates use
 | `ActiveUser` | ValueObject | Authenticated identity after successful credential verification |
 | `UiLocale` | ValueObject | Login UI language for one request: first supported of `ui_locales`, then `Accept-Language` by q-value, else `es`; supported `es` and `en` (catalogues `forms.es.yaml`, `forms.yaml`) |
 | `PkceChallenge` | ValueObject | PKCE code_challenge / code_verifier pair; only `S256`, with RFC 7636 syntax for challenge and verifier |
+| `ResponseType` | ValueObject | `response_type` as a set in canonical order; `SUPPORTED` = `code` and the hybrid types (implicit retired) |
+| `ResponseMode` | Enum | `query`, `fragment`, `form_post`: default per response type (query only without tokens) and encoding of the redirect URI |
 | `LogoutToken` | ValueObject | JWT token used for back-channel logout (RFC 9126) |
 
 ## Application Services
@@ -34,7 +36,7 @@ This context owns the **multi-step authentication pipeline**: it coordinates use
 - **`SessionManager`** — Creates and binds authentication sessions to issued tokens.
 - **`BackChannelLogoutDispatcher`** — Sends back-channel logout notifications to registered clients.
 - **`TokenGranterMediator`** — Selects and executes the appropriate token grant strategy.
-- **`TokenFactory`** — Issues the access, ID and refresh tokens of a `TokenGrant`, for the token endpoint and for the authorization response (implicit/hybrid), with the tenant's lifetimes.
+- **`TokenFactory`** — Issues the access, ID and refresh tokens of a `TokenGrant`, for the token endpoint and for the authorization response (hybrid), with the tenant's lifetimes.
 - **`ClaimsMapper`** — Single place for the claims of each token type: access (RFC 9068), ID (`aud` = client; `auth_time`, `amr`, `acr`, public `sid` only from the session; `nonce`, `at_hash`, `c_hash`, `s_hash`) and refresh.
 
 ### Token Grant Strategies (`TokenGranter/`)
@@ -81,7 +83,7 @@ Exceptions are used to signal required next steps — they carry enough state fo
 
 ### Driver (Inbound Adapters)
 
-- **`Html/AuthorizeHtml`** — Renders the authorization UI (login, MFA, consent forms). After consuming a PAR or JAR request it redirects to `/authorize?client_id=…&request_ref=…`, because the step forms post back to their own URL. PKCE is required for public and `require-pkce` clients, at `/authorize` and again when `/token` redeems the code.
+- **`Html/AuthorizeHtml`** — Renders the authorization UI (login, MFA, consent forms). After consuming a PAR or JAR request it redirects to `/authorize?client_id=…&request_ref=…`, because the step forms post back to their own URL. PKCE is required for public and `require-pkce` clients, at `/authorize` and again when `/token` redeems the code. Before the login it rejects a `response_type` that is not `code` or hybrid (implicit is retired) or not registered for the client, an invalid `response_mode` and an `id_token` without `nonce`.
 - **`Html/OidcStepRouter`** — Routes the current challenge state to the correct form.
 - **`Html/Forms/`** — Individual form renderers per step (LoginForm, MagicLinkLoginForm, NewMfaForm, ScopeConsentForm, WebAuthnLoginForm…).
 - **`Rest/TokenController`** — `/token` endpoint (all grant types): HTTP parsing, client authentication and grant resolution; tokens come from `TokenFactory`. Every response carries `Cache-Control: no-store`.
@@ -99,7 +101,8 @@ Exceptions are used to signal required next steps — they carry enough state fo
 
 - **`HtmlSecurer`** — Applies CSP and security headers to HTML responses.
 - **`OidcCookieManager`** — Manages OIDC session cookies (nonce, state).
-- **`OidcResponseBuilder`** — Constructs the final authorization response (code, token, id_token).
+- **`OidcResponseBuilder`** — Issues the code and, for a hybrid response type, the tokens of the authorization response.
+- **`AuthorizationResponseWriter`** — Delivers every authorization response, success or error, in `query`, `fragment` or `form_post`, encoded, with `state` and `iss` (RFC 9207).
 
 ## Interactions with Other Contexts
 

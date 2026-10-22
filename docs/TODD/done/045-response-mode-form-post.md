@@ -1,7 +1,7 @@
 # 045 — Implementar response_mode=form_post si se anuncia
 
-- **Estado:** pendiente, extensión opcional. **Prioridad:** baja.
-- **Evidencia:** [OpenIdConfiguration](../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia `form_post`; [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) solo crea `Location` 302.
+- **Estado:** hecho (EP-08, aprobada por producto). **Prioridad:** baja.
+- **Evidencia:** [OpenIdConfiguration](../../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia `form_post`; [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) solo crea `Location` 302.
 - **Impacto:** RP que elija form_post recibe modo incorrecto.
 - **Por hacer:** tras resolver 030/033, generar formulario HTML autoenviado con parámetros escapados y política CSP apropiada, o mantener metadatos sin form_post hasta disponer de ello.
 - **Aceptación:** respuesta `form_post` llega por POST al redirect registrado sin tokens en URL.

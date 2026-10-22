@@ -1,7 +1,7 @@
 # 033 — Corregir hybrid y validar response_type por cliente
 
-- **Estado:** pendiente. **Prioridad:** media.
-- **Evidencia:** [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) añade ID token a la query si existe code y no calcula `c_hash`; [ClientStoreAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) no traslada `responseTypesJson` a la validación del flujo.
+- **Estado:** hecho (EP-08; implicit retirado). **Prioridad:** media.
+- **Evidencia:** [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) añade ID token a la query si existe code y no calcula `c_hash`; [ClientStoreAdapter](../../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) no traslada `responseTypesJson` a la validación del flujo.
 - **Impacto:** exposición de ID token en URL y respuesta no conforme; tipos no autorizados para el RP.
 - **Por hacer:** seleccionar modo por response_type y modos permitidos; fragment para híbrido, `c_hash`, restringir al catálogo del cliente y revisar implicit (o retirarlo).
 - **Aceptación:** `code id_token` usa fragment con `c_hash`; tipo prohibido devuelve error sin token.

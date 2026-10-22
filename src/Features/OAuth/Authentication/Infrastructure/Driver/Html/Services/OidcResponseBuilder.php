@@ -10,6 +10,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenFactory;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\TokenGrant;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
@@ -18,29 +19,27 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 
 /**
- * Infrastructure service that constructs the final successful redirect response at the end of the OIDC flow.
+ * Infrastructure service that builds the successful authorization response at the end of the OIDC flow.
  *
- * OidcResponseBuilder is responsible for assembling the Authorization Endpoint redirect URL
- * once the user has passed all authentication challenges. It inspects the response_type field
- * of the flow context to decide which tokens to include in the redirect:
+ * Once the user has passed all authentication challenges, it issues what the normalised
+ * response_type asks for and hands it to AuthorizationResponseWriter, which delivers it in the
+ * flow's response mode with state and iss:
  *
- * - "code" response type: registers a short-lived TemporalAuthCode and appends the opaque
- *   code value to the redirect URI as a query parameter, ready for the token endpoint exchange.
- * - "id_token" response type: signs and appends an ID token to the fragment (implicit flow).
- * - "token" response type: signs and appends an access token to the fragment (implicit flow).
- * - Combined with "code" (hybrid flow), the code joins the tokens in the fragment; only a
- *   code-only response uses the query.
+ * - "code": registers a short-lived TemporalAuthCode (with the request nonce) for the token endpoint.
+ * - "code id_token", "code token", "code id_token token" (hybrid): the code plus the ID and/or
+ *   access token, in the fragment by default so no token reaches the query.
  *
  * The tokens themselves come from TokenFactory, with the same claims as the token endpoint: the
- * ID token carries the session's auth_time, amr and public sid, plus at_hash and c_hash for the
- * access token and code returned with it.
+ * ID token carries the request nonce, the session's auth_time, amr and public sid, plus at_hash
+ * and c_hash for the access token and code returned with it. The nonce is never a response
+ * parameter.
  *
  * It also attaches the authenticated session cookie via OidcCookieManager so the browser
  * establishes the session for future check-session calls.
  *
  * Relationships: depends on TokenFactory for the tokens, SessionStoreGateway for the session
- * behind them, TemporalKeysGateway for temporal code registration, and OidcCookieManager for
- * session cookie attachment.
+ * behind them, TemporalKeysGateway for temporal code registration, OidcCookieManager for
+ * session cookie attachment and AuthorizationResponseWriter for the response itself.
  */
 class OidcResponseBuilder
 {
@@ -48,16 +47,14 @@ class OidcResponseBuilder
         private readonly TokenFactory $tokens,
         private readonly SessionStoreGateway $sessions,
         private readonly TemporalKeysGateway $temporals,
-        private readonly OidcCookieManager $cookies
+        private readonly OidcCookieManager $cookies,
+        private readonly AuthorizationResponseWriter $writer,
     ) {
     }
 
     /**
-     * Builds and returns a 302 redirect response carrying the authorization result tokens.
-     *
-     * Assembles the redirect URL according to the response_type, attaches the appropriate
-     * tokens or authorization code, appends state and nonce, and writes the authenticated
-     * session cookie onto the response before returning it.
+     * Builds the response carrying the authorization result and writes the authenticated session
+     * cookie onto it. The response type must already be validated as supported for the client.
      */
     public function buildSuccessRedirect(
         OidcFlowContext $flow,
@@ -72,14 +69,10 @@ class OidcResponseBuilder
             $auth->sessionExpiration
         );
 
-        $hasCode = $this->hasResponse($flow->responseType, 'code');
-        $hasId = $this->hasResponse($flow->responseType, 'id_token');
-        $hasAccess = $this->hasResponse($flow->responseType, 'token');
-        // A response carrying tokens (implicit, hybrid) goes entirely in the fragment, so no token
-        // reaches the redirect target's server (OIDC Core §3.2.2.5 and §3.3.2.5); code alone uses the query.
-        $location = $flow->redirect . ($hasId || $hasAccess ? '#' : '?') . 'state=' . $flow->state;
+        $responseType = ResponseType::fromString($flow->responseType);
+        $params = [];
         $code = null;
-        if ($hasCode) {
+        if ($responseType->has('code')) {
             $data = new TemporalAuthCode(
                 data: $auth->auth,
                 client: $client,
@@ -90,12 +83,10 @@ class OidcResponseBuilder
                 sessionId: $auth->sessionId,
             );
             $code = $this->temporals->registerTemporalAuthCode($data);
-            $location .= '&code=' . $code;
-        } else {
-            $location .= '&nonce=' . $flow->nonce;
+            $params['code'] = $code;
         }
 
-        if ($hasId || $hasAccess) {
+        if ($responseType->issuesTokens()) {
             $grant = new TokenGrant(
                 // Keys belong to the tenant name, as for the token endpoint (auth->tenant is its uid).
                 tenant: $flow->tenant,
@@ -108,23 +99,17 @@ class OidcResponseBuilder
                 session: $this->sessions->findActiveSession($auth->sessionId, $auth->issuer),
                 nonce: $flow->nonce,
             );
-            $tokens = $this->tokens->authorizationResponse($grant, $hasAccess, $hasId, $code, $flow->state);
-            if (isset($tokens['id_token'])) {
-                $location .= '&id_token=' . $tokens['id_token'];
-            }
+            $tokens = $this->tokens->authorizationResponse($grant, $responseType->has('token'), $responseType->has('id_token'), $code, $flow->state);
             if (isset($tokens['access_token'], $tokens['expires_in'])) {
-                $location .= '&access_token=' . $tokens['access_token'];
-                $location .= '&expires_in=' . $tokens['expires_in'];
+                $params['access_token'] = $tokens['access_token'];
+                $params['token_type'] = 'Bearer';
+                $params['expires_in'] = $tokens['expires_in'];
+            }
+            if (isset($tokens['id_token'])) {
+                $params['id_token'] = $tokens['id_token'];
             }
         }
 
-        $response = $response->withStatus(302)->withHeader('Location', $location);
-        return $cookie->attach($response);
+        return $cookie->attach($this->writer->success($flow, $params, $response));
     }
-
-    private function hasResponse(string $responseType, string $token): bool
-    {
-        return !!preg_match('/(?<=^|\s)' . $token . '(?=\s|$)/', $responseType);
-    }
-
 }

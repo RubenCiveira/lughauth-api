@@ -11,14 +11,15 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
+use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 
 /**
- * Tokens returned in the authorization response itself (implicit and hybrid flows) share the
- * claim rules of the token endpoint (EP-05).
+ * Tokens returned in the authorization response itself (hybrid flows) share the claim rules of the
+ * token endpoint (EP-05); the response carries state and the discovery issuer as iss (EP-08).
  */
 final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
 {
@@ -55,6 +56,32 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
         $this->assertArrayHasKey('auth_time', $id);
         $this->assertArrayNotHasKey('session_state', $id);
         $this->assertNotNull($this->verify($fragment['access_token'], TokenType::Access));
+        $this->assertSame('Bearer', $fragment['token_type']);
+        $this->assertSame(self::STATE, $fragment['state']);
+        $this->assertArrayNotHasKey('nonce', $fragment);
+    }
+
+    public function testIssIsTheIssuerOfTheTenantDiscovery(): void
+    {
+        $request = $this->makeRequest('GET', '/oauth/openid/' . self::TENANT . '/.well-known/openid-configuration');
+        $discovery = $this->decodeJson($this->container->get(OpenIdConfigurationController::class)->get($request, new Response(200), ['tenant' => self::TENANT]));
+        parse_str((string) parse_url($this->redirect('code')->getHeaderLine('Location'), PHP_URL_QUERY), $query);
+
+        $this->assertTrue($discovery['authorization_response_iss_parameter_supported']);
+        $this->assertSame($discovery['issuer'], $query['iss']);
+        $this->assertSame($discovery['issuer'], $this->authorize('code id_token')['iss']);
+    }
+
+    public function testFormPostSendsTheHybridResponseInTheBody(): void
+    {
+        $response = $this->redirect('code id_token', mode: 'form_post');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertFalse($response->hasHeader('Location'));
+        preg_match_all('/<input type="hidden" name="([^"]+)" value="([^"]*)"\/>/', (string) $response->getBody(), $fields);
+        $this->assertSame(['code', 'id_token', 'state', 'iss'], $fields[1]);
+        $id = $this->verify(html_entity_decode($fields[2][1]), TokenType::Id);
+        $this->assertSame(ClaimsMapper::hash(html_entity_decode($fields[2][0])), $id['c_hash']);
     }
 
     public function testCodeOnlyResponseUsesTheQuery(): void
@@ -64,22 +91,23 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
         parse_str($parts['query'] ?? '', $query);
         $this->assertSame(self::STATE, $query['state']);
         $this->assertArrayHasKey('code', $query);
+        $this->assertArrayNotHasKey('nonce', $query);
         $this->assertArrayNotHasKey('fragment', $parts);
     }
 
-    public function testImplicitIdTokenWithoutAccessTokenHasNoAtHash(): void
+    public function testHybridIdTokenWithoutAccessTokenHasNoAtHash(): void
     {
-        $fragment = $this->authorize('id_token');
+        $fragment = $this->authorize('code id_token');
 
         $id = $this->verify($fragment['id_token'], TokenType::Id);
         $this->assertArrayNotHasKey('at_hash', $id);
-        $this->assertArrayNotHasKey('c_hash', $id);
+        $this->assertSame(ClaimsMapper::hash($fragment['code']), $id['c_hash']);
         $this->assertArrayNotHasKey('access_token', $fragment);
     }
 
     public function testProfileClaimsFollowTheExactScope(): void
     {
-        $id = $this->verify($this->authorize('id_token', 'openid myprofile')['id_token'], TokenType::Id);
+        $id = $this->verify($this->authorize('code id_token', 'openid myprofile')['id_token'], TokenType::Id);
 
         $this->assertArrayNotHasKey('name', $id);
         $this->assertArrayNotHasKey('email', $id);
@@ -102,7 +130,7 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
         return $this->fragment($this->redirect($responseType, $scope)->getHeaderLine('Location'));
     }
 
-    private function redirect(string $responseType, string $scope = 'openid profile email'): \Psr\Http\Message\ResponseInterface
+    private function redirect(string $responseType, string $scope = 'openid profile email', ?string $mode = null): \Psr\Http\Message\ResponseInterface
     {
         $client = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $this->assertNotNull($client);
@@ -124,6 +152,7 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
             preSessionId: null,
             codeChallenge: null,
             codeChallengeMethod: null,
+            requestedResponseMode: $mode,
         );
         $auth = new PublicLoginAuthResponse(
             // The login result carries the tenant uid; tokens must still be signed with the tenant keys.
@@ -146,7 +175,7 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
 
         $response = $this->container->get(OidcResponseBuilder::class)
             ->buildSuccessRedirect($flow, $auth, $client, $request, new Response(200));
-        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame($mode === 'form_post' ? 200 : 302, $response->getStatusCode());
         return $response;
     }
 

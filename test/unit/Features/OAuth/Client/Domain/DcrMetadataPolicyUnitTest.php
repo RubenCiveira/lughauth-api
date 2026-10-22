@@ -66,6 +66,26 @@ final class DcrMetadataPolicyUnitTest extends TestCase
         self::assertSame('invalid_client_metadata', $this->errorOf($request, $rules));
     }
 
+    /**
+     * Implicit is retired (EP-08): its response types are rejected even with the implicit grant,
+     * which the hybrid ones still need.
+     */
+    public function testOnlySupportedResponseTypesCanBeRegistered(): void
+    {
+        $rules = new DcrRegistrationRules(DcrRegistrationRules::OPEN, ['authorization_code', 'implicit'], ['client_secret_basic']);
+        $request = static fn (string $responseType): DynamicClientRequest => new DynamicClientRequest(
+            ['https://app.example.com/cb'],
+            grantTypes: ['authorization_code', 'implicit'],
+            responseTypes: [$responseType],
+        );
+
+        self::assertNull($this->errorOf($request('id_token code'), $rules));
+        self::assertNull($this->errorOf($request('code id_token token'), $rules));
+        self::assertSame('invalid_client_metadata', $this->errorOf($request('id_token'), $rules));
+        self::assertSame('invalid_client_metadata', $this->errorOf($request('id_token token'), $rules));
+        self::assertSame('invalid_client_metadata', $this->errorOf($request('none'), $rules));
+    }
+
     private function errorOf(DynamicClientRequest $request, DcrRegistrationRules $rules): ?string
     {
         try {

@@ -1,7 +1,7 @@
 # 027 — Codificar parámetros y errores de autorización
 
-- **Estado:** pendiente. **Prioridad:** alta.
-- **Evidencia:** [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) concatena `state`/`nonce`; [AuthorizeHtml::redirectError](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) devuelve siempre `#error` sin `state` ni `iss`.
+- **Estado:** hecho (EP-08). **Prioridad:** alta.
+- **Evidencia:** [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) concatena `state`/`nonce`; [AuthorizeHtml::redirectError](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) devuelve siempre `#error` sin `state` ni `iss`.
 - **Impacto:** parámetros inyectables o pérdida de correlación en errores; divergencia en query/fragment.
 - **Por hacer:** construir URI con codificación de parámetros y preservación de query/fragment preexistente; elegir response_mode correcto y añadir `state`/`iss` cuando corresponda tras validar redirect.
 - **Aceptación:** caracteres reservados no crean parámetros adicionales; éxito/error code usan query y flujos fragment usan fragment.

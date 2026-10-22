@@ -128,7 +128,8 @@ class LoginForm implements StepForm
                 HTML;
         }
         $magicLinkButton = "";
-        if ($this->magicLink->isEnabled($tenant)) {
+        // The magic link can only answer with a code in the query (OidcFlowContext::isCodeInQuery).
+        if ($input->context->isCodeInQuery() && $this->magicLink->isEnabled($tenant)) {
             $magicLinkStep = StepName::MAGIC_LINK->value;
             $magicLinkButton .= <<<HTML
                 <form method="POST">

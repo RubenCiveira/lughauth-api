@@ -196,6 +196,17 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(self::USER_ID, $idTokenPayload['sub']);
     }
 
+    /**
+     * The ID token carries the nonce stored with the code; a nonce sent to /token is ignored (070).
+     */
+    public function testNonceSentToTheTokenEndpointCannotReplaceTheRequestedOne(): void
+    {
+        $response = $this->redeemCodeResponse(self::SESSION_ID, nonce: 'requested-nonce', extra: ['nonce' => 'attacker-nonce']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('requested-nonce', $this->payload($this->decodeJson($response)['id_token'])['nonce']);
+    }
+
     public function testAuthorizationCodeWithPkceS256(): void
     {
         $verifier = bin2hex(random_bytes(32));

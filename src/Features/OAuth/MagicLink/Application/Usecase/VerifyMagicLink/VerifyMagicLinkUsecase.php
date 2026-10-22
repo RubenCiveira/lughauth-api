@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagic
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
@@ -36,10 +37,11 @@ class VerifyMagicLinkUsecase
 
     /**
      * Verifies a raw magic-link token, marks it used, creates an authorization code, and returns
-     * the redirect URL and session. Throws \DomainException with code 'invalid_grant' on any
+     * the redirect URL and session. The URL is an authorization response in the query, with the
+     * state and the tenant issuer as iss (RFC 9207), like those of AuthorizationResponseWriter. Throws \DomainException with code 'invalid_grant' on any
      * failure including disabled feature, missing or expired token, or client-id mismatch.
      */
-    public function verify(string $rawToken, string $clientId, string $tenantId): MagicLinkVerifyResult
+    public function verify(string $rawToken, string $clientId, string $tenantId, string $issuer): MagicLinkVerifyResult
     {
         if (!$this->enabled->isEnabled($tenantId)) {
             throw new \DomainException('invalid_grant');
@@ -83,10 +85,12 @@ class VerifyMagicLinkUsecase
             sessionId: $session?->sessionId,
         );
 
-        $redirectUrl = $magicLink->redirectUri . '?code=' . urlencode($authCode);
+        $params = ['code' => $authCode];
         if ($magicLink->state !== null && $magicLink->state !== '') {
-            $redirectUrl .= '&state=' . urlencode($magicLink->state);
+            $params['state'] = $magicLink->state;
         }
+        $params['iss'] = $issuer;
+        $redirectUrl = ResponseMode::Query->redirectUri($magicLink->redirectUri, $params);
 
         return new MagicLinkVerifyResult(
             redirectUrl: $redirectUrl,

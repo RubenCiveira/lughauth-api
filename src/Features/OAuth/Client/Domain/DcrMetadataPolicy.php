@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
 /**
@@ -14,7 +15,8 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
  * - Redirect URIs must have a scheme and never a script-capable one.
  * - Every grant type must be allowed by the rules (or the initial access token); the password
  *   grant also needs the explicit tenant permission.
- * - Every response type must be backed by a registered grant type.
+ * - Every response type must be one the authorization endpoint issues (ResponseType::SUPPORTED,
+ *   so no implicit) and be backed by a registered grant type.
  * - The token endpoint auth method must be supported by the server and allowed by the rules; a
  *   public client ("none") cannot use client_credentials or password.
  */
@@ -27,7 +29,6 @@ final class DcrMetadataPolicy
     /** Grant type that each response type part needs. */
     private const array RESPONSE_TYPE_GRANTS = [
         'code' => 'authorization_code',
-        'none' => 'authorization_code',
         'token' => 'implicit',
         'id_token' => 'implicit',
     ];
@@ -58,6 +59,9 @@ final class DcrMetadataPolicy
 
         // An empty list is a client that never uses the authorization endpoint (e.g. M2M).
         foreach (self::strings($request->responseTypes, 'response_types', allowEmpty: true) as $responseType) {
+            if (!ResponseType::fromString($responseType)->isSupported()) {
+                throw DynamicClientException::invalidClientMetadata("response_type not supported: {$responseType}");
+            }
             foreach (explode(' ', $responseType) as $part) {
                 $needed = self::RESPONSE_TYPE_GRANTS[$part] ?? null;
                 if ($needed === null || !in_array($needed, $grantTypes, true)) {

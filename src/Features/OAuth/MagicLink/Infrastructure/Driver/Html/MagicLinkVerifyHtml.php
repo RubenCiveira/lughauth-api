@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Infrastructure\Driver\Html;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagicLink\VerifyMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
@@ -27,6 +28,7 @@ class MagicLinkVerifyHtml
         private readonly VerifyMagicLinkUsecase $usecase,
         private readonly DecorateHtml $decorator,
         private readonly OidcCookieManager $cookies,
+        private readonly Context $context,
     ) {
     }
 
@@ -46,7 +48,7 @@ class MagicLinkVerifyHtml
         }
 
         try {
-            $result = $this->usecase->verify($rawToken, $clientId, $tenant);
+            $result = $this->usecase->verify($rawToken, $clientId, $tenant, $this->context->getIssuer($tenant));
             $response = $response->withStatus(302)->withHeader('Location', $result->redirectUrl);
             if ($result->session !== null) {
                 $response = $this->cookies

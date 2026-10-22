@@ -128,7 +128,7 @@ final class MagicLinkDomainUnitTest extends TestCase
         $this->expectException(\DomainException::class);
 
         $usecase = $this->buildVerifyUsecase(enabled: false);
-        $usecase->verify('raw-token', 'client', 'tenant');
+        $usecase->verify('raw-token', 'client', 'tenant', 'https://idp/oauth/openid/tenant');
     }
 
     public function test_verify_throws_when_token_not_found(): void
@@ -136,7 +136,7 @@ final class MagicLinkDomainUnitTest extends TestCase
         $this->expectException(\DomainException::class);
 
         $usecase = $this->buildVerifyUsecase(enabled: true, magicLink: null);
-        $usecase->verify('raw-token', 'client', 'tenant');
+        $usecase->verify('raw-token', 'client', 'tenant', 'https://idp/oauth/openid/tenant');
     }
 
     public function test_verify_throws_when_client_id_mismatch(): void
@@ -145,7 +145,7 @@ final class MagicLinkDomainUnitTest extends TestCase
 
         $ml = $this->makeMagicLink(clientId: 'other-client');
         $usecase = $this->buildVerifyUsecase(enabled: true, magicLink: $ml);
-        $usecase->verify('raw-token', 'client', 'tenant');
+        $usecase->verify('raw-token', 'client', 'tenant', 'https://idp/oauth/openid/tenant');
     }
 
     public function test_verify_returns_result_with_redirect_url(): void
@@ -153,11 +153,24 @@ final class MagicLinkDomainUnitTest extends TestCase
         $ml = $this->makeMagicLink(clientId: 'client', redirectUri: 'https://app/cb', state: 'xyz');
         $usecase = $this->buildVerifyUsecase(enabled: true, magicLink: $ml);
 
-        $result = $usecase->verify('raw-token', 'client', 'tenant');
+        $result = $usecase->verify('raw-token', 'client', 'tenant', 'https://idp/oauth/openid/tenant');
 
         $this->assertStringContainsString('https://app/cb', $result->redirectUrl);
         $this->assertStringContainsString('code=', $result->redirectUrl);
         $this->assertStringContainsString('state=xyz', $result->redirectUrl);
+        $this->assertStringContainsString('iss=' . rawurlencode('https://idp/oauth/openid/tenant'), $result->redirectUrl);
+    }
+
+    public function test_verify_encodes_state_and_keeps_the_registered_query(): void
+    {
+        $ml = $this->makeMagicLink(clientId: 'client', redirectUri: 'https://app/cb?tenant=a', state: 'x&code=evil');
+        $usecase = $this->buildVerifyUsecase(enabled: true, magicLink: $ml);
+
+        parse_str((string) parse_url($usecase->verify('raw-token', 'client', 'tenant', 'https://idp')->redirectUrl, PHP_URL_QUERY), $query);
+
+        $this->assertSame('a', $query['tenant']);
+        $this->assertSame('x&code=evil', $query['state']);
+        $this->assertNotSame('evil', $query['code']);
     }
 
     public function test_verify_omits_state_from_redirect_when_null(): void
@@ -165,7 +178,7 @@ final class MagicLinkDomainUnitTest extends TestCase
         $ml = $this->makeMagicLink(clientId: 'client', redirectUri: 'https://app/cb', state: null);
         $usecase = $this->buildVerifyUsecase(enabled: true, magicLink: $ml);
 
-        $result = $usecase->verify('raw-token', 'client', 'tenant');
+        $result = $usecase->verify('raw-token', 'client', 'tenant', 'https://idp/oauth/openid/tenant');
 
         $this->assertStringNotContainsString('state=', $result->redirectUrl);
     }

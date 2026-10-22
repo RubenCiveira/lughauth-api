@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -28,7 +29,9 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  * their inbox.
  *
  * The actual link-click verification is handled by a separate endpoint; this form only covers
- * the request-and-wait phase of the interaction.
+ * the request-and-wait phase of the interaction. That endpoint answers with a code in the query
+ * only, so the link is refused for any other response type or mode (hybrid, fragment, form_post):
+ * the client would get a response different from the one it requested.
  *
  * Relationships: delegates magic-link dispatch to RequestMagicLinkUsecase, uses DecorateHtml
  * for themed page rendering, HtmlSecurer for CSRF signing scripts, and MessageProvider for
@@ -91,11 +94,15 @@ class MagicLinkLoginForm implements StepForm
      *
      * Calls RequestMagicLinkUsecase with the tenant and OAuth flow context, then always throws
      * a LoginException carrying AuthenticationResult::waitMagicLink() to transition the UI to
-     * the confirmation page on the next render cycle.
+     * the confirmation page on the next render cycle. Throws UnauthorizedException, without
+     * sending anything, when the flow does not expect a code in the query.
      */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
+        if (!$input->context->isCodeInQuery()) {
+            throw new UnauthorizedException('magic_link_unavailable');
+        }
         $email = (string) ($input->body['email'] ?? '');
 
         $this->requestMagicLink->request(

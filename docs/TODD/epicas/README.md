@@ -21,7 +21,7 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 | [EP-05 Emisión de tokens y claims](../done/EP-05-emision-tokens-y-claims.md) (hecha) | [038](../done/038-extraer-emision-tokens.md), [032](../done/032-claims-id-token.md), [049](../done/049-perfil-at-jwt.md), [064](../done/064-respuestas-token-y-scopes.md) (+ `sid` público) | alta | L | EP-04 |
 | [EP-06 Validación de bearer en consumidores](../done/EP-06-validacion-bearer.md) (hecha) | [026](../done/026-validar-issuer-audience-bearer.md), [028](../done/028-revocacion-en-bearer.md), [035](../done/035-userinfo-conforme.md) | crítica | M | EP-04 |
 | [EP-07 Autorización: origen y política de la solicitud](../done/EP-07-autorizacion-solicitud.md) (hecha) | [046](../done/046-par-no-sobrescribible.md), [047](../done/047-jar-claims-y-jwks-uri.md), [034](../done/034-pkce-s256-y-politica.md), [068](../done/068-ui-locales.md) (opc.) | alta | L | EP-03 |
-| [EP-08 Autorización: construcción de la respuesta](EP-08-autorizacion-respuesta.md) | 027, 037, 033, 070, 045 (opc.) | alta | M | EP-03, EP-05 (hashes) |
+| [EP-08 Autorización: construcción de la respuesta](../done/EP-08-autorizacion-respuesta.md) (hecha) | [027](../done/027-respuestas-autorizacion-seguras.md), [037](../done/037-iss-respuesta-autorizacion.md), [033](../done/033-hybrid-y-response-types.md), [070](../done/070-validacion-nonce.md), [045](../done/045-response-mode-form-post.md) (opc., aprobada) | alta | M | EP-03, EP-05 (hashes) |
 | [EP-09 Sesión SSO y logout](EP-09-sesion-sso-y-logout.md) | 031, 036, 067 (opc.), 041 (opc.), 062 (opc.) | alta | M | EP-04, EP-05 |
 | [EP-10 Login de usuario: MFA y federación](EP-10-login-mfa-y-federacion.md) | 039, 040 (opc.), 051 (opc.) | media | S + opc. | EP-03 (040), EP-07 (051) |
 | [EP-11 Aserciones JWT de cliente](EP-11-aserciones-jwt-cliente.md) | 044, 069 (opc.) | media | M | EP-02 (decisión), EP-03, EP-07 |
@@ -87,7 +87,7 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 3. **Almacén anti-replay compartido** `_oauth_replay_jti` (B.2): se crea en EP-07 (047) y lo reutilizan EP-11 (044, 069) y EP-13 (048).
 4. **Descarga segura de JWKS remoto**: se extrae de `RequestObjectValidator` en EP-07 y la reutilizan EP-10 (051), EP-11 (044) y EP-14 (057).
 5. **`TokenSigner` por propósito** (EP-04) es la base de 049, 032, 026, 028, 036 (`id_token_hint`), 054, 057 y 060.
-6. **Constructor único de respuestas de autorización** (EP-08): query, fragment y, más adelante, `form_post` (045) y JARM (054) son modos del mismo componente.
+6. **Constructor único de respuestas de autorización** (EP-08, hecho): query, fragment y `form_post` (045) son modos de `AuthorizationResponseWriter`; JARM (054) será uno más.
 7. **Discovery por capacidades** (EP-01): cada épica posterior activa su flag en lugar de editar el documento a mano, y el test de contrato impide anunciar lo no registrado.
 
 ## Archivos calientes
@@ -110,9 +110,9 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 | Clientes globales permitidos y regla de migración | EP-03 | `tenant = null` = global, gestionable solo por root |
 | Initial access token: entidad propia o JWT `dcr:register` | EP-03 | Entidad `dcr-initial-access-token` (ya en el modelo) |
 | Semántica de `audiences`: «todas» o «al menos una» | EP-06 | «Al menos una» (RFC 7519 §4.1.3) |
-| Retirar o mantener `implicit` | EP-01, EP-08 | Retirar (OAuth 2.1) |
+| ~~Retirar o mantener `implicit`~~ | EP-01, EP-08 | Decidido: retirado en EP-08 |
 | Re-hash de contraseñas en bloque o perezoso | EP-02 | En bloque |
-| Aprobar cada opcional (040, 041, 043, 044, 045, 048, 050–062, 067–069) | varias | Ver ficha |
+| Aprobar cada opcional (040, 041, 043, 044, 048, 050–062, 067–069; 045 aprobada) | varias | Ver ficha |
 
 ## Mapa tarea → épica
 

@@ -1,7 +1,7 @@
 # 070 — Validar nonce en todos los flujos OIDC
 
-- **Estado:** parcial. **Prioridad:** media.
-- **Evidencia:** [OidcFlowContext](../../src/Features/OAuth/Authentication/Domain/OidcFlowContext.php) captura `nonce`; [OidcResponseBuilder](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) lo transporta al code; falta una política explícita por flujo y tests que garanticen su emisión correcta en ID token.
+- **Estado:** hecho (EP-08). **Prioridad:** media.
+- **Evidencia:** [OidcFlowContext](../../../src/Features/OAuth/Authentication/Domain/OidcFlowContext.php) captura `nonce`; [OidcResponseBuilder](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/Services/OidcResponseBuilder.php) lo transporta al code; falta una política explícita por flujo y tests que garanticen su emisión correcta en ID token.
 - **Impacto:** RP pueden recibir ID tokens sin vínculo demostrable con su solicitud.
 - **Por hacer:** exigir nonce según response_type, persistirlo ligado a la solicitud y devolverlo íntegro en ID token de code/hybrid; cubrir rechazo de valores omitidos o alterados cuando sean obligatorios.
 - **Aceptación:** nonce ausente donde se exige da error; ID token contiene exactamente el solicitado, sin confundirlo con parámetros de redirección.

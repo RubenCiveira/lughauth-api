@@ -21,12 +21,16 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\AuthorizationResponseWriter;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\PkceChallenge;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
@@ -49,13 +53,15 @@ use OpenApi\Attributes as OA;
  * replaced by a redirect to its signed reference (request_ref), because the step forms post back
  * to their own URL and the request_uri or request object cannot be used twice. It validates PKCE
  * challenges against the client's policy, delegates step rendering and
- * authentication to OidcStepRouter, and emits the final redirect with the authorization code
- * (or tokens) once all challenges have been satisfied. Cookies for both the pre-session state
- * and the authenticated session are managed via OidcCookieManager.
+ * authentication to OidcStepRouter, and emits the final response with the authorization code
+ * (and tokens for a hybrid response type) once all challenges have been satisfied. Errors go
+ * back to the client through AuthorizationResponseWriter only once the redirect URI is validated
+ * for the client; before that they are local. Cookies for both the pre-session state and the
+ * authenticated session are managed via OidcCookieManager.
  *
  * Relationships: depends on AuthenticateUser (domain service), SessionManager, OidcStepRouter
- * (step dispatch), OidcResponseBuilder (redirect construction), HtmlSecurer (CSRF token
- * verification), and DecorateHtml (themed page wrapping).
+ * (step dispatch), OidcResponseBuilder (successful response), AuthorizationResponseWriter (error
+ * responses), HtmlSecurer (CSRF token verification), and DecorateHtml (themed page wrapping).
  */
 class AuthorizeHtml
 {
@@ -74,6 +80,7 @@ class AuthorizeHtml
         private readonly OidcStepRouter $router,
         private readonly AuthorizationRequestResolver $requestResolver,
         private readonly MessageProvider $messages,
+        private readonly AuthorizationResponseWriter $responses,
     ) {
     }
 
@@ -85,7 +92,8 @@ class AuthorizeHtml
         tags: ['OIDC'],
         parameters: [
             new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'response_type', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'code')),
+            new OA\Parameter(name: 'response_type', in: 'query', required: true, description: 'code, or a hybrid response type registered for the client; implicit is not supported', schema: new OA\Schema(type: 'string', enum: ResponseType::SUPPORTED)),
+            new OA\Parameter(name: 'response_mode', in: 'query', required: false, description: 'Defaults to query for code and fragment for hybrid; query is not allowed with tokens', schema: new OA\Schema(type: 'string', enum: ['query', 'fragment', 'form_post'])),
             new OA\Parameter(name: 'client_id', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'redirect_uri', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'scope', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'openid email profile')),
@@ -94,12 +102,12 @@ class AuthorizeHtml
             new OA\Parameter(name: 'request_uri', in: 'query', required: false, description: 'Pushed request (RFC 9126); every other parameter but client_id is ignored', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'request', in: 'query', required: false, description: 'Signed request object (RFC 9101); only its claims are used', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'nonce', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'nonce', in: 'query', required: false, description: 'Required when the response type includes id_token', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'prompt', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
         ],
         responses: [
             new OA\Response(response: 200, description: 'HTML login form'),
-            new OA\Response(response: 302, description: 'Redirect with authorization code (if session already active)'),
+            new OA\Response(response: 302, description: 'Redirect with the authorization response, or an error with state and iss'),
         ]
     )]
     /**
@@ -140,7 +148,7 @@ class AuthorizeHtml
         if ($sess) {
             return $this->cisdPage($request, $response, $flow, $authRequest);
         } elseif ("none" === $flow->prompt) {
-            return $this->redirectError($tenant, $flow->redirect, 'No session', $response);
+            return $this->redirectError($flow, 'login_required', $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
             try {
@@ -279,9 +287,9 @@ class AuthorizeHtml
                 ]) + $flow->continuationParams());
                 return $response->withStatus(302)->withHeader('Location', $url);
             }
-            return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
+            return $this->renderSessionError($flow, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
         } catch (UnauthorizedException $ex) {
-            return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, 'access_denied', $ex->getMessage(), $request, $response);
+            return $this->renderSessionError($flow, 'access_denied', $ex->getMessage(), $request, $response);
         }
     }
 
@@ -364,36 +372,55 @@ class AuthorizeHtml
                 AuthenticationResult::ERR_SCOPES_CONSENT_REQUIRED,
             ], true);
             if ($state->session && !$isRecoverableStep) {
-                return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
+                return $this->renderSessionError($flow, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
             }
             return $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null, $ex->challenges ?? $state);
         } catch (UnauthorizedException $ex) {
             if ($state->session) {
-                return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, 'access_denied', $ex->getMessage(), $request, $response);
+                return $this->renderSessionError($flow, 'access_denied', $ex->getMessage(), $request, $response);
             }
             return $this->renderStep($ex->getMessage(), null, $input, $response, null, $state);
         }
     }
 
     /**
-     * Redirects with an error when PKCE is missing for a client that requires it (public or
-     * require-pkce), is incomplete (a method without challenge) or is not a valid S256 challenge,
-     * or when an audience not registered for the client is requested; only approved audiences
-     * reach the code. The token endpoint applies the same PKCE policy when the code is redeemed.
+     * Returns the error response for a request the client cannot make, once its redirect URI is
+     * validated for it, checking in this order:
+     * - a missing response_type (invalid_request), one this server does not issue
+     *   (unsupported_response_type: implicit is retired) or one not registered for the client
+     *   (unauthorized_client, task 033);
+     * - an unknown response_mode, or the query for a response with tokens (invalid_request);
+     * - an ID token in the front channel without the openid scope or without nonce, which binds
+     *   it to this request (invalid_request, task 070);
+     * - an audience not registered for the client (invalid_target): only approved audiences reach
+     *   the code;
+     * - PKCE missing for a client that requires it (public or require-pkce), incomplete (a method
+     *   without challenge) or not a valid S256 challenge (invalid_request). The token endpoint
+     *   applies the same PKCE policy when the code is redeemed.
      */
     private function rejectInvalidRequest(OidcFlowContext $flow, ClientData $client, ResponseInterface $response): ?ResponseInterface
     {
-        if (!$client->allowsAudiences($flow->audiences)) {
-            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_target', $response);
-        }
+        $responseType = ResponseType::fromString($flow->responseType);
+        $error = match (true) {
+            $responseType->isEmpty() => 'invalid_request',
+            !$responseType->isSupported() => 'unsupported_response_type',
+            !$responseType->isAmong($client->responseTypes) => 'unauthorized_client',
+            ResponseMode::resolve($responseType, $flow->requestedResponseMode) === null => 'invalid_request',
+            $responseType->has('id_token') && (!ScopeSet::fromString($flow->scope)->has('openid') || $flow->nonce === '') => 'invalid_request',
+            !$client->allowsAudiences($flow->audiences) => 'invalid_target',
+            default => $this->pkceError($flow, $client),
+        };
+        return $error === null ? null : $this->redirectError($flow, $error, $response);
+    }
+
+    private function pkceError(OidcFlowContext $flow, ClientData $client): ?string
+    {
         try {
             $pkce = PkceChallenge::fromRequest($flow->codeChallenge, $flow->codeChallengeMethod);
         } catch (\InvalidArgumentException) {
-            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
+            return 'invalid_request';
         }
-        return $pkce === null && $client->requiresPkce()
-            ? $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response)
-            : null;
+        return $pkce === null && $client->requiresPkce() ? 'invalid_request' : null;
     }
 
     /**
@@ -413,7 +440,7 @@ class AuthorizeHtml
             $flow->requestRef,
             fn (): ResponseInterface => $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response)
         );
-        return $issued ?? $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
+        return $issued ?? $this->redirectError($flow, 'invalid_request', $response);
     }
 
     private function resolveRequest(ServerRequestInterface $request, string $tenant): ResolvedAuthorizationRequest
@@ -464,15 +491,18 @@ class AuthorizeHtml
         }
     }
 
-    private function redirectError(string $tenant, string $redirect, string $error, ResponseInterface $response): ResponseInterface
+    /**
+     * Returns an OAuth error to the client in the flow's response mode, with state and iss. Only
+     * for a redirect URI already validated for the client (verifyClient).
+     */
+    private function redirectError(OidcFlowContext $flow, string $error, ResponseInterface $response): ResponseInterface
     {
         $this->logWarning('OIDC redirect error', [
-            'tenant' => $tenant,
-            'redirect' => $redirect,
+            'tenant' => $flow->tenant,
+            'redirect' => $flow->redirect,
             'error' => $error,
         ]);
-        $response = $response->withStatus(302)->withHeader('Location', $redirect . '#error=' . urlencode($error));
-        return $this->cookies->clearSession($response, $tenant);
+        return $this->cookies->clearSession($this->responses->error($flow, $error, $response), $flow->tenant);
     }
 
     private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride, ?ChallengesState $challengesOverride): ResponseInterface
@@ -541,7 +571,7 @@ class AuthorizeHtml
             'sessionId' => (string) ($flow->sessionId ?? ''),
         ]);
         if ($flow->prompt === 'none') {
-            return $this->redirectError($flow->tenant, $flow->redirect, 'Only refresh from same device', $response);
+            return $this->redirectError($flow, 'login_required', $response);
         } else {
             $url = $this->urlBuilder->authorizeUrl(
                 $authRequest,
@@ -573,26 +603,18 @@ class AuthorizeHtml
     }
 
     private function renderSessionError(
-        string $tenant,
-        string $locale,
-        string $redirect,
-        string $state,
+        OidcFlowContext $flow,
         string $errorCode,
         string $errorMessage,
         RequestInterface $request,
         ResponseInterface $response
     ): ResponseInterface {
-        $this->logWarning('OIDC session error page', ['tenant' => $tenant, 'error' => $errorCode]);
-        $backUrl = $redirect . '?error=' . urlencode($errorCode);
-        if ($state !== '') {
-            $backUrl .= '&state=' . urlencode($state);
-        }
+        $this->logWarning('OIDC session error page', ['tenant' => $flow->tenant, 'error' => $errorCode]);
         $safeMessage = htmlspecialchars($errorMessage, ENT_QUOTES);
         $safeCode = htmlspecialchars($errorCode, ENT_QUOTES);
-        $backUrl = htmlspecialchars($backUrl, ENT_QUOTES);
-        $translator = $this->translator($locale);
+        $translator = $this->translator($flow->locale);
         $title = $translator->get('authorize.error.title');
-        $back = $translator->get('authorize.error.back');
+        $back = $this->responses->errorButton($flow, $errorCode, $translator->get('authorize.error.back'));
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $request,
@@ -602,12 +624,12 @@ class AuthorizeHtml
                         <h1>{$title}</h1>
                         <p><strong>{$safeCode}</strong></p>
                         <p>{$safeMessage}</p>
-                        <a class="primary-button" href="{$backUrl}">{$back}</a>
+                        {$back}
                     </div>
                 HTML,
-                $locale,
+                $flow->locale,
                 'index',
-                $tenant
+                $flow->tenant
             )
         );
         return $response->withStatus(400);

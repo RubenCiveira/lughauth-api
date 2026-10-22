@@ -10,6 +10,7 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
 
 /**
  * Unit tests for {@see OidcFlowContext}.
@@ -50,6 +51,24 @@ final class OidcFlowContextUnitTest extends TestCase
 
         $this->assertSame('en', $flow->locale);
         $this->assertSame(['request_ref' => 'ref-token', 'ui_locales' => 'fr en'], $flow->continuationParams());
+    }
+
+    /**
+     * Verifies response_type is normalised as a set and response_mode travels with the flow (EP-08).
+     */
+    public function testResponseTypeIsNormalisedAndResponseModeIsCarriedToNextSteps(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams(['client_id' => 'client-123', 'response_type' => 'id_token  code', 'response_mode' => 'form_post']);
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+
+        $flow = OidcFlowContext::fromRequest($request, 'tenant1', new Context(new ContainerBuilder(), $config));
+
+        $this->assertSame('code id_token', $flow->responseType);
+        $this->assertSame(ResponseMode::FormPost, $flow->responseMode());
+        $this->assertSame(['response_mode' => 'form_post'], $flow->continuationParams());
     }
 
     /**

@@ -120,10 +120,21 @@ final class OidcDomainUnitTest extends TestCase
         ] as $field) {
             $this->assertArrayNotHasKey($field, $arr, $field);
         }
-        $this->assertNotContains('form_post', $arr['response_modes_supported']);
         $this->assertSame(['public'], $arr['subject_types_supported']);
         $this->assertFalse($arr['claims_parameter_supported']);
-        $this->assertFalse($arr['authorization_response_iss_parameter_supported']);
+    }
+
+    /**
+     * EP-08: implicit is retired, the hybrid flows remain, and every response mode and the iss
+     * parameter are announced because AuthorizationResponseWriter implements them.
+     */
+    public function test_open_id_configuration_announces_the_authorization_response(): void
+    {
+        $arr = $this->config()->toArray();
+
+        $this->assertSame(['code', 'code id_token', 'code token', 'code id_token token'], $arr['response_types_supported']);
+        $this->assertSame(['query', 'fragment', 'form_post'], $arr['response_modes_supported']);
+        $this->assertTrue($arr['authorization_response_iss_parameter_supported']);
     }
 
     // --- MtlsDiscoveryContributor ---

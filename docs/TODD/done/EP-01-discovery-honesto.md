@@ -1,6 +1,6 @@
 # EP-01 — Discovery honesto y por capacidades
 
-- **Tareas:** [030](030-discovery-honesto.md) (núcleo). Incluye la **parte de retirada** de discovery de [034](034-pkce-s256-y-politica.md), [037](../037-iss-respuesta-autorizacion.md), [045](../045-response-mode-form-post.md), [046](046-par-no-sobrescribible.md), [053](../053-mtls-certificados.md), [054](../054-jarm.md), [055](../055-ciba.md), [056](../056-subject-pairwise.md), [057](../057-jwe-id-userinfo.md), [060](../060-userinfo-firmado.md), [061](../061-claims-parameter.md), [062](../062-session-management-iframe.md) y [067](../067-hints-y-acr-step-up.md). La implementación de cada una sigue en su épica.
+- **Tareas:** [030](030-discovery-honesto.md) (núcleo). Incluye la **parte de retirada** de discovery de [034](034-pkce-s256-y-politica.md), [037](037-iss-respuesta-autorizacion.md), [045](045-response-mode-form-post.md), [046](046-par-no-sobrescribible.md), [053](../053-mtls-certificados.md), [054](../054-jarm.md), [055](../055-ciba.md), [056](../056-subject-pairwise.md), [057](../057-jwe-id-userinfo.md), [060](../060-userinfo-firmado.md), [061](../061-claims-parameter.md), [062](../062-session-management-iframe.md) y [067](../067-hints-y-acr-step-up.md). La implementación de cada una sigue en su épica.
 - **Estado:** hecho. **Prioridad:** alta. **Tamaño:** S. **Depende de:** nada. **Desbloquea:** el resto activa flags en vez de editar el documento.
 - **Esquema:** sin cambios.
 
