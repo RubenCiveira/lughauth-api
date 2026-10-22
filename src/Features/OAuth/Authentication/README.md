@@ -85,9 +85,9 @@ Exceptions are used to signal required next steps — they carry enough state fo
 - **`Html/OidcStepRouter`** — Routes the current challenge state to the correct form.
 - **`Html/Forms/`** — Individual form renderers per step (LoginForm, MagicLinkLoginForm, NewMfaForm, ScopeConsentForm, WebAuthnLoginForm…).
 - **`Rest/TokenController`** — `/token` endpoint (all grant types): HTTP parsing, client authentication and grant resolution; tokens come from `TokenFactory`. Every response carries `Cache-Control: no-store`.
-- **`Rest/IntrospectionController`** — `/introspect` endpoint (RFC 7662).
+- **`Rest/IntrospectionController`** — `/introspect` endpoint (RFC 7662). Applies `AccessTokenPolicy`: only active access tokens of the tenant are `active`.
 - **`Rest/LogoutController`** — `/logout` endpoint.
-- **`Rest/UserInfoController`** — `/userinfo` endpoint (OIDC).
+- **`Rest/UserInfoController`** — `GET`/`POST /userinfo` endpoint (OIDC). Verifies the bearer (header, or `access_token` on POST) with `AccessTokenPolicy`, requires `openid` and answers RFC 6750 errors with `WWW-Authenticate`.
 - **`Rest/DelegatedController`** — Handles callback from external identity providers.
 
 ### Driven (Outbound Adapters)

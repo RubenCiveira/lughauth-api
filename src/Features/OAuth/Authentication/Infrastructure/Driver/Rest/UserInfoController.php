@@ -7,35 +7,39 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
 use OpenApi\Attributes as OA;
 
 /**
- * REST controller that implements the OpenID Connect UserInfo Endpoint.
+ * REST controller that implements the OpenID Connect UserInfo Endpoint (OIDC Core §5.3).
  *
- * This controller exposes GET /oauth/openid/{tenant}/userinfo and returns a JSON object
- * containing claims about the currently authenticated user, as required by the OpenID Connect
- * Core specification. The set of claims included is governed by the scopes present in the
- * access token:
+ * This controller exposes GET and POST /oauth/openid/{tenant}/userinfo and returns a JSON object
+ * containing claims about the user the access token was issued for. The token comes in the
+ * `Authorization: Bearer` header or, on POST, as the `access_token` form parameter (RFC 6750
+ * §2.2), and must pass AccessTokenPolicy for the tenant of the route: an access token (never an
+ * ID or refresh token) of its issuer and tenant that has not been revoked. It must also carry the
+ * `openid` scope. The set of claims included is governed by the scopes of the token:
  *
  * - The "sub" claim is always returned as the base identifier.
- * - The "email" scope adds the email address.
+ * - The "email" scope adds the email address. `email_verified` is left out: it is not known.
  * - The "profile" scope adds standard profile claims (name, given_name, family_name, picture,
  *   locale, zoneinfo, updated_at, etc.) resolved from ProfileGateway.
  * - The "phone" scope adds phone_number and phone_number_verified.
+ * - The "address" scope adds the address stored in the profile.
  *
- * The identity of the caller is resolved from the shared Context, which is populated by the
- * JWT verification middleware before this controller is invoked.
+ * Failures follow RFC 6750 §3: 401 with `WWW-Authenticate: Bearer error="invalid_token"` for a
+ * missing or invalid token, and 403 `insufficient_scope` without `openid`.
  *
- * Relationships: depends on Context for the authenticated identity and its scope, and on
- * ProfileGateway to look up the extended OIDC profile claims stored for the user.
+ * Relationships: depends on AccessTokenPolicy to verify the token and on ProfileGateway to look
+ * up the extended OIDC profile claims stored for the user.
  */
 class UserInfoController
 {
     public function __construct(
-        private readonly Context $context,
+        private readonly AccessTokenPolicy $policy,
         private readonly ProfileGateway $profileGateway,
     ) {
     }
@@ -63,52 +67,77 @@ class UserInfoController
                     new OA\Property(property: 'locale', type: 'string'),
                     new OA\Property(property: 'zoneinfo', type: 'string'),
                     new OA\Property(property: 'phone_number', type: 'string'),
+                    new OA\Property(property: 'address', type: 'object'),
                     new OA\Property(property: 'updated_at', type: 'integer'),
                 ])
             ),
-            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 401, description: 'Missing, invalid, expired or revoked access token'),
+            new OA\Response(response: 403, description: 'The access token lacks the openid scope'),
         ]
     )]
     /**
-     * Returns the scope-filtered claims for the authenticated user as a JSON response.
-     *
-     * Extracts the token scopes from the request identity, conditionally fetches the extended
-     * profile from ProfileGateway when the profile or phone scope is present, and emits only
-     * the claims permitted by the granted scopes.
+     * Returns the scope-filtered claims of the user of the bearer access token.
      */
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $identity = $this->context->getIdentity();
-        $claims = ['sub' => $identity->getId()];
+        return $this->userInfo($request, $response, (string) ($args['tenant'] ?? ''));
+    }
 
-        $scopes = $this->parseScopes($identity->getScope());
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/userinfo',
+        summary: 'OIDC UserInfo Endpoint (POST)',
+        description: 'Same claims as GET. The access token may also be sent as the access_token form parameter.',
+        tags: ['OIDC'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'User claims'),
+            new OA\Response(response: 401, description: 'Missing, invalid, expired or revoked access token'),
+            new OA\Response(response: 403, description: 'The access token lacks the openid scope'),
+        ]
+    )]
+    /**
+     * Same as GET, also accepting the token in the `access_token` form parameter.
+     */
+    public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        return $this->userInfo($request, $response, (string) ($args['tenant'] ?? ''));
+    }
 
-        if (in_array('email', $scopes, true)) {
-            $claims['email'] = $identity->getEmail();
+    private function userInfo(ServerRequestInterface $request, ResponseInterface $response, string $tenant): ResponseInterface
+    {
+        try {
+            $token = $this->bearerToken($request) ?? throw new UnauthorizedException(message: 'missing access token');
+            $tokenClaims = $this->policy->verify($tenant, $token);
+        } catch (UnauthorizedException $e) {
+            return $this->error($response, 401, 'Bearer error="invalid_token"', 'invalid_token', $e->getMessage());
+        }
+        $scopes = $this->parseScopes(is_string($tokenClaims['scope'] ?? null) ? $tokenClaims['scope'] : '');
+        if (!in_array('openid', $scopes, true)) {
+            return $this->error($response, 403, 'Bearer error="insufficient_scope", scope="openid"', 'insufficient_scope', 'the access token lacks the openid scope');
         }
 
-        if (in_array('profile', $scopes, true) || in_array('phone', $scopes, true)) {
-            $profile = $identity->getId() !== null
-                ? $this->profileGateway->findByUser($identity->getId())
-                : null;
+        $sub = (string) ($tokenClaims['sub'] ?? '');
+        $claims = ['sub' => $sub];
 
-            if ($profile !== null) {
-                $oidcClaims = $this->toOidcClaims($profile);
+        if (in_array('email', $scopes, true) && is_string($tokenClaims['email'] ?? null)) {
+            $claims['email'] = $tokenClaims['email'];
+        }
 
-                if (in_array('profile', $scopes, true)) {
-                    foreach (['name', 'given_name', 'family_name', 'middle_name', 'nickname', 'preferred_username', 'picture', 'website', 'gender', 'birthdate', 'zoneinfo', 'locale', 'updated_at'] as $key) {
-                        if (array_key_exists($key, $oidcClaims)) {
-                            $claims[$key] = $oidcClaims[$key];
-                        }
-                    }
-                }
-
-                if (in_array('phone', $scopes, true)) {
-                    foreach (['phone_number', 'phone_number_verified'] as $key) {
-                        if (array_key_exists($key, $oidcClaims)) {
-                            $claims[$key] = $oidcClaims[$key];
-                        }
-                    }
+        $sections = [
+            'profile' => ['name', 'given_name', 'family_name', 'middle_name', 'nickname', 'preferred_username', 'picture', 'website', 'gender', 'birthdate', 'zoneinfo', 'locale', 'updated_at'],
+            'phone' => ['phone_number', 'phone_number_verified'],
+            'address' => ['address'],
+        ];
+        $granted = array_intersect_key($sections, array_flip($scopes));
+        $profile = $granted !== [] ? $this->profileGateway->findByUser($sub) : null;
+        if ($profile !== null) {
+            $oidcClaims = $this->toOidcClaims($profile);
+            foreach (array_merge(...array_values($granted)) as $key) {
+                if (array_key_exists($key, $oidcClaims)) {
+                    $claims[$key] = $oidcClaims[$key];
                 }
             }
         }
@@ -118,12 +147,31 @@ class UserInfoController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    private function parseScopes(?string $scope): array
+    /**
+     * The `Authorization: Bearer` header, or on POST the `access_token` form parameter.
+     */
+    private function bearerToken(ServerRequestInterface $request): ?string
     {
-        if ($scope === null || $scope === '') {
-            return [];
+        if (preg_match('/^Bearer\s+(\S+)$/i', $request->getHeaderLine('Authorization'), $matches)) {
+            return $matches[1];
         }
-        return explode(' ', $scope);
+        $body = $request->getMethod() === 'POST' ? (array) ($request->getParsedBody() ?? []) : [];
+        $token = $body['access_token'] ?? null;
+        return is_string($token) && $token !== '' ? $token : null;
+    }
+
+    private function error(ResponseInterface $response, int $status, string $challenge, string $error, string $description): ResponseInterface
+    {
+        $encoded = json_encode(['error' => $error, 'error_description' => $description]);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
+        return $response->withStatus($status)
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('WWW-Authenticate', $challenge);
+    }
+
+    private function parseScopes(string $scope): array
+    {
+        return preg_split('/\s+/', $scope, -1, PREG_SPLIT_NO_EMPTY) ?: [];
     }
 
     private function toOidcClaims(OidcProfile $profile): array

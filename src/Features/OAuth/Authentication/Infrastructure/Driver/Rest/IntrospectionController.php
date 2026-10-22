@@ -7,45 +7,41 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
 use OpenApi\Attributes as OA;
 
 /**
  * REST controller that implements the OAuth 2.0 Token Introspection endpoint (RFC 7662).
  *
  * This controller exposes a POST endpoint at /oauth/openid/{tenant}/introspect that allows
- * resource servers to query whether a given access or refresh token is currently active. The
+ * resource servers to query whether a given access token is currently active. The
  * caller must authenticate as a registered confidential client, either via HTTP Basic
  * Authorization or by supplying client_id and client_secret in the request body.
  *
- * When the token is valid and not revoked, the endpoint returns a JSON object with active=true
- * and a set of standard JWT claims extracted from the token payload (sub, scope, exp, iss, etc.).
- * When the token is invalid, expired, or has been explicitly revoked, only {"active": false}
- * is returned — no additional information is disclosed to avoid leaking token metadata.
+ * The token is judged by AccessTokenPolicy, the same verifier as UserInfo and the bearer
+ * middleware: when it is an access token of this tenant and issuer, unexpired and not revoked,
+ * the endpoint returns a JSON object with active=true and a set of standard JWT claims extracted
+ * from the token payload (sub, scope, exp, iss, etc.). Otherwise (invalid, expired, revoked, of
+ * another tenant, or an ID or refresh token) only {"active": false} is returned — no additional
+ * information is disclosed to avoid leaking token metadata.
  *
- * Revocation state is checked via TokenRevocationGateway using the jti claim so revoked tokens
- * are rejected even if their signature and expiry are otherwise valid.
- *
- * Relationships: depends on TokenSigner for verification, ClientStoreGateway for client
- * authentication, and TokenRevocationGateway for revocation checks.
+ * Relationships: depends on AccessTokenPolicy for verification and ClientStoreGateway for client
+ * authentication.
  */
 class IntrospectionController
 {
     public function __construct(
-        private readonly TokenSigner $tokenSigner,
+        private readonly AccessTokenPolicy $policy,
         private readonly ClientStoreGateway $clients,
-        private readonly TokenRevocationGateway $revocationGateway
     ) {
     }
 
     #[OA\Post(
         path: '/oauth/openid/{tenant}/introspect',
         summary: 'Token Introspection (RFC 7662)',
-        description: 'Returns metadata about an access or refresh token. Requires client authentication via HTTP Basic or client_id/client_secret in the body.',
+        description: 'Returns metadata about an access token; ID, refresh, revoked and foreign tokens are inactive. Requires client authentication via HTTP Basic or client_id/client_secret in the body.',
         tags: ['OIDC'],
         security: [['basicAuth' => []]],
         parameters: [
@@ -57,7 +53,7 @@ class IntrospectionController
                 mediaType: 'application/x-www-form-urlencoded',
                 schema: new OA\Schema(properties: [
                     new OA\Property(property: 'token', type: 'string', description: 'Token to introspect'),
-                    new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token or refresh_token'),
+                    new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token (other token types are inactive)'),
                     new OA\Property(property: 'client_id', type: 'string'),
                     new OA\Property(property: 'client_secret', type: 'string'),
                 ])
@@ -86,8 +82,8 @@ class IntrospectionController
     /**
      * Handles the token introspection POST request and returns the token metadata or an inactive response.
      *
-     * Authenticates the calling client, verifies the token signature and expiry, checks the
-     * revocation registry, and returns either the full claims payload or {"active": false}.
+     * Authenticates the calling client, applies AccessTokenPolicy for the tenant, and returns
+     * either the full claims payload or {"active": false}.
      */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -112,13 +108,9 @@ class IntrospectionController
             );
         }
 
-        $payload = $this->tokenSigner->verify($tenant, $token, VerificationPolicy::expecting(TokenType::Access, TokenType::Refresh));
-        if ($payload === null) {
-            return $this->jsonResponse($response, ['active' => false]);
-        }
-
-        $jti = $payload['jti'] ?? null;
-        if ($jti !== null && $this->revocationGateway->isRevoked($jti, $tenant)) {
+        try {
+            $payload = $this->policy->verify($tenant, $token);
+        } catch (UnauthorizedException) {
             return $this->jsonResponse($response, ['active' => false]);
         }
 

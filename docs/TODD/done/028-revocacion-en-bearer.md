@@ -1,7 +1,7 @@
 # 028 — Aplicar revocación al validar bearer y UserInfo
 
-- **Estado:** pendiente. **Prioridad:** alta.
-- **Evidencia:** [JwtVerifierMiddleware](../../src/Bootstrap/Middleware/JwtVerifierMiddleware.php) valida firma/tiempo y cachea identidad, pero no consulta `TokenRevocationGateway`; [ResolverForRefresh](../../src/Features/OAuth/Authentication/Application/TokenGranter/ResolverForRefresh.php) sí consulta JTI revocado.
+- **Estado:** hecho (EP-06). **Prioridad:** alta.
+- **Evidencia:** [JwtVerifierMiddleware](../../../src/Bootstrap/Middleware/JwtVerifierMiddleware.php) valida firma/tiempo y cachea identidad, pero no consulta `TokenRevocationGateway`; [ResolverForRefresh](../../../src/Features/OAuth/Authentication/Application/TokenGranter/ResolverForRefresh.php) sí consulta JTI revocado.
 - **Impacto:** `/revoke` no impide que un access token aún vivo se use hasta expirar.
 - **Por hacer:** consultar revocación por JTI/tenant en validación bearer, incluso con caché positiva; invalidación TTL acotada o política explícita de vida corta, y pruebas de `/userinfo` y recurso protegido.
 - **Aceptación:** token revocado deja de autenticar antes de su `exp`.

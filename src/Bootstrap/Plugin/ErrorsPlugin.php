@@ -76,7 +76,11 @@ class ErrorsPlugin extends MicroPlugin
             ];
             $json = json_encode($data);
             $response->getBody()->write($json !== false ? $json : '{}');
-            return $response->withStatus(401);
+            $response = $response->withStatus(401);
+            // RFC 6750 §3: a rejected bearer token is challenged as such.
+            return preg_match('/^Bearer\s/i', $request->getHeaderLine('Authorization'))
+                ? $response->withHeader('WWW-Authenticate', 'Bearer error="invalid_token"')
+                : $response;
         });
         $errorHandler->setErrorHandler(HttpMethodNotAllowedException::class, function (ServerRequestInterface $request, HttpMethodNotAllowedException $exception): ResponseInterface {
             $response = new Response();

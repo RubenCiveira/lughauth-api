@@ -282,6 +282,7 @@ class OAuthPlugin extends MicroPlugin
             $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);
             $group->post('/api-key/validate', [ApiKeyController::class, 'post']);
             $group->get('/userinfo', [UserInfoController::class, 'get']);
+            $group->post('/userinfo', [UserInfoController::class, 'post']);
 
             $group->get('/logout', [LogoutController::class, 'logout']);
             $group->post('/revoke', [LogoutController::class, 'revoke']);

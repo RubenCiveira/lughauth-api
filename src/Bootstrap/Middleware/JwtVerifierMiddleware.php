@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Bootstrap\Middleware;
 
-use DateTime;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -20,6 +19,8 @@ use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWS;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Slim\Interfaces\RouteInterface;
+use Slim\Routing\RouteContext;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
@@ -27,21 +28,25 @@ use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\AuthenticationContext;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
 
 /**
  * Validates incoming JWTs and sets the security context.
  */
 class JwtVerifierMiddleware
 {
-    /** Prefix of the cached verification result of each token. */
-    public const string CACHE_PREFIX = 'verify_access_v2_';
+    /** Prefix of the cached verification result (claims or rejection) of each token. */
+    public const string CACHE_PREFIX = 'verify_access_v3_';
 
     /** @var string|null JWKS endpoint URL for public key verification. */
     private readonly ?string $jwksUrl;
     /** @var string|null Required issuer for JWT validation. */
     private readonly ?string $requiredIssuer;
-    /** @var string|null Required audiences for JWT validation. */
-    private readonly ?string $requiredAudiences;
+    /**
+     * @var list<string> Audiences of this resource server, any of which a token must carry:
+     * `security.jwt.verify.audiences` or, without it, the application name (`APP_NAME`).
+     */
+    private readonly array $requiredAudiences;
     /** @var string|null Path to roles within the JWT payload. */
     private readonly ?string $rolesPath;
 
@@ -61,11 +66,14 @@ class JwtVerifierMiddleware
         private readonly ClientInterface $client,
         /** @var MagicLinkService Magic link handler for temporary auth. */
         private readonly MagicLinkService $magicLinkService,
+        /** @var AccessTokenPolicy Issuer, audience, tenant and revocation checks. */
+        private readonly AccessTokenPolicy $policy,
         private readonly LoggerInterface $logger = new NullLogger(),
     ) {
         $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
         $this->requiredIssuer = $config->get('security.jwt.verify.issuer');
-        $this->requiredAudiences = $config->get('security.jwt.verify.audiences');
+        $audiences = array_values(array_filter(array_map('trim', explode(',', (string) $config->get('security.jwt.verify.audiences', ''))), 'strlen'));
+        $this->requiredAudiences = $audiences !== [] ? $audiences : [$config->name];
         $this->rolesPath = $config->get('security.jwt.verify.path.roles');
     }
 
@@ -75,14 +83,16 @@ class JwtVerifierMiddleware
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->jwksUrl !== '-') {
-            $auth = $request->getHeader('Authorization');
-            if ($auth && str_starts_with($auth[0], 'Bearer ')) {
-                $this->verifyAuth(substr($auth[0], 7), Identity::AUTH_SCOPE_BOTH);
+            $route = $request->getAttribute(RouteContext::ROUTE);
+            $routeTenant = $route instanceof RouteInterface ? $route->getArgument('tenant') : null;
+            $bearer = $this->bearer($request->getHeader('Authorization')[0] ?? null);
+            if ($bearer !== null) {
+                $this->verifyAuth($bearer, Identity::AUTH_SCOPE_BOTH, $routeTenant);
             } else {
                 $magic = $this->magicLinkService->consume($request);
                 if ($magic !== null) {
                     if ($magic['token'] !== null) {
-                        $this->verifyAuth(substr($magic['token'], 7), Identity::AUTH_SCOPE_BOTH);
+                        $this->verifyAuth($this->bearer($magic['token']) ?? '', Identity::AUTH_SCOPE_BOTH, $routeTenant);
                     } elseif ($magic['identity'] instanceof Identity) {
                         $connection = $magic['connection'] instanceof Connection
                             ? $magic['connection']
@@ -98,232 +108,130 @@ class JwtVerifierMiddleware
         return $handler->handle($request);
     }
 
-    private function verifyAuth(string $token, string $authScope): string
+    /**
+     * The token of a `Bearer` authorization, whose scheme is case-insensitive (RFC 7235 §2.1).
+     */
+    private function bearer(?string $authorization): ?string
     {
-        // Versioned: entries cached before tokens carried kid/typ (EP-04) must not authenticate.
-        $cache_key = self::CACHE_PREFIX . $token;
-        if ($this->cache->has($cache_key)) {
-            $cached = json_decode($this->cache->get($cache_key), true);
-            $error = null;
-            if (is_array($cached)) {
-                if (isset($cached[3]) && is_string($cached[3])) {
-                    $error = $cached[3];
-                } elseif (isset($cached[2]) && is_string($cached[2])) {
-                    // Backward compatibility with old cache shape [null, null, "error"]
-                    $error = $cached[2];
-                }
-            }
-            if ($error) {
-                $this->logger->warning('JWT rejected (cached result)', ['error' => $error, 'token_prefix' => substr($token, 0, 20)]);
-                throw new UnauthorizedException(message: $error);
-            } else {
-                $cachedConnection = $cached[0] ?? null;
-                $cachedIdentity = $cached[1] ?? null;
-                if (!is_array($cachedConnection) || !is_array($cachedIdentity)) {
-                    $this->logger->warning('JWT cache entry has invalid shape, skipping cache', ['token_prefix' => substr($token, 0, 20)]);
-                    $this->cache->delete($cache_key);
-                    return $this->verifyAuth($token, $authScope);
-                }
-                [$connection, $identity, $auth] = $this->deseiralize(is_array($cached) ? $cached : []);
-                $this->context->setSecurityContext($connection, $identity, $auth);
-            }
-        } else {
-            $jwks = $this->getJwks();
-            try {
-                $jwt = $this->extractJwt($token);
-                if (!is_string($jwt->getSignature(0)->getProtectedHeader()['kid'] ?? null)) {
-                    // Without kid there is no published key to pick: reject without refreshing the JWKS.
-                    $fail = 'The provided JWT does not name its signing key.';
-                    $this->logger->warning('JWT rejected: ' . $fail, ['token_prefix' => substr($token, 0, 20)]);
-                    $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), 60);
-                    throw new UnauthorizedException(message: $fail);
-                }
-                try {
-                    $verified = $this->verify($jwt, $jwks);
-                } catch (\JsonException $je) {
-                    $fail = 'The provided JWT could not be verified.';
-                    $this->logger->warning('JWT rejected: invalid JWKS', ['error' => $je->getMessage(), 'token_prefix' => substr($token, 0, 20)]);
-                    throw new UnauthorizedException(message: $fail);
-                }
-                if ($verified) {
-                    $payload = json_decode($jwt->getPayload() ?? '{}');
-                    $nbf = $payload->nbf ?? null;
-                    $exp = $payload->exp ?? null;
-                    $now = time();
-                    if (!$nbf || !$exp) {
-                        $fail = 'The provided JWT dont have valid time range.';
-                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'exp' => $exp]);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), 60);
-                        throw new UnauthorizedException(message: $fail);
-                    } elseif ($now < $nbf) {
-                        $fail = 'The provided JWT is not ready for use.';
-                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'now' => $now, 'diff' => $nbf - $now]);
-                        $ttl = max(1, $nbf - $now);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), $ttl);
-                        throw new UnauthorizedException(message: $fail);
-                    } elseif ($now > $exp) {
-                        $fail = 'The provided JWT is expired.';
-                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'exp' => $exp, 'now' => $now, 'expired_ago' => $now - $exp]);
-                        $ttl = max(1, $exp - $now + 60);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), $ttl);
-                        throw new UnauthorizedException(message: $fail);
-                    } else {
-                        try {
-                            $this->verifyClaims($payload, $jwt);
-                        } catch (UnauthorizedException $e) {
-                            $this->logger->warning('JWT rejected: verifyToken failed', ['sub' => $payload->sub ?? null, 'iss' => $payload->iss ?? null, 'aud' => $payload->aud ?? null, 'message' => $e->getMessage()]);
-                            throw $e;
-                        }
-                        $claims = get_object_vars($payload);
-                        $propertiesToRemove = ['sub', 'grant_type', 'aud', 'azp', 'scope', 'iss', 'groups', 'typ', 'exp', 'iat', 'jti'];
-                        foreach ($propertiesToRemove as $property) {
-                            unset($claims[$property]);
-                        }
-                        $identity = new Identity(
-                            anonymous: false,
-                            authScope: $authScope,
-                            id: $payload->sub,
-                            scope: $payload->scope ?? '',
-                            name: $payload->name ?? $payload->sub,
-                            token: '',
-                            email: $payload->email ?? $payload->sub,
-                            issuer: $payload->iss,
-                            roles: $this->extractRoles($payload),
-                            groups: $payload->groups ?? [],
-                            tenant: $payload->tenant ?? 'main',
-                            claims: $claims
-                        );
-                        $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
-                        $ttl = max(1, $exp - $now);
-                        $auth = $this->resolveAuthenticationContext($payload, $identity, $connection);
-                        $this->cache->set($cache_key, json_encode([$connection, $identity, $auth, null]), $ttl);
-                        $this->context->setSecurityContext($connection, $identity, $auth);
-                    }
-                } else {
-                    // Firma no válida con JWKS cacheado — puede ser rotación de claves.
-                    // Forzar re-descarga del JWKS y reintentar una vez.
-                    $this->logger->warning('JWT signature failed with cached JWKS — refreshing and retrying', [
-                        'token_prefix' => substr($token, 0, 20),
-                    ]);
-                    $freshJwks = $this->fetchAndCacheJwks();
-                    try {
-                        $verifiedFresh = $this->verify($jwt, $freshJwks);
-                    } catch (\JsonException $je) {
-                        $fail = 'The provided JWT could not be verified.';
-                        $this->logger->warning('JWT rejected: invalid JWKS after refresh', ['error' => $je->getMessage(), 'token_prefix' => substr($token, 0, 20)]);
-                        throw new UnauthorizedException(message: $fail);
-                    }
-                    if (!$verifiedFresh) {
-                        $fail = 'The provided JWT could not be verified.';
-                        $this->logger->warning('JWT rejected: signature verification failed even after JWKS refresh', [
-                            'token_prefix' => substr($token, 0, 20),
-                        ]);
-                        throw new UnauthorizedException(message: $fail);
-                    }
-                    // Verificación OK con claves frescas — continuar como éxito
-                    $payload = json_decode($jwt->getPayload() ?? '{}');
-                    $nbf = $payload->nbf ?? null;
-                    $exp = $payload->exp ?? null;
-                    $now = time();
-                    if (!$nbf || !$exp || $now < $nbf || $now > $exp) {
-                        $fail = 'The provided JWT time range is invalid or expired.';
-                        $this->logger->warning('JWT rejected after JWKS refresh: time range invalid', ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'exp' => $exp, 'now' => $now]);
-                        throw new UnauthorizedException(message: $fail);
-                    }
-                    try {
-                        $this->verifyClaims($payload, $jwt);
-                    } catch (UnauthorizedException $e) {
-                        $this->logger->warning('JWT rejected after JWKS refresh: verifyToken failed', ['sub' => $payload->sub ?? null, 'message' => $e->getMessage()]);
-                        throw $e;
-                    }
-                    $claims = get_object_vars($payload);
-                    foreach (['sub', 'grant_type', 'aud', 'azp', 'scope', 'iss', 'groups', 'typ', 'exp', 'iat', 'jti'] as $prop) {
-                        unset($claims[$prop]);
-                    }
-                    $identity = new Identity(
-                        anonymous: false,
-                        authScope: $authScope,
-                        id: $payload->sub,
-                        scope: $payload->scope ?? '',
-                        name: $payload->name ?? $payload->sub,
-                        token: '',
-                        email: $payload->email ?? $payload->sub,
-                        issuer: $payload->iss,
-                        roles: $this->extractRoles($payload),
-                        groups: $payload->groups ?? [],
-                        tenant: $payload->tenant ?? 'main',
-                        claims: $claims
-                    );
-                    $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
-                    $ttl = max(1, $exp - $now);
-                    $auth = $this->resolveAuthenticationContext($payload, $identity, $connection);
-                    $this->cache->set($cache_key, json_encode([$connection, $identity, $auth, null]), $ttl);
-                    $this->context->setSecurityContext($connection, $identity, $auth);
-                }
-            } catch (\InvalidArgumentException $je) {
-                $fail = 'The provided JWT is not valid.';
-                $this->logger->warning('JWT rejected: invalid format', ['error' => $je->getMessage(), 'token_prefix' => substr($token, 0, 20)]);
-                throw new UnauthorizedException(message: $fail);
-            }
-        }
-        return $token;
+        return $authorization !== null && preg_match('/^Bearer\s+/i', $authorization, $scheme)
+            ? substr($authorization, strlen($scheme[0]))
+            : null;
     }
 
     /**
-     * @param array<int, mixed> $vcc
-     * @return array{0: Connection, 1: Identity, 2: AuthenticationContext}
+     * Verifies a bearer access token and sets the security context from its claims.
+     *
+     * Endpoints of a tenant (routes with a `{tenant}` argument) verify it with that tenant's own
+     * keys; the other routes with the configured JWKS, as a resource server. Either way,
+     * AccessTokenPolicy applies the issuer, audience, tenant and revocation checks on every
+     * request, also when the signature verification comes from the cache.
      */
-    private function deseiralize(array $vcc): array
-    {
-        $cc = $vcc[0] ?? [];
-        $ac = $vcc[1] ?? [];
-        $auth = $vcc[2] ?? null;
-        $identity = new Identity(
-            anonymous: $ac['anonymous'],
-            authScope: $ac['authScope'],
-            id: $ac['id'],
-            name: $ac['name'],
-            token: $ac['token'] ?? '',
-            scope: $ac['scope'] ?? '',
-            issuer: $ac['issuer'],
-            roles: $ac['roles'] ?? [],
-            groups: $ac['groups'] ?? [],
-            tenant: $ac['tenant'],
-            claims: $ac['claims'] ?? [],
-            email: $ac['email'] ?? ''
-        );
-        $connection = new Connection(
-            level: 0,
-            remote: (bool) ($cc['remote'] ?? true),
-            startTime: $this->deserializeStartTime($cc['startTime'] ?? null),
-            application: (string) ($cc['application'] ?? ''),
-            callback: (string) ($cc['callback'] ?? ''),
-            source: (string) ($cc['source'] ?? '0.0.0.0'),
-            target: (string) ($cc['target'] ?? ''),
-            locale: isset($cc['locale']) ? (string) $cc['locale'] : ''
-        );
-        $authenticationContext = is_array($auth)
-            ? $this->deserializeAuthenticationContext($auth, $identity)
-            : AuthenticationContext::anonymous();
-        return [$connection, $identity, $authenticationContext];
-    }
-
-    private function deserializeStartTime(mixed $raw): DateTime
+    private function verifyAuth(string $token, string $authScope, ?string $routeTenant): void
     {
         try {
-            if (is_string($raw) && $raw !== '') {
-                return new DateTime($raw);
-            }
-            if (is_array($raw)) {
-                $value = $raw['date'] ?? $raw['datetime'] ?? null;
-                if (is_string($value) && $value !== '') {
-                    return new DateTime($value);
+            if ($routeTenant !== null) {
+                $claims = $this->policy->verify($routeTenant, $token);
+            } else {
+                $claims = $this->remoteClaims($token);
+                $issuer = (string) ($claims['iss'] ?? '');
+                $tenant = $this->policy->tenantOfIssuer($issuer);
+                if ($tenant === null || ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $issuer !== $this->requiredIssuer)) {
+                    throw new UnauthorizedException(message: 'The issuer is not valid.');
                 }
+                $this->policy->check($claims, $tenant, $this->requiredAudiences);
             }
-        } catch (\Throwable) {
+        } catch (UnauthorizedException $e) {
+            $this->logger->warning('JWT rejected: ' . $e->getMessage(), ['token_prefix' => substr($token, 0, 20), 'tenant' => $routeTenant]);
+            throw $e;
         }
+        $this->authenticate($claims, $authScope);
+    }
 
-        return new DateTime();
+    /**
+     * Verifies the signature (refreshing the JWKS once, in case the key has just rotated in),
+     * the purpose and the time window. Only the resulting claims, or the rejection, are cached.
+     *
+     * @return array<string, mixed>
+     */
+    private function remoteClaims(string $token): array
+    {
+        $cache_key = self::CACHE_PREFIX . $token;
+        $cached = $this->cache->get($cache_key);
+        $cached = is_string($cached) ? json_decode($cached, true) : null;
+        if (is_string($cached['error'] ?? null)) {
+            throw new UnauthorizedException(message: $cached['error']);
+        }
+        if (is_array($cached['claims'] ?? null)) {
+            return $cached['claims'];
+        }
+        try {
+            $jwt = $this->extractJwt($token);
+        } catch (\InvalidArgumentException) {
+            throw new UnauthorizedException(message: 'The provided JWT is not valid.');
+        }
+        if (!is_string($jwt->getSignature(0)->getProtectedHeader()['kid'] ?? null)) {
+            // Without kid there is no published key to pick: reject without refreshing the JWKS.
+            throw $this->rejected($cache_key, 'The provided JWT does not name its signing key.', 60);
+        }
+        try {
+            if (!$this->verify($jwt, $this->getJwks()) && !$this->verify($jwt, $this->fetchAndCacheJwks())) {
+                throw new UnauthorizedException(message: 'The provided JWT could not be verified.');
+            }
+        } catch (\JsonException) {
+            throw new UnauthorizedException(message: 'The provided JWT could not be verified.');
+        }
+        $claims = json_decode($jwt->getPayload() ?? '{}', true);
+        $claims = is_array($claims) ? $claims : [];
+        $nbf = $claims['nbf'] ?? null;
+        $exp = $claims['exp'] ?? null;
+        $now = time();
+        if (!is_numeric($nbf) || !is_numeric($exp) || !$nbf || !$exp) {
+            throw $this->rejected($cache_key, 'The provided JWT dont have valid time range.', 60);
+        }
+        if ($now < $nbf) {
+            throw $this->rejected($cache_key, 'The provided JWT is not ready for use.', max(1, (int) $nbf - $now));
+        }
+        if ($now > $exp) {
+            throw $this->rejected($cache_key, 'The provided JWT is expired.', max(1, (int) $exp - $now + 60));
+        }
+        if (!$this->isAccessToken($jwt)) {
+            throw new UnauthorizedException(message: 'The provided JWT is not an access token.');
+        }
+        $this->cache->set($cache_key, json_encode(['claims' => $claims]), min(AccessTokenPolicy::MAX_CACHE_TTL, max(1, (int) $exp - $now)));
+        return $claims;
+    }
+
+    private function rejected(string $cacheKey, string $fail, int $ttl): UnauthorizedException
+    {
+        $this->cache->set($cacheKey, json_encode(['error' => $fail]), $ttl);
+        return new UnauthorizedException(message: $fail);
+    }
+
+    /** @param array<string, mixed> $claims claims accepted by AccessTokenPolicy */
+    private function authenticate(array $claims, string $authScope): void
+    {
+        $payload = json_decode(json_encode($claims) ?: '{}');
+        $sub = (string) ($claims['sub'] ?? '');
+        $extra = $claims;
+        foreach (['sub', 'grant_type', 'aud', 'azp', 'scope', 'iss', 'groups', 'typ', 'exp', 'iat', 'jti'] as $property) {
+            unset($extra[$property]);
+        }
+        $identity = new Identity(
+            anonymous: false,
+            authScope: $authScope,
+            id: $sub,
+            scope: $payload->scope ?? '',
+            name: $payload->name ?? $sub,
+            token: '',
+            email: $payload->email ?? $sub,
+            issuer: $payload->iss,
+            roles: $this->extractRoles($payload),
+            groups: $claims['groups'] ?? [],
+            tenant: $payload->tenant,
+            claims: $extra
+        );
+        $connection = Connection::remoteHttp(0, (string) ($payload->azp ?? ''), $this->config);
+        $this->context->setSecurityContext($connection, $identity, $this->resolveAuthenticationContext($payload, $identity, $connection));
     }
 
     private function resolveAuthenticationContext(object $payload, Identity $identity, Connection $connection): AuthenticationContext
@@ -378,33 +286,6 @@ class JwtVerifierMiddleware
         return AuthenticationContext::LEVEL_PASSWORD;
     }
 
-    private function deserializeAuthenticationContext(array $data, Identity $identity): AuthenticationContext
-    {
-        $authenticatedAt = new \DateTimeImmutable();
-        if (isset($data['authenticatedAt']) && is_string($data['authenticatedAt'])) {
-            try {
-                $authenticatedAt = new \DateTimeImmutable($data['authenticatedAt']);
-            } catch (\Throwable) {
-            }
-        }
-        $ageMillis = isset($data['authenticationAge']) ? (int) $data['authenticationAge'] : 0;
-        $age = new \DateInterval('PT' . (int) floor($ageMillis / 1000) . 'S');
-
-        return new AuthenticationContext(
-            level: (string) ($data['level'] ?? AuthenticationContext::LEVEL_ANONYMOUS),
-            mfa: (bool) ($data['mfa'] ?? false),
-            rememberMe: (bool) ($data['rememberMe'] ?? false),
-            impersonated: (bool) ($data['impersonated'] ?? false),
-            secureTransport: (bool) ($data['secureTransport'] ?? false),
-            authenticatedAt: $authenticatedAt,
-            authenticationAge: $age,
-            authenticationMethod: isset($data['authenticationMethod']) ? (string) $data['authenticationMethod'] : null,
-            sessionId: (string) ($data['sessionId'] ?? ''),
-            authenticatedActor: $identity,
-            effectiveActor: $identity,
-        );
-    }
-
     private function extractJwt(string $token): JWS
     {
         $serializer = new CompactSerializer();
@@ -448,35 +329,6 @@ class JwtVerifierMiddleware
         $item = (string) $response->getBody();
         $this->cache->set('jwks.verify.publickey', $item, new \DateInterval('PT1H'));
         return $item;
-    }
-
-    private function verifyClaims(object $payload, JWS $jwt): void
-    {
-        if (!$this->isAccessToken($jwt)) {
-            throw new UnauthorizedException(message: 'The provided JWT is not an access token.');
-        }
-        $this->verifyToken($payload);
-    }
-
-    private function verifyToken(object $payload): void
-    {
-        if ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $payload->iss != $this->requiredIssuer) {
-            throw new UnauthorizedException(message: 'The issuer is not valid.');
-        }
-        if ($this->requiredAudiences !== null && $this->requiredAudiences !== '') {
-            // Tiene que tener todas las audiencias.
-            $reqs = [];
-            foreach (explode(',', $this->requiredAudiences) as $au) {
-                $reqs[$au] = true;
-            }
-            $auds = is_array($payload->aud) ? $payload->aud : [ $payload->aud ];
-            foreach ($auds as $target) {
-                unset($reqs[$target]);
-            }
-            if (count($reqs) > 0) {
-                throw new UnauthorizedException(message: 'The audience is not valid.');
-            }
-        }
     }
 
     /**

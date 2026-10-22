@@ -1,7 +1,7 @@
 # 035 — Completar UserInfo GET/POST y errores bearer
 
-- **Estado:** parcial. **Prioridad:** media.
-- **Evidencia:** [OAuthPlugin](../../src/Bootstrap/Plugin/OAuthPlugin.php) registra solo GET; [UserInfoController](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/UserInfoController.php) filtra perfil/phone por scope y mapea `address` internamente, pero no lo devuelve; tampoco `email_verified`.
+- **Estado:** hecho (EP-06). **Prioridad:** media.
+- **Evidencia:** [OAuthPlugin](../../../src/Bootstrap/Plugin/OAuthPlugin.php) registra solo GET; [UserInfoController](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/UserInfoController.php) filtra perfil/phone por scope y mapea `address` internamente, pero no lo devuelve; tampoco `email_verified`.
 - **Impacto:** RP que usa POST o solicita claims habituales no interoperará; hay que confirmar identidad y tipo de token.
 - **Por hacer:** añadir POST con bearer, `WWW-Authenticate` en 401, claims disponibles según scope, comprobar `openid`, `sub` y uso de access token del tenant correcto.
 - **Aceptación:** GET/POST producen mismos claims autorizados y rechazan ID/refresh tokens y bearer inválido.

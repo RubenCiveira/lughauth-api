@@ -21,6 +21,12 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
+use Slim\Interfaces\RouteInterface;
+use Slim\Routing\RouteContext;
 
 /**
  * Unit tests for JwtVerifierMiddleware.
@@ -28,6 +34,9 @@ use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
 #[AllowMockObjectsWithoutExpectations]
 final class JwtVerifierMiddlewareUnitTest extends TestCase
 {
+    /** Canonical issuer of the `main` tenant, as AccessTokenPolicy computes it. */
+    private const string ISSUER = 'https://idp/oauth/openid/main';
+
     /**
      * Ensures JWT verification is skipped when disabled.
      */
@@ -59,7 +68,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          * Arrange: seed the cache with an error payload.
          */
         $cache = new ArrayCache([
-            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode([null, null, 'fail'])
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode(['error' => 'fail'])
         ]);
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache);
 
@@ -80,30 +89,10 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     public function testVerifyAuthUsesCachedData(): void
     {
         /*
-         * Arrange: seed the cache with serialized identity data.
+         * Arrange: seed the cache with the verified claims of the token.
          */
-        $connection = [
-            'remote' => true,
-            'startTime' => ['date' => '2024-01-01 00:00:00.000000'],
-            'application' => 'app',
-            'callback' => '/',
-            'source' => '127.0.0.1',
-            'target' => 'host',
-            'locale' => 'en'
-        ];
-        $identity = [
-            'anonymous' => false,
-            'authScope' => Identity::AUTH_SCOPE_BOTH,
-            'id' => 'user',
-            'name' => 'user',
-            'issuer' => 'issuer',
-            'roles' => ['admin'],
-            'groups' => [],
-            'tenant' => 'main',
-            'claims' => []
-        ];
         $cache = new ArrayCache([
-            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode([$connection, $identity, null])
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => $this->cachedClaimsJson()
         ]);
 
         $context = $this->createMock(Context::class);
@@ -134,7 +123,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'cookie-token';
         $cache = new ArrayCache([
-            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedClaimsJson()
         ]);
         $context = $this->createMock(Context::class);
         $context->expects($this->never())
@@ -174,7 +163,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'query-token';
         $cache = new ArrayCache([
-            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedClaimsJson()
         ]);
         $context = $this->createMock(Context::class);
         $context->expects($this->never())
@@ -266,7 +255,8 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         // Issued and cached as authenticated before EP-04: no kid, `typ: Bearer` in the payload.
         $token = $this->jwt(['sub' => 'user', 'typ' => 'Bearer', 'azp' => 'app', 'nbf' => time() - 10, 'exp' => time() + 1000], $key, null, false);
         $cache = new ArrayCache([
-            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH),
+            "verify_access_{$token}" => json_encode([[], ['id' => 'user', 'tenant' => 'main'], null]),
+            "verify_access_v2_{$token}" => json_encode([[], ['id' => 'user', 'tenant' => 'main'], null, null]),
             'jwks.verify.publickey' => json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR),
         ]);
         $context = $this->createMock(Context::class);
@@ -285,16 +275,16 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     /**
      * Runs the middleware with a signed, otherwise valid token built by $token(key, claims).
      */
-    private function authenticates(\Closure $token): bool
+    private function authenticates(\Closure $token, array $config = []): bool
     {
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
-        $claims = ['sub' => 'user', 'iss' => 'issuer', 'aud' => 'aud1', 'azp' => 'app', 'tenant' => 'main', 'nbf' => time() - 10, 'exp' => time() + 1000];
+        $claims = $this->claims();
         $cache = new ArrayCache(['jwks.verify.publickey' => json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR)]);
         $context = $this->createStub(Context::class);
-        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks', ...$config], $cache, $context);
         try {
             $middleware($this->request('Bearer ' . $token($key, $claims)), $this->handler());
             return true;
@@ -318,9 +308,10 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'sub' => 'user',
             'name' => 'User',
             'email' => 'user@example.com',
-            'iss' => 'issuer',
+            'iss' => self::ISSUER,
             'aud' => 'aud1',
             'azp' => 'app',
+            'jti' => 'jti-1',
             'nbf' => $now - 10,
             'exp' => $now + 1000,
             'tenant' => 'main',
@@ -337,7 +328,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
 
         $middleware = $this->middleware([
             'security.jwt.verify.publickey.location' => 'http://jwks',
-            'security.jwt.verify.issuer' => 'issuer',
+            'security.jwt.verify.issuer' => self::ISSUER,
             'security.jwt.verify.audiences' => 'aud1',
             'security.jwt.verify.path.roles' => 'realm_access/roles'
         ], $cache, $context);
@@ -564,48 +555,145 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
     }
 
-    /**
-     * Ensures issuer mismatches are rejected.
-     */
-    public function testVerifyTokenIssuerMismatch(): void
+    public function testRejectsTokenOfAForeignIssuer(): void
     {
-        /*
-         * Arrange: access the verifyToken method with a mismatched issuer.
-         */
-        $middleware = $this->middleware(['security.jwt.verify.issuer' => 'issuer']);
-        $method = new ReflectionMethod($middleware, 'verifyToken');
-
-        /*
-         * Act: invoke verifyToken and expect an exception.
-         */
-        $this->expectException(UnauthorizedException::class);
-        $method->invoke($middleware, (object) ['iss' => 'other']);
-
-        /*
-         * Assert: verify unauthorized exception is raised.
-         */
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'iss' => 'https://other/oauth/openid/main'], $key)));
     }
 
-    /**
-     * Ensures audience mismatches are rejected.
-     */
-    public function testVerifyTokenAudienceMismatch(): void
+    public function testRejectsTokenWithoutIssuer(): void
     {
-        /*
-         * Arrange: access the verifyToken method with a mismatched audience.
-         */
-        $middleware = $this->middleware(['security.jwt.verify.audiences' => 'aud1,aud2']);
-        $method = new ReflectionMethod($middleware, 'verifyToken');
+        $claims = $this->claims();
+        unset($claims['iss']);
+        $this->assertFalse($this->authenticates(fn ($key) => $this->jwt($claims, $key)));
+    }
 
-        /*
-         * Act: invoke verifyToken and expect an exception.
-         */
+    public function testRejectsTokenOfAnotherIssuerThanTheConfiguredOne(): void
+    {
+        $this->assertFalse($this->authenticates(
+            fn ($key, $claims) => $this->jwt($claims, $key),
+            ['security.jwt.verify.issuer' => 'https://idp/oauth/openid/other']
+        ));
+    }
+
+    public function testRejectsTokenWithoutTenantInsteadOfFallingBackToMain(): void
+    {
+        $claims = $this->claims();
+        unset($claims['tenant']);
+        $this->assertFalse($this->authenticates(fn ($key) => $this->jwt($claims, $key)));
+    }
+
+    public function testRejectsTokenOfAnotherTenantThanItsIssuer(): void
+    {
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'tenant' => 'other'], $key)));
+    }
+
+    public function testRejectsTokenWithoutAudience(): void
+    {
+        $claims = $this->claims();
+        unset($claims['aud']);
+        $this->assertFalse($this->authenticates(fn ($key) => $this->jwt($claims, $key)));
+    }
+
+    public function testRejectsTokenWithoutAnyConfiguredAudience(): void
+    {
+        $this->assertFalse($this->authenticates(
+            fn ($key, $claims) => $this->jwt([...$claims, 'aud' => 'aud3'], $key),
+            ['security.jwt.verify.audiences' => 'aud1,aud2']
+        ));
+    }
+
+    public function testAcceptsTokenWithAtLeastOneConfiguredAudience(): void
+    {
+        $this->assertTrue($this->authenticates(
+            fn ($key, $claims) => $this->jwt([...$claims, 'aud' => ['client', 'aud2']], $key),
+            ['security.jwt.verify.audiences' => 'aud1, aud2']
+        ));
+    }
+
+    public function testRejectsTokenOfAnotherAudienceWithoutConfiguredAudiences(): void
+    {
+        // Without `security.jwt.verify.audiences` the resource server is the application itself.
+        $this->assertFalse($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'aud' => ['client', 'other-api']], $key)));
+    }
+
+    public function testAcceptsTokenForTheApplicationWithoutConfiguredAudiences(): void
+    {
+        $this->assertTrue($this->authenticates(fn ($key, $claims) => $this->jwt([...$claims, 'aud' => 'app'], $key)));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function bearerSchemes(): array
+    {
+        return ['lower case' => ['bearer'], 'upper case' => ['BEARER'], 'tab separated' => ["Bearer\t"]];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('bearerSchemes')]
+    public function testVerifiesTheBearerSchemeCaseInsensitively(string $scheme): void
+    {
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], new ArrayCache([
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode(['error' => 'fail']),
+        ]));
+
         $this->expectException(UnauthorizedException::class);
-        $method->invoke($middleware, (object) ['aud' => 'aud3']);
+        $middleware($this->request(rtrim($scheme) === $scheme ? "{$scheme} token" : "{$scheme}token"), $this->handler());
+    }
 
-        /*
-         * Assert: verify unauthorized exception is raised.
-         */
+    public function testRejectsRevokedTokenAlsoWhenItsVerificationIsCached(): void
+    {
+        $revocations = $this->revocations();
+        $cache = new ArrayCache([JwtVerifierMiddleware::CACHE_PREFIX . 'token' => $this->cachedClaimsJson()]);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $this->createStub(Context::class), revocations: $revocations);
+        $middleware($this->request('Bearer token'), $this->handler());
+
+        $revocations->revokeJti('jti-1', 'main', 'access', new \DateTimeImmutable('+1 hour'));
+
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer token'), $this->handler());
+    }
+
+    public function testCachesTheVerificationForABoundedTime(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $cache = new ArrayCache(['jwks.verify.publickey' => json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR)]);
+        $token = $this->jwt([...$this->claims(), 'exp' => time() + 3600], $key);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $this->createStub(Context::class));
+
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        $this->assertLessThanOrEqual(AccessTokenPolicy::MAX_CACHE_TTL, $cache->ttl(JwtVerifierMiddleware::CACHE_PREFIX . $token));
+    }
+
+    public function testVerifiesTokensOfATenantRouteWithTheTenantKeys(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $signer = $this->createMock(TokenSigner::class);
+        $signer->expects($this->once())->method('verify')->with('tenant1', 'local-token')
+            ->willReturn([...$this->claims(), 'iss' => 'https://idp/oauth/openid/tenant1', 'tenant' => 'tenant1']);
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->never())->method('sendRequest');
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())->method('setSecurityContext');
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks', 'security.jwt.verify.audiences' => 'resource-api'], null, $context, $client, signer: $signer);
+
+        $response = $middleware($this->request('Bearer local-token', 'tenant1'), $this->handler());
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function testRejectsTokenOfAnotherTenantOnATenantRoute(): void
+    {
+        $signer = $this->createStub(TokenSigner::class);
+        // A tenant2 route only verifies with tenant2 keys: a token of tenant1 does not verify.
+        $signer->method('verify')->willReturnCallback(fn (string $tenant) => $tenant === 'tenant1' ? $this->claims() : null);
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], signer: $signer);
+
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer local-token', 'tenant2'), $this->handler());
     }
 
     /**
@@ -669,7 +757,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $token = 'cachedmagictoken';
         $cache = new ArrayCache([
-            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH)
+            JwtVerifierMiddleware::CACHE_PREFIX . $token => $this->cachedClaimsJson()
         ]);
 
         $magicLinkService = $this->createMock(MagicLinkService::class);
@@ -974,9 +1062,10 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'sub' => 'user',
             'name' => 'User',
             'email' => 'user@example.com',
-            'iss' => 'issuer',
+            'iss' => self::ISSUER,
             'aud' => 'aud1',
             'azp' => 'app',
+            'jti' => 'jti-1',
             'nbf' => $now - 10,
             'exp' => $now + 1000,
             'tenant' => 'main',
@@ -996,7 +1085,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
 
         $middleware = $this->middleware([
             'security.jwt.verify.publickey.location' => 'http://jwks',
-            'security.jwt.verify.issuer' => 'issuer',
+            'security.jwt.verify.issuer' => self::ISSUER,
             'security.jwt.verify.audiences' => 'aud1',
         ], $cache, $context, $client);
 
@@ -1183,8 +1272,15 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $this->assertSame(['admin', 'user'], $result);
     }
 
-    private function middleware(array $configOverrides = [], ?CacheInterface $cache = null, ?Context $context = null, ?ClientInterface $client = null, ?MagicLinkService $magicLinkService = null): JwtVerifierMiddleware
-    {
+    private function middleware(
+        array $configOverrides = [],
+        ?CacheInterface $cache = null,
+        ?Context $context = null,
+        ?ClientInterface $client = null,
+        ?MagicLinkService $magicLinkService = null,
+        ?TokenRevocationGateway $revocations = null,
+        ?TokenSigner $signer = null,
+    ): JwtVerifierMiddleware {
         $config = new class ($configOverrides) extends AppConfig {
             public function __construct(private readonly array $overrides)
             {
@@ -1208,12 +1304,70 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $client = $client ?? $this->createMock(ClientInterface::class);
         $magicLinkService = $magicLinkService ?? $this->createMock(MagicLinkService::class);
 
-        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService);
+        $issuers = $this->createStub(Context::class);
+        $issuers->method('getIssuer')->willReturnCallback(fn (string $tenant): string => 'https://idp/oauth/openid/' . $tenant);
+        $policy = new AccessTokenPolicy(
+            $signer ?? $this->createStub(TokenSigner::class),
+            $revocations ?? $this->revocations(),
+            $this->createStub(TenantQueryRepositoryGateway::class),
+            $issuers,
+            $cache,
+        );
+
+        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService, $policy);
     }
 
-    private function request(string $authorization): ServerRequestInterface
+    /** @return array<string, mixed> claims of a valid access token of the `main` tenant */
+    private function claims(): array
     {
+        return ['sub' => 'user', 'iss' => self::ISSUER, 'aud' => ['client', 'app'], 'azp' => 'client', 'tenant' => 'main', 'jti' => 'jti-1', 'nbf' => time() - 10, 'exp' => time() + 1000];
+    }
+
+    private function revocations(): TokenRevocationGateway
+    {
+        return new class () implements TokenRevocationGateway {
+            /** @var array<string, true> */
+            private array $revoked = [];
+
+            public function revokeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): void
+            {
+                $this->revoked["{$tenantId}:{$jti}"] = true;
+            }
+
+            public function isRevoked(string $jti, string $tenantId): bool
+            {
+                return isset($this->revoked["{$tenantId}:{$jti}"]);
+            }
+
+            public function consumeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): bool
+            {
+                return true;
+            }
+
+            public function revokeFamily(string $familyId, string $tenantId, \DateTimeImmutable $expiresAt): void
+            {
+            }
+
+            public function isFamilyRevoked(string $familyId, string $tenantId): bool
+            {
+                return false;
+            }
+
+            public function cleanup(): void
+            {
+            }
+        };
+    }
+
+    private function request(string $authorization, ?string $routeTenant = null): ServerRequestInterface
+    {
+        $route = null;
+        if ($routeTenant !== null) {
+            $route = $this->createStub(RouteInterface::class);
+            $route->method('getArgument')->willReturnMap([['tenant', null, $routeTenant]]);
+        }
         $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getAttribute')->willReturnCallback(fn (string $name) => $name === RouteContext::ROUTE ? $route : null);
         $request->method('getHeader')->willReturn([$authorization]);
         $request->method('getMethod')->willReturn('GET');
         return $request;
@@ -1248,30 +1402,9 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         return (new CompactSerializer())->serialize($jws, 0);
     }
 
-    private function cachedIdentityJson(string $scope): string
+    private function cachedClaimsJson(): string
     {
-        $connection = [
-            'remote' => true,
-            'startTime' => ['date' => '2024-01-01 00:00:00.000000'],
-            'application' => 'app',
-            'callback' => '/',
-            'source' => '127.0.0.1',
-            'target' => 'host',
-            'locale' => 'en'
-        ];
-        $identity = [
-            'anonymous' => false,
-            'authScope' => $scope,
-            'id' => 'user',
-            'name' => 'user',
-            'issuer' => 'issuer',
-            'roles' => ['admin'],
-            'groups' => [],
-            'tenant' => 'main',
-            'claims' => []
-        ];
-
-        return json_encode([$connection, $identity, null]);
+        return json_encode(['claims' => $this->claims()]);
     }
 
     private function stream(string $contents): \Psr\Http\Message\StreamInterface
@@ -1296,10 +1429,19 @@ final class ArrayCache implements CacheInterface
         return $this->values[$key] ?? $default;
     }
 
+    /** @var array<string, null|int|DateInterval> TTL of each value, as it was set. */
+    private array $ttls = [];
+
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $this->values[$key] = $value;
+        $this->ttls[$key] = $ttl;
         return true;
+    }
+
+    public function ttl(string $key): null|int|DateInterval
+    {
+        return $this->ttls[$key] ?? null;
     }
 
     public function delete(string $key): bool

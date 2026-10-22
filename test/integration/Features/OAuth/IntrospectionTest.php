@@ -27,6 +27,7 @@ class IntrospectionTest extends OidcIntegrationTestCase
             'sub' => $sub,
             'azp' => self::CLIENT_ID,
             'iss' => 'http://localhost/oauth/openid/' . self::TENANT,
+            'aud' => self::CLIENT_ID,
             'tenant' => self::TENANT,
             'scope' => $scope,
             'roles' => [],
@@ -87,6 +88,52 @@ class IntrospectionTest extends OidcIntegrationTestCase
 
         $body = $this->decodeJson($response);
         $this->assertFalse($body['active']);
+    }
+
+    public function testTokenRevokedAfterACachedValidationIsInactive(): void
+    {
+        $token = $this->issueAccessToken();
+        $this->assertTrue($this->decodeJson($this->introspect($token))['active']);
+        $jti = $this->signer->verify(self::TENANT, $token, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy::expecting(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access))['jti'];
+
+        $this->tokenRevocation->revokeJti($jti, self::TENANT, 'access', new \DateTimeImmutable('+10 minutes'));
+
+        $this->assertFalse($this->decodeJson($this->introspect($token))['active']);
+    }
+
+    /** @return array<string, array{\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType}> */
+    public static function otherTokenTypes(): array
+    {
+        return [
+            'id token' => [\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Id],
+            'refresh token' => [\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Refresh],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('otherTokenTypes')]
+    public function testOtherTokenTypesAreInactive(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType $type): void
+    {
+        $token = $this->signer->sign($type, [
+            'sub' => self::USER_ID,
+            'azp' => self::CLIENT_ID,
+            'aud' => self::CLIENT_ID,
+            'iss' => 'http://localhost/oauth/openid/' . self::TENANT,
+            'tenant' => self::TENANT,
+        ], self::TENANT, new \DateInterval('PT10M'));
+
+        $this->assertFalse($this->decodeJson($this->introspect($token))['active']);
+    }
+
+    public function testTokenWithoutTenantIsInactive(): void
+    {
+        $token = $this->signer->sign(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType::Access, [
+            'sub' => self::USER_ID,
+            'azp' => self::CLIENT_ID,
+            'aud' => self::CLIENT_ID,
+            'iss' => 'http://localhost/oauth/openid/' . self::TENANT,
+        ], self::TENANT, new \DateInterval('PT10M'));
+
+        $this->assertFalse($this->decodeJson($this->introspect($token))['active']);
     }
 
     public function testInvalidTokenIsInactive(): void

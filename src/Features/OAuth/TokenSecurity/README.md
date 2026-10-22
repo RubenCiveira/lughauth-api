@@ -43,6 +43,7 @@ This context is the **cryptographic backbone** of the authorization server. It o
 
 ### Application
 
+- **`AccessTokenPolicy`** — The single verifier of bearer access tokens, used by `JwtVerifierMiddleware`, UserInfo and introspection: signature and `at+jwt` purpose (with the tenant's own keys), canonical issuer of the consuming tenant, `aud` present and holding at least one accepted audience, `tenant` claim of that tenant (name or uid, never a `main` default) and `jti` not revoked. Only the verified claims are cached (≤ 300 s); issuer, audience, tenant, expiry and revocation are checked on every request.
 - **`KeyRotationService`** — Provisions and rotates every tenant's keys from the scheduler (`rotateAll`, every 15 minutes) and when a tenant is created (`ProvisionTenantKeys` listener). It also implements `SigningKeyProvisioner`, the signer's fallback.
 
 ## Key Rotation Policy
@@ -56,7 +57,7 @@ This context is the **cryptographic backbone** of the authorization server. It o
 
 - Only the **active key** signs new tokens; a token verifies only against the published key named by its `kid`.
 - Each consumer states the token purposes it accepts; a valid token of another purpose is rejected.
-- A revoked token is rejected even if the signature is valid.
+- A revoked token is rejected even if the signature is valid, also when its verification is cached.
 - The `kid` header in every JWT allows verifiers to select the correct public key from the JWKS.
 - Private keys are **never exposed** outside this context.
 
