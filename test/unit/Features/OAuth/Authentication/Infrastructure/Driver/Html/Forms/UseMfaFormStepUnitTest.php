@@ -47,4 +47,40 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
         $this->assertSame($authResponse, $result->authResponse);
         $this->assertSame($input->challenges, $result->challenges);
     }
+
+    public static function languages(): array
+    {
+        return [
+            'ui_locales chooses English' => [['ui_locales' => 'en'], 'es-ES,es;q=0.9', 'en', 'Second factor'],
+            'ui_locales chooses Spanish' => [['ui_locales' => 'es'], 'en-US', 'es', 'Segundo factor'],
+            'Accept-Language is the fallback' => [['ui_locales' => 'fr'], 'en-GB,en;q=0.8', 'en', 'Second factor'],
+            'default without preference' => [[], '', 'es', 'Segundo factor'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('languages')]
+    public function testRenderUsesTheNegotiatedLanguage(array $query, string $acceptLanguage, string $locale, string $title): void
+    {
+        $page = null;
+        $pageLocale = null;
+        $decorator = $this->createMock(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(
+            function ($request, string $pageTitle, string $content, string $usedLocale) use (&$page, &$pageLocale): string {
+                [$page, $pageLocale] = [$content, $usedLocale];
+                return $content;
+            }
+        );
+        $form = new UseMfaForm(
+            new MessageProvider(new \Civi\Lughauth\Shared\AppConfig()),
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(PublicMfa::class),
+            $decorator,
+            $this->createMock(HtmlSecurer::class)
+        );
+
+        $form->render($this->buildInput([], new ChallengesState(), $query, $acceptLanguage), new \Slim\Psr7\Response(), null);
+
+        $this->assertSame($locale, $pageLocale);
+        $this->assertStringContainsString("<h1>{$title}</h1>", (string) $page);
+    }
 }

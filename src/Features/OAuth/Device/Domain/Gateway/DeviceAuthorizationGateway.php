@@ -63,4 +63,9 @@ interface DeviceAuthorizationGateway
      * Once consumed the device code can no longer be used in any subsequent requests.
      */
     public function consume(string $deviceCode): void;
+
+    /**
+     * Deletes the device authorizations whose expiry is in the past (OAuthCleanupScheduler).
+     */
+    public function purgeExpired(): void;
 }

@@ -27,18 +27,25 @@ class InMemoryParRequestStore implements ParRequestGateway
         return $entry;
     }
 
-    public function markUsed(string $requestUri, string $tenant): void
+    public function consume(string $requestUri, string $tenant): bool
     {
-        $entry = $this->requests[$requestUri] ?? null;
-        if ($entry !== null && $entry->tenant === $tenant) {
-            $this->requests[$requestUri] = new ParRequest(
-                requestUri: $entry->requestUri,
-                tenant: $entry->tenant,
-                clientId: $entry->clientId,
-                params: $entry->params,
-                expiresAt: $entry->expiresAt,
-                usedAt: new \DateTimeImmutable(),
-            );
+        $entry = $this->findByUri($requestUri, $tenant);
+        if ($entry === null || $entry->isUsed() || $entry->isExpired()) {
+            return false;
         }
+        $this->requests[$requestUri] = new ParRequest(
+            requestUri: $entry->requestUri,
+            tenant: $entry->tenant,
+            clientId: $entry->clientId,
+            params: $entry->params,
+            expiresAt: $entry->expiresAt,
+            usedAt: new \DateTimeImmutable(),
+        );
+        return true;
+    }
+
+    public function purgeExpired(): void
+    {
+        $this->requests = array_filter($this->requests, static fn (ParRequest $request): bool => !$request->isExpired());
     }
 }

@@ -61,7 +61,7 @@ class WebAuthnLoginForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $step = StepName::WEBAUTHN_LOGIN->value;
         $backStep = StepName::LOGIN->value;
@@ -150,7 +150,7 @@ class WebAuthnLoginForm implements StepForm
 
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
-            'WebAuthn Login',
+            $title,
             $js . <<<HTML
                 <h1>{$title}</h1>
                 <p>{$help}</p>

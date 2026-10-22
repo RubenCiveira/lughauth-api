@@ -22,4 +22,6 @@ enum TokenType: string
     case Logout = 'logout+jwt';
     /** Internal token carrying login challenges between redirects; only `signKeypass` emits it. */
     case PreSession = 'presession+jwt';
+    /** Internal token carrying a resolved PAR or JAR request between the steps of /authorize. */
+    case AuthorizationRequest = 'authz-request+jwt';
 }

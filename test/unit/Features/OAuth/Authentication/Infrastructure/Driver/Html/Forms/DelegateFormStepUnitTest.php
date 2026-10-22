@@ -41,7 +41,8 @@ final class DelegateFormStepUnitTest extends FormsTestCase
             $delegated,
             $authenticator,
             $this->createMock(DecorateHtml::class),
-            $this->createMock(HtmlSecurer::class)
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(\Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider::class)
         );
 
         $result = $form->authenticate($input);

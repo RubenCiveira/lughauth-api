@@ -53,7 +53,7 @@ class ParController
                         new OA\Property(property: 'state', type: 'string'),
                         new OA\Property(property: 'nonce', type: 'string'),
                         new OA\Property(property: 'code_challenge', type: 'string'),
-                        new OA\Property(property: 'code_challenge_method', type: 'string', enum: ['S256', 'plain']),
+                        new OA\Property(property: 'code_challenge_method', type: 'string', enum: ['S256']),
                     ]
                 )
             )

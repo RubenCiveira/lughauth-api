@@ -14,9 +14,9 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
  * SQL-backed implementation of the ParRequestGateway port using PDO.
  *
  * Persists PAR request aggregates in the _oauth_par_request table with the authorization
- * parameters stored as a JSON blob. On construction expired records are purged proactively
- * to prevent unbounded table growth; this is a best-effort cleanup and does not affect
- * correctness. All queries include the tenant_id column to ensure strict tenant isolation.
+ * parameters stored as a JSON blob. Expired records are purged by OAuthCleanupScheduler
+ * after the response; this cleanup does not affect correctness, since consume and the use case
+ * reject expired requests. All queries include the tenant_id column to ensure strict tenant isolation.
  * The mapRow() helper reconstructs a fully-typed ParRequest value object from a database row,
  * decoding the JSON params and normalising the nullable usedAt field.
  */
@@ -24,7 +24,6 @@ final class ParRequestSqlAdapter implements ParRequestGateway
 {
     public function __construct(private readonly PDO $pdo)
     {
-        $this->purgeExpired();
     }
 
     /**
@@ -71,18 +70,23 @@ final class ParRequestSqlAdapter implements ParRequestGateway
 
     /**
      * Stamps the used_at column with the current timestamp to mark the request as consumed.
-     * The tenant_id is included in the WHERE clause to prevent cross-tenant modifications.
+     * The WHERE clause only matches an unused, unexpired request of the tenant, so the UPDATE is
+     * the check itself: of two concurrent resolutions only one changes the row.
      */
     #[Override]
-    public function markUsed(string $requestUri, string $tenant): void
+    public function consume(string $requestUri, string $tenant): bool
     {
+        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $stmt = $this->pdo->prepare(
-            'UPDATE _oauth_par_request SET used_at = :used_at WHERE request_uri = :request_uri AND tenant_id = :tenant_id'
+            'UPDATE _oauth_par_request SET used_at = :used_at
+             WHERE request_uri = :request_uri AND tenant_id = :tenant_id AND used_at IS NULL AND expires_at >= :now'
         );
-        $stmt->bindValue('used_at', (new \DateTimeImmutable())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue('used_at', $now, PDO::PARAM_STR);
         $stmt->bindValue('request_uri', $requestUri, PDO::PARAM_STR);
         $stmt->bindValue('tenant_id', $tenant, PDO::PARAM_STR);
+        $stmt->bindValue('now', $now, PDO::PARAM_STR);
         $stmt->execute();
+        return $stmt->rowCount() === 1;
     }
 
     private function mapRow(array $row): ParRequest
@@ -104,7 +108,8 @@ final class ParRequestSqlAdapter implements ParRequestGateway
         );
     }
 
-    private function purgeExpired(): void
+    #[Override]
+    public function purgeExpired(): void
     {
         $stmt = $this->pdo->prepare(
             'DELETE FROM _oauth_par_request WHERE expires_at < :now'

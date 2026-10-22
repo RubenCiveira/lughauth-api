@@ -56,7 +56,7 @@ class NewMfaForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $challenges = $input->challenges;
 
@@ -92,7 +92,7 @@ class NewMfaForm implements StepForm
         $backStep = StepName::LOGIN->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
-            'New mfa',
+            $title,
             $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>

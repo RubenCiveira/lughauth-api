@@ -14,8 +14,8 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
  * authentication ceremony and consumed exactly once when the ceremony completes.
  * Implementations are responsible for tenant-scoped isolation — challenge IDs
  * are unique per tenant, not globally — and must support the full lifecycle:
- * create, look up, mark as verified, and purge expired entries. Purging should
- * be triggered opportunistically (e.g. on construction or on a schedule) to
+ * create, look up, mark as verified, and purge expired entries. Purging is
+ * triggered by OAuthCleanupScheduler after the response of each request, to
  * prevent unbounded growth of the challenge store.
  */
 interface WebAuthnChallengeGateway

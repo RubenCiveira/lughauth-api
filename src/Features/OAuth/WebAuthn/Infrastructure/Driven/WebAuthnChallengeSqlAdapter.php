@@ -16,9 +16,8 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGatewa
  *
  * Persists WebAuthn ceremony challenges to the `_oauth_webauthn_challenge` table,
  * providing tenant-scoped storage with full lifecycle support: creation, lookup,
- * verification marking, and expiry purging. On construction the adapter immediately
- * purges any already-expired rows so that the table stays lean without requiring a
- * separate cron job. All datetime values are stored as "Y-m-d H:i:s" strings in UTC;
+ * verification marking, and expiry purging (run by OAuthCleanupScheduler after the
+ * response; expiry itself is enforced by WebAuthnChallenge::isExpired). All datetime values are stored as "Y-m-d H:i:s" strings in UTC;
  * callers must ensure their database session timezone is set to UTC accordingly.
  * The mapRow helper reconstructs immutable WebAuthnChallenge value objects from
  * raw PDO result rows, keeping persistence concerns fully encapsulated in this class.
@@ -27,7 +26,6 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
 {
     public function __construct(private readonly PDO $pdo)
     {
-        $this->purgeExpired();
     }
 
     /**
@@ -101,7 +99,7 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
 
     /**
      * Deletes all challenge rows whose expires_at timestamp is before the current time.
-     * Called automatically on construction and may also be invoked explicitly for housekeeping.
+     * Called by OAuthCleanupScheduler after the response.
      */
     #[Override]
     public function purgeExpired(): void

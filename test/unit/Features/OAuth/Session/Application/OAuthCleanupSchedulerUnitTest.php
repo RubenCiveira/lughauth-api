@@ -7,8 +7,16 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\OAuth\Session\Application\OAuthCleanupScheduler;
 use Civi\Lughauth\Features\OAuth\Session\Application\CleanupResult;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
+use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway;
+use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
+use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 final class OAuthCleanupSchedulerUnitTest extends TestCase
 {
@@ -17,8 +25,9 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
         $sessions = $this->makeSessionStore(purgeExpired: fn () => null);
         $revocations = $this->makeRevocationGateway(cleanup: fn () => null);
         $challenges = $this->makeChallengeGateway(purgeExpired: fn () => null);
+        $replays = $this->makeReplayGateway(purgeExpired: fn () => null);
 
-        $scheduler = new OAuthCleanupScheduler($sessions, $revocations, $challenges);
+        $scheduler = $this->scheduler($sessions, $revocations, $challenges, $replays);
         $result = $scheduler->run();
 
         $this->assertInstanceOf(CleanupResult::class, $result);
@@ -32,8 +41,9 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
         $sessions = $this->makeSessionStore(purgeExpired: fn () => throw new \RuntimeException('db down'));
         $revocations = $this->makeRevocationGateway(cleanup: fn () => null);
         $challenges = $this->makeChallengeGateway(purgeExpired: fn () => throw new \RuntimeException('redis down'));
+        $replays = $this->makeReplayGateway(purgeExpired: fn () => throw new \RuntimeException('lock timeout'));
 
-        $scheduler = new OAuthCleanupScheduler($sessions, $revocations, $challenges);
+        $scheduler = $this->scheduler($sessions, $revocations, $challenges, $replays);
         $result = $scheduler->run();
 
         $this->assertFalse($result->succeeded());
@@ -41,6 +51,94 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
         $this->assertArrayHasKey('webauthn_challenges', $result->errors);
         $this->assertSame('db down', $result->errors['sessions']);
         $this->assertSame('redis down', $result->errors['webauthn_challenges']);
+        $this->assertSame('lock timeout', $result->errors['replay_jtis']);
+    }
+
+    public function test_run_if_due_runs_once_per_interval(): void
+    {
+        $runs = 0;
+        $cache = new Psr16Cache(new ArrayAdapter());
+        $scheduler = $this->scheduler(
+            $this->makeSessionStore(purgeExpired: function () use (&$runs): void {
+                $runs++;
+            }),
+            $this->makeRevocationGateway(cleanup: fn () => null),
+            $this->makeChallengeGateway(purgeExpired: fn () => null),
+            $this->makeReplayGateway(purgeExpired: fn () => null),
+            $cache,
+        );
+
+        $this->assertInstanceOf(CleanupResult::class, $scheduler->runIfDue());
+        $this->assertNull($scheduler->runIfDue(), 'A second request within the interval must not purge again');
+        $this->assertSame(1, $runs);
+
+        $cache->clear();
+        $scheduler->runIfDue();
+        $this->assertSame(2, $runs, 'Once the interval has elapsed the next request purges again');
+    }
+
+    public function test_run_skips_stores_whose_table_does_not_exist_yet(): void
+    {
+        $missingTable = new class ('Base table or view not found') extends \PDOException {
+            public function __construct(string $message)
+            {
+                parent::__construct($message);
+                $this->code = '42S02';
+            }
+        };
+        $scheduler = $this->scheduler(
+            $this->makeSessionStore(purgeExpired: fn () => throw $missingTable),
+            $this->makeRevocationGateway(cleanup: fn () => throw new \PDOException('Deadlock found')),
+            $this->makeChallengeGateway(purgeExpired: fn () => null),
+            $this->makeReplayGateway(purgeExpired: fn () => null),
+        );
+
+        $result = $scheduler->run();
+
+        $this->assertArrayNotHasKey('sessions', $result->errors, 'A table not migrated yet holds nothing to purge');
+        $this->assertSame(['token_revocations' => 'Deadlock found'], $result->errors);
+    }
+
+    public function test_run_purges_pushed_requests_device_codes_and_authorization_codes(): void
+    {
+        $par = $this->createMock(ParRequestGateway::class);
+        $par->expects($this->once())->method('purgeExpired');
+        $device = $this->createMock(DeviceAuthorizationGateway::class);
+        $device->expects($this->once())->method('purgeExpired');
+        $codes = $this->createMock(TemporalKeysGateway::class);
+        $codes->expects($this->once())->method('purgeExpiredCodes');
+
+        $scheduler = new OAuthCleanupScheduler(
+            $this->makeSessionStore(purgeExpired: fn () => null),
+            $this->makeRevocationGateway(cleanup: fn () => null),
+            $this->makeChallengeGateway(purgeExpired: fn () => null),
+            $this->makeReplayGateway(purgeExpired: fn () => null),
+            $par,
+            $device,
+            $codes,
+            new Psr16Cache(new ArrayAdapter()),
+        );
+
+        $this->assertTrue($scheduler->run()->succeeded());
+    }
+
+    private function scheduler(
+        SessionStoreGateway $sessions,
+        TokenRevocationGateway $revocations,
+        WebAuthnChallengeGateway $challenges,
+        ReplayJtiGateway $replays,
+        ?CacheInterface $cache = null,
+    ): OAuthCleanupScheduler {
+        return new OAuthCleanupScheduler(
+            $sessions,
+            $revocations,
+            $challenges,
+            $replays,
+            $this->createStub(ParRequestGateway::class),
+            $this->createStub(DeviceAuthorizationGateway::class),
+            $this->createStub(TemporalKeysGateway::class),
+            $cache ?? new Psr16Cache(new ArrayAdapter()),
+        );
     }
 
     public function test_cleanup_result_succeeded_false_when_errors(): void
@@ -126,6 +224,26 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
             public function cleanup(): void
             {
                 ($this->clean)();
+            }
+        };
+    }
+
+    private function makeReplayGateway(callable $purgeExpired): ReplayJtiGateway
+    {
+        return new class ($purgeExpired) implements ReplayJtiGateway {
+            public function __construct(private $purge)
+            {
+            }
+            public function consume(string $tenant, string $clientId, ReplayPurpose $purpose, string $jti, \DateTimeImmutable $expiresAt): bool
+            {
+                return true;
+            }
+            public function release(string $tenant, string $clientId, ReplayPurpose $purpose, string $jti): void
+            {
+            }
+            public function purgeExpired(): void
+            {
+                ($this->purge)();
             }
         };
     }

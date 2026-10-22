@@ -477,6 +477,9 @@ final class DeviceDomainUnitTest extends TestCase
             public function consume(string $c): void
             {
             }
+            public function purgeExpired(): void
+            {
+            }
         };
     }
 }

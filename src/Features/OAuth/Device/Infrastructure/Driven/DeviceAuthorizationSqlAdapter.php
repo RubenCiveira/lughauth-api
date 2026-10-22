@@ -19,8 +19,8 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
  * All state transitions (create, approve, deny, touchPoll, consume) are executed via prepared
  * PDO statements against a single flat table. The AuthenticationResult associated with an
  * approved authorization is serialised as a JSON blob in the auth_data column so it can be
- * reconstructed on the next token endpoint poll. Expired records are purged automatically
- * in the constructor to prevent the table from growing unboundedly between explicit cleanups.
+ * reconstructed on the next token endpoint poll. Expired records are purged by
+ * OAuthCleanupScheduler after the response; DeviceAuthorization::isExpired guards reads.
  * The adapter serialises DateTimeImmutable values to MySQL-compatible datetime strings and
  * deserialises them back on read, keeping the domain objects storage-agnostic.
  */
@@ -28,7 +28,6 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
 {
     public function __construct(private readonly PDO $pdo)
     {
-        $this->purgeExpired();
     }
 
     #[Override]
@@ -141,7 +140,8 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         $stmt->execute();
     }
 
-    private function purgeExpired(): void
+    #[Override]
+    public function purgeExpired(): void
     {
         $now = new DateTimeImmutable();
         $stmt = $this->pdo->prepare('DELETE FROM _oauth_device_codes WHERE expires_at < :now');

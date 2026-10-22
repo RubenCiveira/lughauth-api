@@ -58,4 +58,10 @@ interface TemporalKeysGateway
      * @param Closure(TemporalAuthCode): void $validate
      */
     public function consumeTemporalAuthCode(string $code, Closure $validate): ?TemporalAuthCode;
+
+    /**
+     * Deletes the authorization codes whose TTL has elapsed (OAuthCleanupScheduler); an expired
+     * code is already rejected by consumeTemporalAuthCode.
+     */
+    public function purgeExpiredCodes(): void;
 }

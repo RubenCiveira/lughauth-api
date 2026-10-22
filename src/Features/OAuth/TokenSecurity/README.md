@@ -12,7 +12,8 @@ This context is the **cryptographic backbone** of the authorization server. It o
 |---|---|---|
 | `KeyPair` | Entity | An RSA key pair (private + public) with its `kid`, validity period, and active flag |
 | `KeyConfig` | ValueObject | Rotation policy: `ttl = 7 days`, `futures = 3` (future keys kept published), `retention = 30 days` (how long retired keys stay published) |
-| `TokenType` | Enum | Purpose of a JWT, written as its `typ` header: `at+jwt`, `JWT` (ID), `refresh+jwt`, `logout+jwt`, `presession+jwt` |
+| `TokenType` | Enum | Purpose of a JWT, written as its `typ` header: `at+jwt`, `JWT` (ID), `refresh+jwt`, `logout+jwt`, `presession+jwt`, `authz-request+jwt` (reference to a PAR/JAR request between login steps) |
+| `ReplayPurpose` | Enum | Use of a one-time JWT whose `jti` is recorded: `client_assertion`, `request_object`, `dpop`, `jwt_bearer`, `authorization_request` (a `request_ref` that completed its authorization) |
 | `VerificationPolicy` | ValueObject | Purposes a consumer accepts and whether `nbf`/`exp` are enforced |
 
 ## Ports (Gateways)
@@ -24,6 +25,7 @@ This context is the **cryptographic backbone** of the authorization server. It o
 | `KeyPairGenerator` | Generate new RSA key pairs (only used by key rotation) |
 | `SigningKeyProvisioner` | Fallback used by the signer when the scheduled rotation fell behind |
 | `TokenRevocationGateway` | Add a token to the revocation blacklist; check whether a token is revoked |
+| `ReplayJtiGateway` | Record the `jti` of a one-time JWT per tenant, client and purpose; reports a replay when it was already recorded; `release` reopens a `jti` whose guarded operation failed (`_oauth_replay_jti`, purged by `OAuthCleanupScheduler`) |
 
 ## Infrastructure
 
@@ -33,6 +35,7 @@ This context is the **cryptographic backbone** of the authorization server. It o
 - **`TokenStoreSqlAdapter`** — SQL persistence of signing keys (`_oauth_keys_storer`).
 - **`OpenSslKeyPairGenerator`** — RSA-4096 key pairs via the openssl extension.
 - **`TokenRevocationSqlAdapter`** — SQL-backed revocation blacklist.
+- **`ReplayJtiSqlAdapter`** — SQL anti-replay store; the primary key `(tenant_id, client_id, purpose, jti)` makes `INSERT IGNORE` the atomic check.
 
 ### Driver (Inbound Adapters)
 

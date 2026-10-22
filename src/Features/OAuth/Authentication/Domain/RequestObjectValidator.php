@@ -5,9 +5,10 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
@@ -21,28 +22,36 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
  * Validates a JAR (JWT-Secured Authorization Request) object per RFC 9101.
  *
  * Verifies the signature of the request JWT using the client's public keys, which are
- * either embedded directly as a JSON Web Key Set in the client configuration or fetched
- * from the client's registered jwks_uri endpoint. Supported signing algorithms are RS256,
- * ES256, and PS256; unsigned ("alg":"none") request objects are rejected unconditionally.
+ * either embedded directly as a JSON Web Key Set in the client configuration or downloaded
+ * from the client's registered jwks_uri through RemoteJwksFetcher. Supported signing algorithms
+ * are RS256, ES256, and PS256; unsigned ("alg":"none") request objects are rejected unconditionally.
  *
- * After successful signature verification, the method additionally confirms that the
- * client_id claim inside the JWT matches the registered client to prevent substitution
- * attacks. Throws InvalidArgumentException with the error code "invalid_request_object"
- * for any validation failure, which the authorization endpoint maps to an OAuth error response.
+ * After successful signature verification the claims must bind the object to this client and
+ * this tenant (client_id and iss equal to the client, aud naming the tenant issuer) and to a
+ * short time window (exp required, nbf and iat not in the future). Finally its jti is consumed
+ * in the replay store, so the same object cannot be presented twice. Throws
+ * InvalidArgumentException with the error code "invalid_request_object" for any validation
+ * failure, which the authorization endpoint maps to an OAuth error response.
  */
 final class RequestObjectValidator
 {
+    /** Clock skew tolerated between the client and this server. */
+    private const int LEEWAY_SECONDS = 30;
+    /** Longest lifetime accepted, which also bounds how long a jti is kept. */
+    private const int MAX_LIFETIME_SECONDS = 3600;
+
     public function __construct(
-        private readonly ClientInterface $http,
-        private readonly RequestFactoryInterface $requestFactory,
+        private readonly RemoteJwksFetcher $jwks,
+        private readonly ReplayJtiGateway $replays,
     ) {
     }
 
     /**
-     * Verifies the request JWT signature and returns the decoded payload claims as an array.
+     * Verifies the request JWT and returns the decoded payload claims as an array.
+     * The issuer is the canonical tenant issuer the object must be addressed to (aud).
      * Throws InvalidArgumentException with code "invalid_request_object" on any validation failure.
      */
-    public function validate(string $requestJwt, ClientData $client): array
+    public function validate(string $requestJwt, ClientData $client, string $tenant, string $issuer): array
     {
         $header = $this->parseHeader($requestJwt);
         $alg = (string) ($header['alg'] ?? '');
@@ -54,15 +63,47 @@ final class RequestObjectValidator
             throw new \InvalidArgumentException('invalid_request_object');
         }
 
-        $payload = $this->verifySignature($requestJwt, $this->fetchClientJwks($client), $alg);
-        if (($payload['client_id'] ?? null) !== $client->id) {
+        $payload = $this->verifySignature($requestJwt, $this->clientJwks($client, $tenant), $alg);
+        if (($payload['client_id'] ?? null) !== $client->id || ($payload['iss'] ?? null) !== $client->id) {
+            throw new \InvalidArgumentException('invalid_request_object');
+        }
+        $audiences = (array) ($payload['aud'] ?? []);
+        if (!in_array($issuer, $audiences, true)) {
+            throw new \InvalidArgumentException('invalid_request_object');
+        }
+        $expiresAt = $this->checkTimes($payload);
+
+        $jti = $payload['jti'] ?? null;
+        if (!is_string($jti) || $jti === ''
+            || !$this->replays->consume($tenant, $client->id, ReplayPurpose::RequestObject, $jti, $expiresAt)
+        ) {
             throw new \InvalidArgumentException('invalid_request_object');
         }
 
         return $payload;
     }
 
-    private function fetchClientJwks(ClientData $client): JWKSet
+    /**
+     * Requires exp within the accepted lifetime and nbf/iat not in the future. Returns how long the
+     * jti must be kept: while the object is still accepted, that is exp plus the leeway.
+     */
+    private function checkTimes(array $payload): \DateTimeImmutable
+    {
+        $now = time();
+        $exp = $payload['exp'] ?? null;
+        if (!is_int($exp) || $exp <= $now - self::LEEWAY_SECONDS || $exp > $now + self::MAX_LIFETIME_SECONDS) {
+            throw new \InvalidArgumentException('invalid_request_object');
+        }
+        foreach (['nbf', 'iat'] as $claim) {
+            $value = $payload[$claim] ?? null;
+            if ($value !== null && (!is_int($value) || $value > $now + self::LEEWAY_SECONDS)) {
+                throw new \InvalidArgumentException('invalid_request_object');
+            }
+        }
+        return (new \DateTimeImmutable())->setTimestamp($exp + self::LEEWAY_SECONDS);
+    }
+
+    private function clientJwks(ClientData $client, string $tenant): JWKSet
     {
         if ($client->jwksJson !== null && $client->jwksJson !== '') {
             $decoded = json_decode($client->jwksJson, true);
@@ -76,15 +117,11 @@ final class RequestObjectValidator
             throw new \InvalidArgumentException('invalid_request_object');
         }
 
-        $request = $this->requestFactory->createRequest('GET', $client->jwksUri);
-        $response = $this->http->sendRequest($request);
-        $body = (string) $response->getBody();
-        $decoded = json_decode($body, true);
-        if (!is_array($decoded)) {
+        try {
+            return $this->jwkSetFromArray($this->jwks->fetch($tenant, $client->id, $client->jwksUri));
+        } catch (\InvalidArgumentException) {
             throw new \InvalidArgumentException('invalid_request_object');
         }
-
-        return $this->jwkSetFromArray($decoded);
     }
 
     private function verifySignature(string $jwt, JWKSet $jwks, string $alg): array

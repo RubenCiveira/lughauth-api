@@ -238,7 +238,8 @@ class TokenEndpointTest extends OidcIntegrationTestCase
 
     public function testAuthorizationCodeWithPkceMissingVerifierReturns400(): void
     {
-        $challenge = rtrim(strtr(base64_encode(hash('sha256', 'some-verifier', true)), '+/', '-_'), '=');
+        $verifier = bin2hex(random_bytes(32));
+        $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
 
         $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
@@ -267,13 +268,14 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $body = $this->decodeJson($response);
         $this->assertSame('invalid_request', $body['error']);
 
-        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => 'some-verifier']);
+        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => $verifier]);
         $this->assertSame(200, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
     }
 
     public function testAuthorizationCodeWithPkceWrongVerifierReturns400(): void
     {
-        $challenge = rtrim(strtr(base64_encode(hash('sha256', 'correct-verifier', true)), '+/', '-_'), '=');
+        $verifier = bin2hex(random_bytes(32));
+        $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
 
         $clientData = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
         $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
@@ -303,7 +305,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $body = $this->decodeJson($response);
         $this->assertSame('invalid_grant', $body['error']);
 
-        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => 'correct-verifier']);
+        $retry = $request->withParsedBody([...$request->getParsedBody(), 'code_verifier' => $verifier]);
         $this->assertSame(200, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
         $this->assertSame(400, $this->controller->post($retry, new Response(200), ['tenant' => self::TENANT])->getStatusCode());
     }
@@ -901,6 +903,45 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(400, $strict->getStatusCode());
         $this->assertSame('invalid_grant', $this->decodeJson($strict)['error']);
         $this->assertSame(200, $this->redeemCode('relaxed')->getStatusCode());
+    }
+
+    public function testPlainCodeChallengeIsNotRedeemable(): void
+    {
+        $verifier = bin2hex(random_bytes(32));
+        $response = $this->redeemCodeWithPkce($verifier, 'plain', ['code_verifier' => $verifier]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($response)['error']);
+    }
+
+    public function testVerifierForCodeWithoutChallengeIsRejectedAsDowngrade(): void
+    {
+        $response = $this->redeemCodeWithPkce(null, null, ['code_verifier' => bin2hex(random_bytes(32))]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($response)['error']);
+    }
+
+    private function redeemCodeWithPkce(?string $challenge, ?string $method, array $extra): \Psr\Http\Message\ResponseInterface
+    {
+        $client = $this->clientStore->preValidatedClient(self::TENANT, self::CLIENT_ID);
+        $this->assertNotNull($client);
+        $codeKey = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid'),
+            client: $client,
+            nonce: 'n',
+            request: new AuthenticationRequest($client, 'openid', 'https://app.example.com/callback'),
+            codeChallenge: $challenge,
+            codeChallengeMethod: $method,
+        ));
+        return $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $codeKey,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
+            ...$extra,
+        ]), new Response(200), ['tenant' => self::TENANT]);
     }
 
     public function testClientOfAnotherTenantCannotAuthenticateButAGlobalOneCan(): void

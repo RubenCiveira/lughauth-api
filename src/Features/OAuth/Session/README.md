@@ -22,7 +22,7 @@ This context owns **session state** across the authorization flow. It tracks whi
 
 ## Application Services
 
-- **`OAuthCleanupScheduler`** — Scheduled job that purges expired sessions and temporal keys. Returns a `CleanupResult` summary.
+- **`OAuthCleanupScheduler`** — Purges expired sessions, authorization codes, revocations, WebAuthn challenges, anti-replay JTIs, PAR requests and device codes. It needs no cron: `OAuthPlugin::bindServices` registers a `register_shutdown_function` that calls `runIfDue()` after every response (once `fastcgi_finish_request` has flushed it), throttled through the cache to one run per 60 s. The stores no longer purge in their constructors, so the request path does not pay for it. Returns a `CleanupResult` summary; failed tasks are logged and retried on the next run. Without a database (not installed or unreachable) the shutdown hook does nothing, and a table not migrated yet is skipped (SQLSTATE `42S02`/`42P01`), so neither produces errors.
 
 ## Infrastructure
 

@@ -72,17 +72,17 @@ class RegisterUserForm implements StepForm
                 throw new LoginException(AuthenticationResult::unknowUser($input->context->tenant, $user, 'conditions_requierd'));
             }
 
-            $pkce = array_filter([
+            $flowParams = array_filter([
                 'code_challenge' => $input->context->codeChallenge ?? '',
                 'code_challenge_method' => $input->context->codeChallengeMethod ?? '',
-            ]);
+            ]) + $input->context->continuationParams();
             $url = $this->urlBuilder->registerUserUrl(
                 $input->authRequest,
                 $input->context->tenant,
                 $input->context->state,
                 $input->context->nonce,
                 '&_use_code=',
-                $pkce
+                $flowParams
             );
             $this->registerUser->requestForRegister($url, $input->context->tenant, (string) $user, $pass);
             throw new LoginException(AuthenticationResult::waitNewuserVerify($url));
@@ -119,7 +119,7 @@ class RegisterUserForm implements StepForm
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-        $locale = '';
+        $locale = $input->context->locale;
         $params = $input->request->getQueryParams();
         if (($params['verify_send'] ?? 'false') === 'true') {
             $response = $this->paintConfirm($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
@@ -170,7 +170,7 @@ class RegisterUserForm implements StepForm
         $step = StepName::REGISTER_USER->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
-            'New pass',
+            $title,
             $js . <<<HTML
                     <h1> $title </h1>
                     <p> $help </p>
@@ -230,7 +230,7 @@ class RegisterUserForm implements StepForm
         $step = StepName::REGISTER_USER->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
-            'New pass',
+            $title,
             $js . <<<HTML
                     <h1> $title </h1>
                     <p> $help </p>
@@ -286,7 +286,7 @@ class RegisterUserForm implements StepForm
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
-            'New pass',
+            $title,
             $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>

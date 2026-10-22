@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\TermsOfUseConsentUs
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\GdprConsentUsecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -62,7 +63,7 @@ class TermsAndGdprConsentForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $challenges = $input->challenges;
 
@@ -79,6 +80,7 @@ class TermsAndGdprConsentForm implements StepForm
 
         $help = $translator->get("consent.help");
         $send = $translator->get("consent.send");
+        $accept = $translator->get("consent.code");
 
         $backLabel = $translator->get("consent.back-label");
         $backText = $translator->get(
@@ -101,13 +103,13 @@ class TermsAndGdprConsentForm implements StepForm
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
         $pendingPurposes = $this->gdprConsent->pendingPurposes($tenant, $challenges->username ?? '');
-        $gdprBlock = $this->renderGdprBlock($pendingPurposes);
+        $gdprBlock = $this->renderGdprBlock($pendingPurposes, $translator);
 
         $step = StepName::CONSENT->value;
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $input->request,
-                'Consent',
+                $title,
                 $js . <<< HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>
@@ -120,7 +122,7 @@ class TermsAndGdprConsentForm implements StepForm
                             @media(max-width:768px){.terms-content{max-height:70vh}}
                         </style>
                         <div class="terms-content">{$pendingText}</div>
-                        <label>Acept:
+                        <label>{$accept}
                             <input type="checkbox" name="accept" value="accept" />
                         </label>
                         <input type="hidden" name="consent" value="{$pending->id}" />
@@ -181,11 +183,13 @@ class TermsAndGdprConsentForm implements StepForm
     /**
      * @param GdprConsentPurposeItem[] $purposes
      */
-    private function renderGdprBlock(array $purposes): string
+    private function renderGdprBlock(array $purposes, MessageCatalogue $translator): string
     {
         if (!$purposes) {
             return '';
         }
+        $summary = $translator->get('consent.description');
+        $heading = $translator->get('consent.gdpr-title');
 
         $items = '';
         foreach ($purposes as $purpose) {
@@ -200,7 +204,7 @@ class TermsAndGdprConsentForm implements StepForm
                         <strong>{$title}{$requiredMark}</strong>
                     </label>
                     <details class="scope-description">
-                        <summary>Descripcion</summary>
+                        <summary>{$summary}</summary>
                         <p>{$description}</p>
                     </details>
                 </li>
@@ -209,7 +213,7 @@ class TermsAndGdprConsentForm implements StepForm
 
         return <<<HTML
             <section class="gdpr-purposes">
-                <h3>Propósitos de tratamiento de datos (GDPR)</h3>
+                <h3>{$heading}</h3>
                 <ul class="scopes-list">
                     {$items}
                 </ul>

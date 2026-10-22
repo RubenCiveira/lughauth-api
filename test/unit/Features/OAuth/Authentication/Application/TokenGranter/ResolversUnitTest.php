@@ -398,6 +398,9 @@ final class ResolversUnitTest extends TestCase
             public function consume(string $c): void
             {
             }
+            public function purgeExpired(): void
+            {
+            }
         };
     }
 }

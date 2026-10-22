@@ -6,16 +6,24 @@ declare(strict_types=1);
 namespace Tests\integration\Features\OAuth;
 
 use Nimbly\Capsule\Response;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ResolvedAuthorizationRequest;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driver\Rest\ParController;
 
 class ParTest extends OidcIntegrationTestCase
 {
+    private const string CHALLENGE = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+
     private ParController $controller;
+    private AuthorizationRequestResolver $resolver;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->controller = $this->container->get(ParController::class);
+        $this->resolver = $this->container->get(AuthorizationRequestResolver::class);
     }
 
     public function testValidParRequestReturns201WithRequestUri(): void
@@ -184,5 +192,188 @@ class ParTest extends OidcIntegrationTestCase
         }
 
         $this->assertSame(count($uris), count(array_unique($uris)));
+    }
+
+    // --- /authorize with a request_uri (046) ---
+
+    public function testQueryCannotOverrideThePushedRequest(): void
+    {
+        $requestUri = $this->push();
+
+        $resolved = $this->resolve([
+            'client_id' => self::CLIENT_ID,
+            'request_uri' => $requestUri,
+            'redirect_uri' => 'https://evil.example/callback',
+            'scope' => 'openid admin',
+            'state' => 'attacker-state',
+            'code_challenge' => 'attacker-challenge',
+            'code_challenge_method' => 'plain',
+        ]);
+
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_PUSHED, $resolved->origin);
+        $this->assertSame('https://app.example.com/callback', $resolved->params['redirect_uri']);
+        $this->assertSame('openid profile', $resolved->params['scope']);
+        $this->assertSame('pushed-state', $resolved->params['state']);
+        $this->assertSame(self::CHALLENGE, $resolved->params['code_challenge']);
+        $this->assertSame('S256', $resolved->params['code_challenge_method']);
+    }
+
+    public function testRequestUriOfAnotherClientIsRejectedWithoutConsumingIt(): void
+    {
+        $requestUri = $this->push();
+
+        $this->assertRejected('invalid_request_uri', ['client_id' => 'other-client', 'request_uri' => $requestUri]);
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_PUSHED, $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $requestUri])->origin);
+    }
+
+    public function testRequestUriCanOnlyBeUsedOnce(): void
+    {
+        $query = ['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()];
+        $this->resolve($query);
+
+        $this->assertRejected('invalid_request_uri', $query);
+    }
+
+    public function testReferenceKeepsThePushedParametersAcrossLoginSteps(): void
+    {
+        $first = $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()]);
+        $this->assertTrue($first->consumedNow);
+
+        $next = $this->resolve([
+            'client_id' => self::CLIENT_ID,
+            AuthorizationRequestResolver::REFERENCE_PARAM => $first->reference,
+            'redirect_uri' => 'https://evil.example/callback',
+            'scope' => 'openid admin',
+        ]);
+
+        $this->assertFalse($next->consumedNow);
+        $this->assertSame($first->params, $next->params);
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_PUSHED, $next->origin);
+    }
+
+    public function testReferenceIsBoundToItsClientAndTenant(): void
+    {
+        $reference = $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()])->reference;
+
+        $this->assertRejected('invalid_request', ['client_id' => 'other-client', AuthorizationRequestResolver::REFERENCE_PARAM => $reference]);
+        $this->assertRejected('invalid_request', ['client_id' => self::CLIENT_ID, AuthorizationRequestResolver::REFERENCE_PARAM => $reference], 'tenant2');
+        $this->assertRejected('invalid_request', ['client_id' => self::CLIENT_ID, AuthorizationRequestResolver::REFERENCE_PARAM => $reference . 'x']);
+    }
+
+    public function testReferenceCompletesOnlyOneAuthorization(): void
+    {
+        $reference = $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()])->reference;
+
+        $this->assertSame('code', $this->resolver->complete(self::TENANT, $reference, fn (): string => 'code'));
+        $this->assertNull($this->resolver->complete(self::TENANT, $reference, fn (): string => 'second code'), 'A replayed reference cannot issue a second code');
+        $this->assertNull($this->resolver->complete(self::TENANT, $reference . 'x', fn (): string => 'code'));
+    }
+
+    public function testReferenceWhoseIssuanceFailedCanBeRetried(): void
+    {
+        $reference = $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()])->reference;
+
+        try {
+            $this->resolver->complete(self::TENANT, $reference, fn () => throw new \RuntimeException('code store down'));
+            $this->fail('The issuance failure must reach the caller');
+        } catch (\RuntimeException $ex) {
+            $this->assertSame('code store down', $ex->getMessage());
+        }
+
+        $this->assertSame('code', $this->resolver->complete(self::TENANT, $reference, fn (): string => 'code'));
+        $this->assertNull($this->resolver->complete(self::TENANT, $reference, fn (): string => 'second code'));
+    }
+
+    public function testReferenceStillContinuesBetweenStepsUntilCompleted(): void
+    {
+        $reference = $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()])->reference;
+        $query = ['client_id' => self::CLIENT_ID, AuthorizationRequestResolver::REFERENCE_PARAM => $reference];
+
+        $this->resolve($query);
+        $this->resolve($query);
+
+        $this->assertSame('code', $this->resolver->complete(self::TENANT, $reference, fn (): string => 'code'));
+    }
+
+    public function testQueryRequestHasNoReferenceToComplete(): void
+    {
+        $this->assertSame('code', $this->resolver->complete(self::TENANT, null, fn (): string => 'code'));
+        $this->assertSame('code', $this->resolver->complete(self::TENANT, null, fn (): string => 'code'));
+    }
+
+    public function testClientRequiringParCannotUseADirectAuthorizeRequest(): void
+    {
+        $this->clientStore->register('par-only', 'par-only-secret', new ClientData(
+            id: 'par-only',
+            grants: ['authorization_code'],
+            secretLogin: true,
+            tokenEndpointAuthMethod: 'client_secret_post',
+            requirePar: true,
+        ));
+
+        $this->assertRejected('invalid_request', [
+            'client_id' => 'par-only',
+            'response_type' => 'code',
+            'redirect_uri' => 'https://app.example.com/callback',
+        ]);
+        $pushed = $this->resolve(['client_id' => 'par-only', 'request_uri' => $this->push('par-only', 'par-only-secret')]);
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_PUSHED, $pushed->origin);
+        $next = $this->resolve(['client_id' => 'par-only', AuthorizationRequestResolver::REFERENCE_PARAM => $pushed->reference]);
+        $this->assertSame('par-only', $next->params['client_id']);
+    }
+
+    public function testTenantRequiringParAppliesToEveryClient(): void
+    {
+        $this->parPolicy->requirePar(self::TENANT);
+
+        $this->assertRejected('invalid_request', ['client_id' => self::CLIENT_ID, 'response_type' => 'code']);
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_PUSHED, $this->resolve(['client_id' => self::CLIENT_ID, 'request_uri' => $this->push()])->origin);
+    }
+
+    public function testDirectRequestStillWorksWhenParIsNotRequired(): void
+    {
+        $query = ['client_id' => self::CLIENT_ID, 'response_type' => 'code', 'scope' => 'openid'];
+
+        $resolved = $this->resolve($query);
+
+        $this->assertSame(ResolvedAuthorizationRequest::ORIGIN_QUERY, $resolved->origin);
+        $this->assertSame($query, $resolved->params);
+        $this->assertNull($resolved->reference);
+    }
+
+    public function testRequestUriAndRequestObjectTogetherAreRejected(): void
+    {
+        $this->assertRejected('invalid_request', ['client_id' => self::CLIENT_ID, 'request_uri' => $this->push(), 'request' => 'a.b.c']);
+    }
+
+    private function push(string $clientId = self::CLIENT_ID, string $secret = self::CLIENT_SECRET): string
+    {
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/par', [
+            'client_id' => $clientId,
+            'client_secret' => $secret,
+            'response_type' => 'code',
+            'redirect_uri' => 'https://app.example.com/callback',
+            'scope' => 'openid profile',
+            'state' => 'pushed-state',
+            'code_challenge' => self::CHALLENGE,
+            'code_challenge_method' => 'S256',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(201, $response->getStatusCode());
+        return $this->assertJsonField($response, 'request_uri');
+    }
+
+    private function resolve(array $query, string $tenant = self::TENANT): ResolvedAuthorizationRequest
+    {
+        return $this->resolver->resolve($tenant, $this->context->getIssuer($tenant), $query);
+    }
+
+    private function assertRejected(string $error, array $query, string $tenant = self::TENANT): void
+    {
+        try {
+            $this->resolve($query, $tenant);
+            $this->fail("The request must be rejected with $error");
+        } catch (UnauthorizedException $ex) {
+            $this->assertSame($error, $ex->getMessage());
+        }
     }
 }

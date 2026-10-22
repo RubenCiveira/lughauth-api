@@ -62,7 +62,7 @@ class LoginForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $js = $this->securer->configureScripts([
             $this->securer->focusOn("username"),
@@ -144,7 +144,7 @@ class LoginForm implements StepForm
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $input->request,
-                'Login',
+                $title,
                 $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>
@@ -165,7 +165,7 @@ class LoginForm implements StepForm
                     {$magicLinkButton}
                     {$delegatedLogins}
                 HTML,
-                'es',
+                $locale,
                 'index',
                 $tenant
             )

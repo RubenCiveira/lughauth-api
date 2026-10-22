@@ -6,6 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Override;
+use DI\Container;
+use Psr\Container\ContainerInterface;
+use Civi\Lughauth\Features\OAuth\Session\Application\OAuthCleanupScheduler;
 use Cron\CronExpression;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
@@ -64,6 +67,12 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGat
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\TokenRevocationSqlAdapter;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driven\ParRequestSqlAdapter;
+use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\TenantParPolicyGateway;
+use Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driven\TenantConfigParPolicyAdapter;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\ReplayJtiSqlAdapter;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\HttpRemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driver\Rest\ParController;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\DynamicClientAdapter;
@@ -154,6 +163,9 @@ class OAuthPlugin extends MicroPlugin
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
+        $def[TenantParPolicyGateway::class] = \DI\autowire(TenantConfigParPolicyAdapter::class);
+        $def[ReplayJtiGateway::class] = \DI\autowire(ReplayJtiSqlAdapter::class);
+        $def[RemoteJwksFetcher::class] = \DI\autowire(HttpRemoteJwksFetcher::class);
         $def[DynamicClientGateway::class] = \DI\autowire(DynamicClientAdapter::class);
         $def[DcrInitialAccessTokenGateway::class] = \DI\autowire(DcrInitialAccessTokenSqlAdapter::class);
         $def[WebAuthnCredentialGateway::class] = \DI\autowire(WebAuthnCredentialSqlAdapter::class);
@@ -186,6 +198,31 @@ class OAuthPlugin extends MicroPlugin
         $def[OpenIdConfigurationController::class] = \DI\autowire()
             ->constructorParameter('contributors', [\DI\get(MtlsDiscoveryContributor::class)]);
         return $def;
+    }
+
+    /**
+     * Purges expired OAuth rows at the end of every request, after the response has been sent,
+     * instead of relying on a cron job; OAuthCleanupScheduler limits it to one run per interval.
+     * The scheduler is only built at shutdown, so the request itself opens no extra connection.
+     */
+    #[Override]
+    public function bindServices(Container $container): void
+    {
+        parent::bindServices($container);
+        register_shutdown_function(static fn () => self::purgeExpired($container));
+    }
+
+    /**
+     * Runs the cleanup if it is due and never fails: without a database (not installed yet or
+     * unreachable) or cache there is nothing to purge, and the next request tries again.
+     */
+    public static function purgeExpired(ContainerInterface $container): void
+    {
+        try {
+            $container->get(OAuthCleanupScheduler::class)->runIfDue();
+        } catch (\Throwable) {
+            // Shutdown work must not turn a served request into an error.
+        }
     }
 
     /**

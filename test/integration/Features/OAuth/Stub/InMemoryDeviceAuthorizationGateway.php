@@ -106,4 +106,8 @@ class InMemoryDeviceAuthorizationGateway implements DeviceAuthorizationGateway
     {
         unset($this->byDeviceCode[$deviceCode]);
     }
+
+    public function purgeExpired(): void
+    {
+    }
 }

@@ -14,7 +14,8 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
  * Application use case implementing the Pushed Authorization Request endpoint (RFC 9126).
  *
  * Authenticates the OAuth client using its credentials, validates that the submitted
- * authorization parameters include the minimum required fields, creates a ParRequest
+ * authorization parameters include the minimum required fields and name that same client
+ * (and no nested request_uri, RFC 9126 §2.1), creates a ParRequest
  * aggregate with a cryptographically random request_uri and a 60-second TTL, and persists
  * it via the ParRequestGateway. The resulting request_uri is returned to the caller along
  * with the expiry duration so the HTTP layer can produce the RFC-compliant JSON response.
@@ -47,6 +48,10 @@ final class PushAuthorizationUsecase
         }
 
         $this->validateAuthParams($params->authParams);
+        // The request is stored for the authenticated client: it cannot speak for another one.
+        if ($params->authParams['client_id'] !== $params->clientId) {
+            throw ParException::invalidRequest('client_id does not match the authenticated client');
+        }
 
         $parRequest = ParRequest::create($params->tenant, $params->clientId, $params->authParams);
         $this->gateway->store($parRequest);
@@ -67,6 +72,9 @@ final class PushAuthorizationUsecase
         }
         if (empty($params['client_id'])) {
             throw ParException::invalidRequest('client_id is required');
+        }
+        if (isset($params['request_uri'])) {
+            throw ParException::invalidRequest('request_uri is not allowed in a pushed request');
         }
     }
 }

@@ -18,13 +18,17 @@ This context owns the **multi-step authentication pipeline**: it coordinates use
 | `ChallengesState` | ValueObject | Pending steps to complete before token issuance |
 | `StepInput` / `StepResult` | ValueObject | Input/output of a single authentication step |
 | `StepName` | Enum | Identifies each step in the pipeline (mfa, new_password, consent…) |
-| `OidcFlowContext` | ValueObject | OIDC parameters carried throughout the flow (nonce, state, redirect_uri) |
+| `OidcFlowContext` | ValueObject | OIDC parameters carried throughout the flow (nonce, state, redirect_uri), plus the `request_ref` of a PAR/JAR request |
+| `ResolvedAuthorizationRequest` | ValueObject | Authorization parameters with their origin (query, PAR or JAR) and the signed reference that carries a PAR/JAR request between login steps |
+| `RequestObjectValidator` | Domain service | Verifies a JAR request object (RFC 9101): signature, `client_id`/`iss` = client, `aud` = tenant issuer, `exp`/`nbf`/`iat`, single-use `jti` |
 | `ActiveUser` | ValueObject | Authenticated identity after successful credential verification |
-| `PkceChallenge` | ValueObject | PKCE code_challenge / code_verifier pair |
+| `UiLocale` | ValueObject | Login UI language for one request: first supported of `ui_locales`, then `Accept-Language` by q-value, else `es`; supported `es` and `en` (catalogues `forms.es.yaml`, `forms.yaml`) |
+| `PkceChallenge` | ValueObject | PKCE code_challenge / code_verifier pair; only `S256`, with RFC 7636 syntax for challenge and verifier |
 | `LogoutToken` | ValueObject | JWT token used for back-channel logout (RFC 9126) |
 
 ## Application Services
 
+- **`AuthorizationRequestResolver`** — Decides once where the `/authorize` parameters come from: a pushed request (`request_uri`, only the outer `client_id` is read and must match), a verified request object (`request`), the signed reference issued after consuming one of those (`request_ref`), or the query. Rejects direct requests when the client or the tenant requires PAR.
 - **`AuthenticateUser`** — Entry point for the authorization endpoint. Validates the request, resolves the current step, and returns either a challenge or a redirect.
 - **`ActiveUserFindService`** — Resolves the currently authenticated user from a session.
 - **`SessionManager`** — Creates and binds authentication sessions to issued tokens.
@@ -77,7 +81,7 @@ Exceptions are used to signal required next steps — they carry enough state fo
 
 ### Driver (Inbound Adapters)
 
-- **`Html/AuthorizeHtml`** — Renders the authorization UI (login, MFA, consent forms).
+- **`Html/AuthorizeHtml`** — Renders the authorization UI (login, MFA, consent forms). After consuming a PAR or JAR request it redirects to `/authorize?client_id=…&request_ref=…`, because the step forms post back to their own URL. PKCE is required for public and `require-pkce` clients, at `/authorize` and again when `/token` redeems the code.
 - **`Html/OidcStepRouter`** — Routes the current challenge state to the correct form.
 - **`Html/Forms/`** — Individual form renderers per step (LoginForm, MagicLinkLoginForm, NewMfaForm, ScopeConsentForm, WebAuthnLoginForm…).
 - **`Rest/TokenController`** — `/token` endpoint (all grant types): HTTP parsing, client authentication and grant resolution; tokens come from `TokenFactory`. Every response carries `Cache-Control: no-store`.
@@ -85,6 +89,11 @@ Exceptions are used to signal required next steps — they carry enough state fo
 - **`Rest/LogoutController`** — `/logout` endpoint.
 - **`Rest/UserInfoController`** — `/userinfo` endpoint (OIDC).
 - **`Rest/DelegatedController`** — Handles callback from external identity providers.
+
+### Driven (Outbound Adapters)
+
+- **`HttpRemoteJwksFetcher`** — `RemoteJwksFetcher` port: downloads a client `jwks_uri` over HTTPS only, refusing hosts that resolve to non-public addresses and pinning the connection to the checked address (SSRF and DNS rebinding); no redirects, 5 s timeout, 64 KiB maximum, cached per client for 5 minutes.
+- **`TenantConfigTokenLifetimesAdapter`** — `TokenLifetimesGateway` from the tenant configuration.
 
 ### Services
 
@@ -103,6 +112,7 @@ Authentication ──uses──> Session        (session creation/lookup)
               ──uses──> Mfa             (MFA step)
               ──uses──> WebAuthn        (passkey step)
               ──uses──> DelegateLogin   (external provider callback)
-              ──uses──> Par             (resolve pushed auth requests)
+              ──uses──> Par             (resolve pushed auth requests, tenant PAR policy)
+              ──uses──> TokenSecurity   (request object jti replay store)
               ──emits──> User           (LoginSucceededEvent listener)
 ```

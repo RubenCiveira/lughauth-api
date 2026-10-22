@@ -91,5 +91,18 @@ namespace {
 
             $plugin->registerRoutes($collector);
         }
+
+        /**
+         * Ensures the shutdown cleanup never fails when there is no database to purge.
+         */
+        public function testShutdownCleanupNeverFailsWithoutDatabase(): void
+        {
+            $container = $this->createStub(\Psr\Container\ContainerInterface::class);
+            $container->method('get')->willThrowException(new \PDOException('SQLSTATE[HY000] [2002] Connection refused'));
+
+            OAuthPlugin::purgeExpired($container);
+
+            $this->addToAssertionCount(1);
+        }
     }
 }

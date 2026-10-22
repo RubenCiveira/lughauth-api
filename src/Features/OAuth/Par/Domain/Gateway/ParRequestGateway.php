@@ -12,8 +12,8 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
  *
  * All operations are scoped to a (request_uri, tenant) pair to prevent cross-tenant access.
  * The request_uri is an opaque URN and must be treated as a secret until the authorization
- * endpoint consumes it. Implementations should purge expired records proactively to avoid
- * unbounded table growth; the SQL adapter performs this on construction. The markUsed
+ * endpoint consumes it. Expired records are purged by OAuthCleanupScheduler after the response
+ * to avoid unbounded table growth. The consume
  * operation sets the used_at timestamp so that subsequent resolution attempts are rejected
  * even when the record has not yet been physically deleted.
  */
@@ -32,8 +32,13 @@ interface ParRequestGateway
     public function findByUri(string $requestUri, string $tenant): ?ParRequest;
 
     /**
-     * Marks the PAR request identified by the URI as consumed so it cannot be reused.
-     * Should be called by ResolveParRequestUsecase immediately after the record is validated.
+     * Marks the unused, unexpired PAR request identified by the URI as consumed, atomically, and
+     * reports whether this call consumed it. Of two concurrent calls only one returns true.
      */
-    public function markUsed(string $requestUri, string $tenant): void;
+    public function consume(string $requestUri, string $tenant): bool;
+
+    /**
+     * Deletes the requests whose expiry is in the past (OAuthCleanupScheduler).
+     */
+    public function purgeExpired(): void;
 }

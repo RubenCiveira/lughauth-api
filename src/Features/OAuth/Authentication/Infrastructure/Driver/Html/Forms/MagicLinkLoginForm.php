@@ -54,7 +54,7 @@ class MagicLinkLoginForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 

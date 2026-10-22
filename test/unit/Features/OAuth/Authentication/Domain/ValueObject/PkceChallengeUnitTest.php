@@ -18,13 +18,34 @@ final class PkceChallengeUnitTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testFromRequestDefaultsToPlainMethodWhenMethodIsNull(): void
+    public function testFromRequestRejectsChallengeWithoutMethod(): void
     {
-        $result = PkceChallenge::fromRequest('mychallenge', null);
+        $this->expectException(\InvalidArgumentException::class);
 
-        $this->assertNotNull($result);
-        $this->assertSame('plain', $result->method);
-        $this->assertSame('mychallenge', $result->challenge);
+        PkceChallenge::fromRequest(self::challengeOf(self::VERIFIER), null);
+    }
+
+    public function testFromRequestRejectsMethodWithoutChallenge(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('code_challenge_method without code_challenge');
+
+        PkceChallenge::fromRequest(null, 'S256');
+    }
+
+    public function testFromRequestRejectsPlainMethod(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported code_challenge_method: plain');
+
+        PkceChallenge::fromRequest(self::VERIFIER, 'plain');
+    }
+
+    public function testFromRequestRejectsChallengeThatIsNotAS256Digest(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        PkceChallenge::fromRequest('short+challenge/', 'S256');
     }
 
     public function testFromRequestThrowsOnUnsupportedMethod(): void
@@ -32,7 +53,7 @@ final class PkceChallengeUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported code_challenge_method: RS256');
 
-        PkceChallenge::fromRequest('mychallenge', 'RS256');
+        PkceChallenge::fromRequest(self::challengeOf(self::VERIFIER), 'RS256');
     }
 
     public function testVerifyS256WithCorrectVerifierReturnsTrue(): void
@@ -57,21 +78,19 @@ final class PkceChallengeUnitTest extends TestCase
         $this->assertFalse($pkce->verify('wrong-verifier'));
     }
 
-    public function testVerifyPlainWithMatchingVerifierReturnsTrue(): void
+    public function testVerifyRejectsVerifierShorterThanRfc7636Minimum(): void
     {
-        $verifier = 'my-plain-verifier-value';
-
-        $pkce = PkceChallenge::fromRequest($verifier, 'plain');
+        $short = 'abc';
+        $pkce = PkceChallenge::fromRequest(self::challengeOf($short), 'S256');
 
         $this->assertNotNull($pkce);
-        $this->assertTrue($pkce->verify($verifier));
+        $this->assertFalse($pkce->verify($short));
     }
 
-    public function testVerifyPlainWithNonMatchingVerifierReturnsFalse(): void
-    {
-        $pkce = PkceChallenge::fromRequest('my-plain-verifier-value', 'plain');
+    private const string VERIFIER = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 
-        $this->assertNotNull($pkce);
-        $this->assertFalse($pkce->verify('different-value'));
+    private static function challengeOf(string $verifier): string
+    {
+        return rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
     }
 }

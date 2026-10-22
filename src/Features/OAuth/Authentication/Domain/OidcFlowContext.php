@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
 
 /**
  * Immutable value object capturing all parameters of an in-progress OIDC authorization request.
@@ -78,8 +79,8 @@ final class OidcFlowContext
     public readonly string $prompt;
 
     /**
-     * Preferred locale extracted from the Accept-Language request header.
-     * Used to render the login UI in the user's language when the theme supports localisation.
+     * Language of the login UI: the first supported one of ui_locales, then of Accept-Language
+     * (UiLocale). Only for this request; never stored in the user's profile.
      */
     public readonly string $locale;
 
@@ -114,10 +115,22 @@ final class OidcFlowContext
     public readonly ?string $codeChallenge;
 
     /**
-     * PKCE code challenge method, either "S256" or "plain".
+     * PKCE code challenge method; only "S256" is accepted (task 034).
      * Null when no challenge was provided; always read together with codeChallenge.
      */
     public readonly ?string $codeChallengeMethod;
+
+    /**
+     * Signed reference to a consumed PAR or JAR request (AuthorizationRequestResolver), or null for
+     * a request taken from the query. URLs back to /authorize must carry it as request_ref.
+     */
+    public readonly ?string $requestRef;
+
+    /**
+     * The ui_locales the client requested, as sent, or null when it requested none. URLs back to
+     * /authorize must carry it so every step keeps the language.
+     */
+    public readonly ?string $uiLocales;
 
     public function __construct(
         string $tenant,
@@ -136,6 +149,8 @@ final class OidcFlowContext
         ?string $preSessionId,
         ?string $codeChallenge,
         ?string $codeChallengeMethod,
+        ?string $requestRef = null,
+        ?string $uiLocales = null,
     ) {
         $this->tenant = $tenant;
         $this->clientId = $clientId;
@@ -153,17 +168,33 @@ final class OidcFlowContext
         $this->preSessionId = $preSessionId;
         $this->codeChallenge = $codeChallenge;
         $this->codeChallengeMethod = $codeChallengeMethod;
+        $this->requestRef = $requestRef;
+        $this->uiLocales = $uiLocales;
+    }
+
+    /**
+     * Parameters every URL back to /authorize must carry so the next step continues this request:
+     * the reference of a PAR/JAR request and the requested UI language.
+     *
+     * @return array<string, string>
+     */
+    public function continuationParams(): array
+    {
+        return array_filter([
+            ResolvedAuthorizationRequest::REFERENCE_PARAM => $this->requestRef,
+            'ui_locales' => $this->uiLocales,
+        ], static fn (?string $value): bool => $value !== null && $value !== '');
     }
 
     /**
      * Constructs an OidcFlowContext by extracting all relevant parameters from an HTTP request.
      * Reads query params, cookies, and the Accept-Language header and derives the issuer and base URL from context.
+     * The query must already hold the resolved authorization parameters (AuthorizationRequestResolver).
      */
-    public static function fromRequest(ServerRequestInterface $request, string $tenant, Context $context): self
+    public static function fromRequest(ServerRequestInterface $request, string $tenant, Context $context, ?string $requestRef = null): self
     {
         $query = $request->getQueryParams();
         $cookies = $request->getCookieParams();
-        $acceptLanguage = $request->getHeader('accept-language');
 
         $baseUrl = $context->getBaseUrl();
         $issuer = $context->getIssuer($tenant);
@@ -179,13 +210,15 @@ final class OidcFlowContext
             nonce: (string) ($query['nonce'] ?? ''),
             audiences: $audiences,
             prompt: (string) ($query['prompt'] ?? ''),
-            locale: $acceptLanguage[0] ?? '',
+            locale: UiLocale::negotiate((string) ($query['ui_locales'] ?? ''), $request->getHeaderLine('accept-language')),
             baseUrl: $baseUrl,
             issuer: $issuer,
             sessionId: $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null,
             preSessionId: $cookies['PRE_SESSION_ID'] ?? null,
             codeChallenge: isset($query['code_challenge']) && $query['code_challenge'] !== '' ? (string) $query['code_challenge'] : null,
             codeChallengeMethod: isset($query['code_challenge_method']) && $query['code_challenge_method'] !== '' ? (string) $query['code_challenge_method'] : null,
+            requestRef: $requestRef,
+            uiLocales: isset($query['ui_locales']) && $query['ui_locales'] !== '' ? (string) $query['ui_locales'] : null,
         );
     }
 

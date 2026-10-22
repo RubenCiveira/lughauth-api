@@ -111,6 +111,7 @@ final class OpenIdConfiguration
             'backchannel_logout_supported' => $caps->backchannelLogout,
             'backchannel_logout_session_supported' => $caps->backchannelLogout,
             'claims_parameter_supported' => $caps->claimsParameter,
+            'ui_locales_supported' => $caps->uiLocales,
             'request_parameter_supported' => $caps->requestParameter,
             'request_uri_parameter_supported' => false,
             'require_request_uri_registration' => false,

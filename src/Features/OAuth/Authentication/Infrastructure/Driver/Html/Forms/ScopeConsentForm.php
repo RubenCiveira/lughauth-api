@@ -18,6 +18,7 @@ use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\ScopesConsentUsecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\ScopePermission;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -60,7 +61,7 @@ class ScopeConsentForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $username = $input->challenges->username ?? '';
         $clientId = $input->authRequest->client->id;
@@ -72,6 +73,7 @@ class ScopeConsentForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get('scopes.title');
+        $application = $translator->get('scopes.application');
         $help = $translator->get('scopes.help');
         $requiredTitle = $translator->get('scopes.required-title');
         $optionalTitle = $translator->get('scopes.optional-title');
@@ -92,8 +94,8 @@ class ScopeConsentForm implements StepForm
         $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
         [$required, $optional] = $this->splitScopes($pending);
 
-        $requiredBlock = $required ? $this->renderRequiredBlock($requiredTitle, $required) : '';
-        $optionalBlock = $optional ? $this->renderOptionalBlock($optionalTitle, $optional) : '';
+        $requiredBlock = $required ? $this->renderRequiredBlock($requiredTitle, $required, $translator) : '';
+        $optionalBlock = $optional ? $this->renderOptionalBlock($optionalTitle, $optional, $translator) : '';
         $separator = ($required && $optional) ? '<div class="scopes-separator" role="presentation"></div>' : '';
         $empty = (!$required && !$optional) ? '<p>' . $translator->get('scopes.empty') . '</p>' : '';
 
@@ -101,11 +103,11 @@ class ScopeConsentForm implements StepForm
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $input->request,
-                'ScopesConsent',
+                $title,
                 $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>
-                    <p><strong>Aplicacion:</strong> {$clientName}</p>
+                    <p><strong>{$application}</strong> {$clientName}</p>
                     {$error}
                     {$empty}
                     <form method="POST">
@@ -217,9 +219,9 @@ class ScopeConsentForm implements StepForm
     /**
      * @param ScopePermission[] $required
      */
-    private function renderRequiredBlock(string $title, array $required): string
+    private function renderRequiredBlock(string $title, array $required, MessageCatalogue $translator): string
     {
-        $items = $this->renderScopeItems($required, true);
+        $items = $this->renderScopeItems($required, true, $translator);
         return <<<HTML
             <section class="scopes-required">
                 <ul class="scopes-list">
@@ -232,9 +234,9 @@ class ScopeConsentForm implements StepForm
     /**
      * @param ScopePermission[] $optional
      */
-    private function renderOptionalBlock(string $title, array $optional): string
+    private function renderOptionalBlock(string $title, array $optional, MessageCatalogue $translator): string
     {
-        $items = $this->renderScopeItems($optional, false);
+        $items = $this->renderScopeItems($optional, false, $translator);
 
         return <<<HTML
             <section class="scopes-optional">
@@ -248,12 +250,13 @@ class ScopeConsentForm implements StepForm
     /**
      * @param ScopePermission[] $permissions
      */
-    private function renderScopeItems(array $permissions, bool $required): string
+    private function renderScopeItems(array $permissions, bool $required, MessageCatalogue $translator): string
     {
+        $summary = $translator->get('scopes.description');
         $items = '';
         foreach ($permissions as $permission) {
             $label = $permission->displayLabel();
-            $description = $permission->description !== null && $permission->description !== '' ? $permission->description : 'Descripcion no disponible.';
+            $description = $permission->description !== null && $permission->description !== '' ? $permission->description : $translator->get('scopes.no-description');
             $requiredMark = $required ? ' <span class="required-marker">*</span>' : '';
             $checkbox = $required
                 ? '<input type="checkbox" checked disabled />'
@@ -265,7 +268,7 @@ class ScopeConsentForm implements StepForm
                         <strong>{$label}{$requiredMark}</strong>
                     </label>
                     <details class="scope-description">
-                        <summary>Descripcion</summary>
+                        <summary>{$summary}</summary>
                         <p>{$description}</p>
                     </details>
                 </li>

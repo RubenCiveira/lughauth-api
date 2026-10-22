@@ -36,7 +36,7 @@ abstract class FormsTestCase extends TestCase
         $_SERVER = $this->serverBackup;
     }
 
-    protected function buildInput(array $body, ChallengesState $state): StepInput
+    protected function buildInput(array $body, ChallengesState $state, array $query = [], string $acceptLanguage = ''): StepInput
     {
         $body = array_merge(['csid' => 'csid-123'], $body);
         $request = (new ServerRequestFactory())
@@ -48,7 +48,11 @@ abstract class FormsTestCase extends TestCase
                 'redirect_uri' => 'https://client.example/callback',
                 'scope' => 'openid',
                 'nonce' => 'nonce-abc',
+                ...$query,
             ]);
+        if ($acceptLanguage !== '') {
+            $request = $request->withHeader('accept-language', $acceptLanguage);
+        }
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);

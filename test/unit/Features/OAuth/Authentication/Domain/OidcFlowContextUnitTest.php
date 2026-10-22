@@ -35,6 +35,24 @@ final class OidcFlowContextUnitTest extends TestCase
     }
 
     /**
+     * Verifies ui_locales chooses the UI language over Accept-Language and travels with the flow.
+     */
+    public function testUiLocalesChoosesTheLanguageAndIsCarriedToNextSteps(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams(['client_id' => 'client-123', 'ui_locales' => 'fr en'])
+            ->withHeader('accept-language', 'es-ES,es;q=0.9');
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+
+        $flow = OidcFlowContext::fromRequest($request, 'tenant1', new Context(new ContainerBuilder(), $config), 'ref-token');
+
+        $this->assertSame('en', $flow->locale);
+        $this->assertSame(['request_ref' => 'ref-token', 'ui_locales' => 'fr en'], $flow->continuationParams());
+    }
+
+    /**
      * Verifies fromRequest normalizes query, cookies, and locale.
      */
     public function testFromRequestBuildsNormalizedContext(): void
@@ -72,7 +90,8 @@ final class OidcFlowContextUnitTest extends TestCase
         $this->assertSame('nonce-abc', $flow->nonce);
         $this->assertSame(['api', 'other'], $flow->audiences);
         $this->assertSame('', $flow->prompt);
-        $this->assertSame('es-ES,es;q=0.9', $flow->locale);
+        $this->assertSame('es', $flow->locale);
+        $this->assertNull($flow->uiLocales);
         $this->assertSame('https://example.com', $flow->baseUrl);
         $this->assertSame('https://example.com/oauth/openid/tenant1', $flow->issuer);
         $this->assertSame('sess-123', $flow->sessionId);

@@ -20,7 +20,7 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 | [EP-04 Firma JWT por propósito y claves](../done/EP-04-firma-jwt-y-claves.md) (hecha) | [025](../done/025-jwt-kid-y-proposito.md), [029](../done/029-rotacion-claves-fuera-request.md) | crítica | M | — |
 | [EP-05 Emisión de tokens y claims](../done/EP-05-emision-tokens-y-claims.md) (hecha) | [038](../done/038-extraer-emision-tokens.md), [032](../done/032-claims-id-token.md), [049](../done/049-perfil-at-jwt.md), [064](../done/064-respuestas-token-y-scopes.md) (+ `sid` público) | alta | L | EP-04 |
 | [EP-06 Validación de bearer en consumidores](EP-06-validacion-bearer.md) | 026, 028, 035 | crítica | M | EP-04 |
-| [EP-07 Autorización: origen y política de la solicitud](EP-07-autorizacion-solicitud.md) | 046, 047, 034, 068 (opc.) | alta | L | EP-03 |
+| [EP-07 Autorización: origen y política de la solicitud](../done/EP-07-autorizacion-solicitud.md) (hecha) | [046](../done/046-par-no-sobrescribible.md), [047](../done/047-jar-claims-y-jwks-uri.md), [034](../done/034-pkce-s256-y-politica.md), [068](../done/068-ui-locales.md) (opc.) | alta | L | EP-03 |
 | [EP-08 Autorización: construcción de la respuesta](EP-08-autorizacion-respuesta.md) | 027, 037, 033, 070, 045 (opc.) | alta | M | EP-03, EP-05 (hashes) |
 | [EP-09 Sesión SSO y logout](EP-09-sesion-sso-y-logout.md) | 031, 036, 067 (opc.), 041 (opc.), 062 (opc.) | alta | M | EP-04, EP-05 |
 | [EP-10 Login de usuario: MFA y federación](EP-10-login-mfa-y-federacion.md) | 039, 040 (opc.), 051 (opc.) | media | S + opc. | EP-03 (040), EP-07 (051) |

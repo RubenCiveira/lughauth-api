@@ -73,4 +73,8 @@ class InMemoryTemporalKeys implements TemporalKeysGateway
         }
         return $entry;
     }
+
+    public function purgeExpiredCodes(): void
+    {
+    }
 }

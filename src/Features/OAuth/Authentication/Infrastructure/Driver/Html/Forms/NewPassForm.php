@@ -86,7 +86,7 @@ class NewPassForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
@@ -104,6 +104,7 @@ class NewPassForm implements StepForm
 
         $help = $translator->get("newpass.help");
         $old = $translator->get("newpass.current");
+        $new = $translator->get("newpass.newpass");
         $send = $translator->get("newpass.send");
 
         $backLabel = $translator->get("newpass.back-label");
@@ -115,7 +116,7 @@ class NewPassForm implements StepForm
         $step = StepName::NEW_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
-            'New pass',
+            $title,
             $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>
@@ -128,7 +129,7 @@ class NewPassForm implements StepForm
                         <label> {$old}
                             <input type="password" id="type_old_pass" value="" />
                         </label>
-                        <label>New pass
+                        <label> {$new}
                             <input type="password" id="type_new_pass" value="" />
                         </label>
                         <input class="primary-button" type="submit" value="{$send}" />

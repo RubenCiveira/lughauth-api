@@ -172,7 +172,7 @@ class DiscoveryTest extends OidcIntegrationTestCase
 
     public function testContributorCannotOverrideBaseFields(): void
     {
-        $controller = new OpenIdConfigurationController($this->context, [new class () implements \Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway {
+        $controller = new OpenIdConfigurationController($this->context, $this->parPolicy, [new class () implements \Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway {
             public function contribute(\Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration $base, string $tenant): array
             {
                 return ['issuer' => 'https://attacker.example'];
@@ -223,11 +223,22 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->assertSame($caps->subjectTypes, $doc['subject_types_supported']);
         $this->assertFalse($doc['tls_client_certificate_bound_access_tokens']);
         $this->assertFalse($doc['request_uri_parameter_supported']);
+        $this->assertSame($caps->uiLocales, $doc['ui_locales_supported']);
+    }
+
+    public function testEveryAnnouncedUiLocaleHasALoginCatalogue(): void
+    {
+        $translations = dirname(__DIR__, 4) . '/src/Features/OAuth/Authentication/Infrastructure/Driver/Translations';
+        foreach ($this->discover()['ui_locales_supported'] as $locale) {
+            // The base catalogue is English (MessageProvider); every other language has its own file.
+            $file = $locale === 'en' ? 'forms.yaml' : "forms.{$locale}.yaml";
+            $this->assertFileExists("{$translations}/{$file}", "ui_locales_supported announces {$locale} without a catalogue");
+        }
     }
 
     private function controllerWithMtls(): OpenIdConfigurationController
     {
-        return new OpenIdConfigurationController($this->context, [new MtlsDiscoveryContributor('https://mtls.example')]);
+        return new OpenIdConfigurationController($this->context, $this->parPolicy, [new MtlsDiscoveryContributor('https://mtls.example')]);
     }
 
     /** @return string[] */
@@ -253,5 +264,13 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $doc = $this->discover();
 
         $this->assertFalse($doc['require_pushed_authorization_requests']);
+    }
+
+    public function testRequirePushedAuthorizationRequestsFollowsTheTenantConfiguration(): void
+    {
+        $this->parPolicy->requirePar('tenant2');
+
+        $this->assertTrue($this->discover('tenant2')['require_pushed_authorization_requests']);
+        $this->assertFalse($this->discover()['require_pushed_authorization_requests']);
     }
 }

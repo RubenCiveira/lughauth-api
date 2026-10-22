@@ -174,18 +174,28 @@ class TokenController
                 ) {
                     throw OAuthTokenException::invalidGrant('Invalid authorization code');
                 }
-                if ($client->requiresPkce() && $code->codeChallenge === null) {
-                    throw OAuthTokenException::invalidGrant('PKCE is required for this client');
+                $codeVerifier = $params['code_verifier'] ?? null;
+                if ($code->codeChallenge === null) {
+                    if ($client->requiresPkce()) {
+                        throw OAuthTokenException::invalidGrant('PKCE is required for this client');
+                    }
+                    // RFC 9700 §2.1.1: a verifier for a code issued without challenge is a downgrade attempt.
+                    if ($codeVerifier !== null) {
+                        throw OAuthTokenException::invalidGrant('The authorization code was issued without code_challenge');
+                    }
+                    return;
                 }
-                if ($code->codeChallenge !== null) {
-                    $codeVerifier = $params['code_verifier'] ?? null;
-                    if (!is_string($codeVerifier) || $codeVerifier === '') {
-                        throw OAuthTokenException::invalidRequest('code_verifier is required');
-                    }
+                if (!is_string($codeVerifier) || $codeVerifier === '') {
+                    throw OAuthTokenException::invalidRequest('code_verifier is required');
+                }
+                try {
                     $pkce = PkceChallenge::fromRequest($code->codeChallenge, $code->codeChallengeMethod);
-                    if ($pkce === null || !$pkce->verify($codeVerifier)) {
-                        throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
-                    }
+                } catch (\InvalidArgumentException) {
+                    // A code issued before S256 became mandatory (plain) is no longer redeemable.
+                    throw OAuthTokenException::invalidGrant('Unsupported code_challenge_method');
+                }
+                if ($pkce === null || !$pkce->verify($codeVerifier)) {
+                    throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
                 }
             }
         );

@@ -10,16 +10,22 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject;
  *
  * Captures the code_challenge and code_challenge_method parameters sent by the client in the
  * authorization request and provides a verify() method that the token endpoint calls with the
- * code_verifier to confirm the exchange. Two methods are supported: "S256" (recommended) hashes
- * the verifier with SHA-256 and base64url-encodes it before comparing, while "plain" compares
- * the verifier directly to the challenge.
+ * code_verifier to confirm the exchange. Only "S256" is supported: the verifier is hashed with
+ * SHA-256 and base64url-encoded before comparing. "plain" (which sends the secret in the front
+ * channel) and a challenge without method (which RFC 7636 reads as "plain") are rejected.
  *
- * Constructed only through the fromRequest() factory, which returns null when the client did not
- * include a challenge (allowed for confidential clients) and rejects unsupported methods with an
- * InvalidArgumentException before any storage takes place.
+ * Constructed only through the fromRequest() factory, which returns null when the client sent no
+ * PKCE parameter at all (whether that is allowed is the client's PKCE policy, applied by the
+ * caller) and rejects any other method, a method without challenge (an incomplete PKCE request)
+ * or a malformed challenge with an InvalidArgumentException before any storage takes place.
  */
 final class PkceChallenge
 {
+    /** A S256 challenge is the base64url SHA-256 digest: 43 characters without padding. */
+    private const string CHALLENGE_PATTERN = '/^[A-Za-z0-9_-]{43}$/';
+    /** RFC 7636 §4.1: 43 to 128 unreserved characters. */
+    private const string VERIFIER_PATTERN = '/^[A-Za-z0-9._~-]{43,128}$/';
+
     private function __construct(
         public readonly string $challenge,
         public readonly string $method,
@@ -28,32 +34,37 @@ final class PkceChallenge
 
     /**
      * Creates a PkceChallenge from optional authorization request parameters.
-     * Returns null when no challenge is present; throws InvalidArgumentException for unsupported methods.
+     * Returns null when neither parameter is present; throws InvalidArgumentException for a method
+     * without challenge, a method other than S256 (also when it is missing) or a challenge that is
+     * not a S256 digest.
      */
     public static function fromRequest(?string $challenge, ?string $method): ?self
     {
         if ($challenge === null) {
+            if ($method !== null) {
+                throw new \InvalidArgumentException('code_challenge_method without code_challenge');
+            }
             return null;
         }
-        $method ??= 'plain';
-        if (!in_array($method, ['S256', 'plain'], true)) {
-            throw new \InvalidArgumentException("Unsupported code_challenge_method: $method");
+        if ($method !== 'S256') {
+            throw new \InvalidArgumentException('Unsupported code_challenge_method: ' . ($method ?? 'none'));
+        }
+        if (preg_match(self::CHALLENGE_PATTERN, $challenge) !== 1) {
+            throw new \InvalidArgumentException('Malformed code_challenge');
         }
         return new self($challenge, $method);
     }
 
     /**
-     * Verifies that the supplied code_verifier satisfies this challenge using the stored method.
+     * Verifies that the supplied code_verifier satisfies this challenge.
      * Returns true when the verifier is valid; false when it does not match or is malformed.
      */
     public function verify(string $verifier): bool
     {
-        return match ($this->method) {
-            'S256'  => hash_equals(
+        return preg_match(self::VERIFIER_PATTERN, $verifier) === 1
+            && hash_equals(
                 $this->challenge,
                 rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=')
-            ),
-            'plain' => hash_equals($this->challenge, $verifier),
-        };
+            );
     }
 }

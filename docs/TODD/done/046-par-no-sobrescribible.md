@@ -1,7 +1,7 @@
 # 046 — Aislar parámetros PAR y definir exigencia por cliente
 
-- **Estado:** pendiente. **Prioridad:** alta.
-- **Evidencia:** [AuthorizeHtml::buildContext](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) fusiona `array_merge($parRequest->params, $query)` dando precedencia a query; [OpenIdConfiguration](../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia PAR obligatorio aunque no lo exige.
+- **Estado:** hecho (EP-07). **Prioridad:** alta.
+- **Evidencia:** [AuthorizeHtml::buildContext](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) fusiona `array_merge($parRequest->params, $query)` dando precedencia a query; [OpenIdConfiguration](../../../src/Features/OAuth/Oidc/Domain/OpenIdConfiguration.php) anuncia PAR obligatorio aunque no lo exige.
 - **Impacto:** una query puede alterar una solicitud push autenticada.
 - **Por hacer:** validar solo `request_uri` y `client_id` externo, exigir igualdad de cliente y usar exclusivamente parámetros PAR; añadir opción por cliente/tenant y sincronizar discovery.
 - **Aceptación:** query conflictiva no cambia scopes, redirect, state ni challenge; cliente marcado obligatorio no puede usar authorize directo.

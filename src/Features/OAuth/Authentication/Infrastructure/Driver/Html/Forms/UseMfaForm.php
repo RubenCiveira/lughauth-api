@@ -55,7 +55,7 @@ class UseMfaForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
-        $locale = '';
+        $locale = $input->context->locale;
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
@@ -82,7 +82,7 @@ class UseMfaForm implements StepForm
         $step = StepName::MFA->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
-            'Mfa',
+            $title,
             $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>

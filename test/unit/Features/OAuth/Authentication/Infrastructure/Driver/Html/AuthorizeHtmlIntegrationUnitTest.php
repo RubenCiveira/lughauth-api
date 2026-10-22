@@ -38,6 +38,13 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\RequestObjectValidator;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
+use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\TenantParPolicyGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\VerificationPolicy;
+use Jose\Component\Core\JWKSet;
+use Tests\integration\Features\OAuth\Stub\InMemoryReplayJti;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
@@ -48,13 +55,12 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\TokenLifetimesGat
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
@@ -63,6 +69,9 @@ use Psr\Http\Message\RequestFactoryInterface;
 final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 {
     private array $serverBackup = [];
+
+    /** Replay store shared by the resolvers of one test, so a reference stays completed across requests. */
+    private ?InMemoryReplayJti $replays = null;
 
     #[Override]
     protected function setUp(): void
@@ -149,8 +158,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $cookies,
             new OidcUrlBuilder($context),
             $router,
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -215,8 +224,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(WebAuthnLoginForm::class),
                 $this->createMock(MagicLinkLoginForm::class)
             ),
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -338,8 +347,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $cookies,
             $urlBuilder,
             $router,
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -347,6 +356,102 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $this->assertSame(302, $response->getStatusCode());
         $this->assertStringContainsString('code=temp-code', $response->getHeaderLine('Location'));
         $this->assertStringContainsString('state=state-xyz', $response->getHeaderLine('Location'));
+    }
+
+    /**
+     * Verifies a request_ref completes a single authorization: a failed issuance can be retried,
+     * but replaying the URL once a code was issued (e.g. with the session still active) cannot
+     * issue a second one.
+     */
+    public function testRequestReferenceIssuesOnlyOneCode(): void
+    {
+        $reference = $this->referenceSigner()->sign(TokenType::AuthorizationRequest, [
+            'client_id' => 'client-123',
+            'origin' => 'par',
+            'params' => [
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
+            ],
+        ], 'tenant1', new \DateInterval('PT30M'));
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('POST', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams(['client_id' => 'client-123', AuthorizationRequestResolver::REFERENCE_PARAM => $reference])
+            ->withParsedBody(['csid' => 'signed-csid']);
+
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context(new ContainerBuilder(), $config);
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')->willReturn(new ClientData('client-123', ['code'], true));
+        $securer = $this->createMock(HtmlSecurer::class);
+        $securer->method('verifyToken')->willReturn('csid-123');
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('authenticate')->willReturn(StepResult::proceed(new PublicLoginAuthResponse(
+            tenant: 'tenant1',
+            auth: new AuthenticationResult(valid: true, id: 'user-1', tenant: 'tenant1', tenantName: 'Tenant 1', scope: 'openid', audiences: ['client-123']),
+            issuer: 'https://example.com/oauth/openid/tenant1',
+            clientId: 'client-123',
+            sessionId: 'sess-123',
+            sessionExpiration: new \DateInterval('PT10M')
+        ), new ChallengesState()));
+        $temporals = $this->createMock(TemporalKeysGateway::class);
+        // The first issuance fails after the reference was closed; the retry must still issue.
+        $temporals->expects($this->exactly(2))->method('registerTemporalAuthCode')->willReturnOnConsecutiveCalls(
+            $this->throwException(new \RuntimeException('code store down')),
+            'temp-code'
+        );
+        $cookies = new OidcCookieManager($context, $this->createMock(TokenSigner::class));
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $this->createMock(SessionManager::class),
+            $this->createMock(AuthenticateUser::class),
+            $securer,
+            $this->createMock(DecorateHtml::class),
+            new OidcResponseBuilder(
+                new TokenFactory($this->createMock(TokenSigner::class), new ClaimsMapper(), $this->createMock(TokenLifetimesGateway::class)),
+                $this->createMock(SessionStoreGateway::class),
+                $temporals,
+                $cookies
+            ),
+            $cookies,
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $loginForm,
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            $this->buildRequestResolver($clients),
+            $this->messages()
+        );
+
+        try {
+            $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
+            $this->fail('The failed issuance must surface');
+        } catch (\RuntimeException $ex) {
+            $this->assertSame('code store down', $ex->getMessage());
+        }
+
+        $first = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
+        $this->assertStringContainsString('code=temp-code', $first->getHeaderLine('Location'));
+
+        $replayed = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
+        $this->assertSame('https://client.example/callback#error=invalid_request', $replayed->getHeaderLine('Location'));
     }
 
     public function testRefreshWithInvalidCsidRedirectsToLogin(): void
@@ -417,8 +522,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(WebAuthnLoginForm::class),
                 $this->createMock(MagicLinkLoginForm::class)
             ),
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
         $response = $authorize->refresh($request, new Response(), ['tenant' => 'tenant1']);
@@ -431,6 +536,10 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
     {
         [$privateJwk, $jwksJson] = $this->buildRsaJwks();
         $requestJwt = $this->buildRequestObjectJwt($privateJwk, [
+            'iss' => 'client-123',
+            'aud' => 'https://example.com/oauth/openid/tenant1',
+            'exp' => time() + 300,
+            'jti' => 'jar-1',
             'response_type' => 'code',
             'client_id' => 'client-123',
             'state' => 'state-xyz',
@@ -506,11 +615,21 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $cookies,
             new OidcUrlBuilder($context),
             $router,
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
-        $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+        // The verified request object is consumed: the browser continues with its reference only.
+        $first = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+        $this->assertSame(302, $first->getStatusCode());
+        $location = $first->getHeaderLine('Location');
+        $this->assertStringStartsWith('https://example.com/oauth/openid/tenant1/authorize?', $location);
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+        $this->assertSame(['client_id', 'request_ref'], array_keys($query));
+
+        // The query cannot alter the signed parameters (redirect_uri stays the one of the JWT).
+        $followed = $request->withQueryParams([...$query, 'redirect_uri' => 'https://client.example/query-value']);
+        $response = $authorize->authorize($followed, new Response(), ['tenant' => 'tenant1']);
         $this->assertInstanceOf(ResponseInterface::class, $response);
     }
 
@@ -562,13 +681,166 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(WebAuthnLoginForm::class),
                 $this->createMock(MagicLinkLoginForm::class)
             ),
-            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            $this->buildRequestObjectValidator()
+            $this->buildRequestResolver($clients),
+            $this->messages()
         );
 
         $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('invalid_request_object');
         $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+    }
+
+    /**
+     * PKCE policy at /authorize (task 034): S256 only, mandatory for public and require-pkce clients.
+     */
+    public static function pkceCases(): array
+    {
+        $s256 = ['code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM', 'code_challenge_method' => 'S256'];
+        $confidential = new ClientData('client-123', ['code'], true);
+        $public = new ClientData('client-123', ['code'], true, tokenEndpointAuthMethod: 'none');
+        $strict = new ClientData('client-123', ['code'], true, requirePkce: true);
+        return [
+            'confidential client without PKCE' => [$confidential, [], false],
+            'public client without PKCE' => [$public, [], true],
+            'require-pkce client without PKCE' => [$strict, [], true],
+            'public client with S256' => [$public, $s256, false],
+            'plain method' => [$confidential, ['code_challenge' => $s256['code_challenge'], 'code_challenge_method' => 'plain'], true],
+            'challenge without method' => [$public, ['code_challenge' => $s256['code_challenge']], true],
+            'method without challenge, confidential client' => [$confidential, ['code_challenge_method' => 'S256'], true],
+            'method with empty challenge, confidential client' => [$confidential, ['code_challenge' => '', 'code_challenge_method' => 'S256'], true],
+            'malformed S256 challenge' => [$public, ['code_challenge' => 'short', 'code_challenge_method' => 'S256'], true],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('pkceCases')]
+    public function testAuthorizeAppliesTheClientPkcePolicy(ClientData $client, array $pkce, bool $rejected): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                ...$pkce,
+            ]);
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context(new ContainerBuilder(), $config);
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')->willReturn($client);
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->method('clearSession')->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $this->createMock(SessionManager::class),
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $loginForm,
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            $this->buildRequestResolver($clients),
+            $this->messages()
+        );
+
+        $location = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1'])->getHeaderLine('Location');
+
+        $this->assertSame($rejected ? 'https://client.example/callback#error=invalid_request' : '', $location);
+    }
+
+    /**
+     * The pages AuthorizeHtml renders itself follow the negotiated UI language (task 068).
+     */
+    public static function localizedPages(): array
+    {
+        return [
+            'check-session in English' => [true, ['ui_locales' => 'en'], 'Verifying the sign-in source...'],
+            'check-session by default' => [true, [], 'Verificando el origen del acceso...'],
+            'unknown tenant in English' => [false, ['ui_locales' => 'en'], 'Not found'],
+            'unknown tenant by default' => [false, [], 'No encontrado'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('localizedPages')]
+    public function testAuthorizePagesUseTheNegotiatedLanguage(bool $activeSession, array $query, string $title): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                ...$query,
+            ]);
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context(new ContainerBuilder(), $config);
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')->willReturn(new ClientData('client-123', ['code'], true));
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->method('findActiveSession')->willReturn(
+            $activeSession ? $this->createStub(\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo::class) : null
+        );
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('render')->willThrowException(new \Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException(
+            AuthenticationResult::unknowUser('tenant1', '', 'unknown')
+        ));
+        $pageTitle = null;
+        $decorator = $this->createMock(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(function ($request, string $usedTitle) use (&$pageTitle): string {
+            $pageTitle = $usedTitle;
+            return '';
+        });
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $sessions,
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $decorator,
+            $this->createMock(OidcResponseBuilder::class),
+            $this->createMock(OidcCookieManager::class),
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $loginForm,
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            $this->buildRequestResolver($clients),
+            $this->messages()
+        );
+
+        $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame($title, $pageTitle);
     }
 
     private function buildRequestObjectJwt(object $privateJwk, array $payload): string
@@ -600,11 +872,52 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         return [$privateJwk, $jwksJson];
     }
 
-    private function buildRequestObjectValidator(): RequestObjectValidator
+    private function messages(): MessageProvider
     {
-        $http = $this->createMock(ClientInterface::class);
-        $requestFactory = $this->createMock(RequestFactoryInterface::class);
-        $requestFactory->method('createRequest')->willReturn(new \GuzzleHttp\Psr7\Request('GET', 'https://client.example/jwks'));
-        return new RequestObjectValidator($http, $requestFactory);
+        return new MessageProvider(new AppConfig());
+    }
+
+    private function buildRequestResolver(ClientStoreGateway $clients): AuthorizationRequestResolver
+    {
+        return new AuthorizationRequestResolver(
+            $clients,
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            $this->createMock(TenantParPolicyGateway::class),
+            new RequestObjectValidator($this->createMock(RemoteJwksFetcher::class), new InMemoryReplayJti()),
+            $this->referenceSigner(),
+            $this->replays ??= new InMemoryReplayJti(),
+        );
+    }
+
+    /**
+     * Signer whose tokens are their JSON claims: enough to carry a request reference between calls.
+     */
+    private function referenceSigner(): TokenSigner
+    {
+        return new class () implements TokenSigner {
+            public function sign(TokenType $type, array $claims, string $tenant, \DateInterval $expiration): string
+            {
+                $claims += ['jti' => bin2hex(random_bytes(8)), 'exp' => (new \DateTimeImmutable())->add($expiration)->getTimestamp()];
+                return base64_encode((string) json_encode(['typ' => $type->value, 'tenant' => $tenant, 'claims' => $claims]));
+            }
+            public function keysAsJwks(string $tenant): JWKSet
+            {
+                return new JWKSet([]);
+            }
+            public function signKeypass(string $tenant, array $data, \DateInterval $expiration): string
+            {
+                return '';
+            }
+            public function verify(string $tenant, string $token, VerificationPolicy $policy): ?array
+            {
+                $decoded = json_decode((string) base64_decode($token, true), true);
+                $type = is_array($decoded) ? TokenType::tryFrom((string) ($decoded['typ'] ?? '')) : null;
+                return $type !== null && $policy->accepts($type) && $decoded['tenant'] === $tenant ? $decoded['claims'] : null;
+            }
+            public function verifiedKeypass(string $tenant, string $token): mixed
+            {
+                return null;
+            }
+        };
     }
 }

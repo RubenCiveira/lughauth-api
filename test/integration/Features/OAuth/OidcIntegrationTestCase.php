@@ -31,12 +31,18 @@ use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\Store\InMemoryStore;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven\JoseTokenSigner;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
+use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\TenantParPolicyGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
+use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driven\HttpRemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway;
 use Tests\integration\Features\OAuth\Stub\InMemoryClientStore;
 use Tests\integration\Features\OAuth\Stub\InMemoryDeviceAuthorizationGateway;
 use Tests\integration\Features\OAuth\Stub\InMemoryLoginGateway;
 use Tests\integration\Features\OAuth\Stub\InMemoryParRequestStore;
+use Tests\integration\Features\OAuth\Stub\InMemoryReplayJti;
+use Tests\integration\Features\OAuth\Stub\InMemoryTenantParPolicy;
 use Tests\integration\Features\OAuth\Stub\InMemorySessionStore;
 use Tests\integration\Features\OAuth\Stub\InMemoryTemporalKeys;
 use Tests\integration\Features\OAuth\Stub\InMemoryTokenRevocation;
@@ -56,6 +62,8 @@ abstract class OidcIntegrationTestCase extends TestCase
     protected InMemoryTemporalKeys $temporalKeys;
     protected InMemorySessionStore $sessionStore;
     protected InMemoryParRequestStore $parStore;
+    protected InMemoryTenantParPolicy $parPolicy;
+    protected InMemoryReplayJti $replayJtis;
     protected InMemoryTokenRevocation $tokenRevocation;
     protected InMemoryLoginGateway $loginGateway;
     protected \DI\Container $container;
@@ -77,6 +85,8 @@ abstract class OidcIntegrationTestCase extends TestCase
         $this->temporalKeys = new InMemoryTemporalKeys();
         $this->sessionStore = new InMemorySessionStore();
         $this->parStore = new InMemoryParRequestStore();
+        $this->parPolicy = new InMemoryTenantParPolicy();
+        $this->replayJtis = new InMemoryReplayJti();
         $this->tokenRevocation = new InMemoryTokenRevocation();
         $this->loginGateway = InMemoryLoginGateway::withDefaults();
 
@@ -159,6 +169,9 @@ abstract class OidcIntegrationTestCase extends TestCase
             TokenSigner::class => $signer,
             TokenRevocationGateway::class => $this->tokenRevocation,
             ParRequestGateway::class => $this->parStore,
+            TenantParPolicyGateway::class => $this->parPolicy,
+            ReplayJtiGateway::class => $this->replayJtis,
+            RemoteJwksFetcher::class => \DI\autowire(HttpRemoteJwksFetcher::class),
             LoginGateway::class => $this->loginGateway,
             DeviceAuthorizationGateway::class => new InMemoryDeviceAuthorizationGateway(),
             KeyConfig::class => $keyConfig,

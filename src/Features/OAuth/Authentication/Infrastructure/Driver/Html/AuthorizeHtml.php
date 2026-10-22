@@ -14,10 +14,11 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
-use Civi\Lughauth\Features\OAuth\Authentication\Domain\RequestObjectValidator;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\ResolvedAuthorizationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -28,9 +29,10 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
-use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
+use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use OpenApi\Attributes as OA;
 
 /**
@@ -42,8 +44,11 @@ use OpenApi\Attributes as OA;
  * by the user (POST /authorize), and resuming an already-active session without re-prompting
  * the user for credentials (check-session/refresh endpoint).
  *
- * The class resolves PAR (Pushed Authorization Request) URIs and signed request objects before
- * building the flow context, validates PKCE challenges, delegates step rendering and
+ * The class resolves PAR (Pushed Authorization Request) URIs and signed request objects through
+ * AuthorizationRequestResolver before building the flow context. A consumed PAR or JAR request is
+ * replaced by a redirect to its signed reference (request_ref), because the step forms post back
+ * to their own URL and the request_uri or request object cannot be used twice. It validates PKCE
+ * challenges against the client's policy, delegates step rendering and
  * authentication to OidcStepRouter, and emits the final redirect with the authorization code
  * (or tokens) once all challenges have been satisfied. Cookies for both the pre-session state
  * and the authenticated session are managed via OidcCookieManager.
@@ -67,8 +72,8 @@ class AuthorizeHtml
         private readonly OidcCookieManager $cookies,
         private readonly OidcUrlBuilder $urlBuilder,
         private readonly OidcStepRouter $router,
-        private readonly ResolveParRequestUsecase $resolveParRequest,
-        private readonly RequestObjectValidator $requestObjectValidator,
+        private readonly AuthorizationRequestResolver $requestResolver,
+        private readonly MessageProvider $messages,
     ) {
     }
 
@@ -84,8 +89,10 @@ class AuthorizeHtml
             new OA\Parameter(name: 'client_id', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'redirect_uri', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'scope', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'openid email profile')),
-            new OA\Parameter(name: 'code_challenge', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'code_challenge_method', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['S256', 'plain'])),
+            new OA\Parameter(name: 'code_challenge', in: 'query', required: false, description: 'Required for public clients and clients with require-pkce', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'code_challenge_method', in: 'query', required: false, description: 'Required with code_challenge', schema: new OA\Schema(type: 'string', enum: ['S256'])),
+            new OA\Parameter(name: 'request_uri', in: 'query', required: false, description: 'Pushed request (RFC 9126); every other parameter but client_id is ignored', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'request', in: 'query', required: false, description: 'Signed request object (RFC 9101); only its claims are used', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'nonce', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'prompt', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
@@ -98,14 +105,18 @@ class AuthorizeHtml
     /**
      * Handles the initial GET request to the authorization endpoint.
      *
-     * Validates the client, resolves PAR or request-object overrides, and either resumes an
-     * existing session silently or renders the first login step. When prompt=none and no
-     * active session exists, it immediately redirects with an error.
+     * Resolves PAR or request-object parameters (redirecting to their reference when consumed now),
+     * validates the client, and either resumes an existing session silently or renders the first
+     * login step. When prompt=none and no active session exists, it immediately redirects with an error.
      */
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $flow = $this->buildContext($request, $tenant);
+        $resolved = $this->resolveRequest($request, $tenant);
+        if ($resolved->consumedNow) {
+            return $this->redirectToReference($tenant, $resolved, $response);
+        }
+        $flow = $this->buildContext($request, $tenant, $resolved);
         $this->logDebug('OIDC authorize enter', [
             'tenant' => $tenant,
             'clientId' => $flow->clientId,
@@ -158,7 +169,11 @@ class AuthorizeHtml
     {
         $body = (array) ($request->getParsedBody() ?? []);
         $tenant = $args['tenant'];
-        $flow = $this->buildContext($request, $tenant);
+        $resolved = $this->resolveRequest($request, $tenant);
+        if ($resolved->consumedNow) {
+            return $this->redirectToReference($tenant, $resolved, $response);
+        }
+        $flow = $this->buildContext($request, $tenant, $resolved);
         $this->logDebug('OIDC check-session enter', [
             'tenant' => $tenant,
             'clientId' => $flow->clientId,
@@ -210,7 +225,7 @@ class AuthorizeHtml
                     $flow->state,
                     $flow->nonce
                 );
-                return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
+                return $this->completeAuthorization($flow, $auth, $client, $authRequest, $response);
             } catch (LoginException $ex) {
                 // Render the step form (e.g. consent) but keep the session cookie intact so the
                 // user's next submission hits this same endpoint with the session still valid.
@@ -243,7 +258,7 @@ class AuthorizeHtml
         try {
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
-                return $this->responseBuilder->buildSuccessRedirect($flow, $result->authResponse, $client, $authRequest, $response);
+                return $this->completeAuthorization($flow, $result->authResponse, $client, $authRequest, $response);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
                 return $result->response;
@@ -261,7 +276,7 @@ class AuthorizeHtml
                     'prompt' => $flow->prompt,
                     'code_challenge' => $flow->codeChallenge,
                     'code_challenge_method' => $flow->codeChallengeMethod,
-                ]));
+                ]) + $flow->continuationParams());
                 return $response->withStatus(302)->withHeader('Location', $url);
             }
             return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
@@ -305,7 +320,11 @@ class AuthorizeHtml
     {
         $body = (array) ($request->getParsedBody() ?? []);
         $tenant = $args['tenant'];
-        $flow = $this->buildContext($request, $tenant);
+        $resolved = $this->resolveRequest($request, $tenant);
+        if ($resolved->consumedNow) {
+            return $this->redirectToReference($tenant, $resolved, $response);
+        }
+        $flow = $this->buildContext($request, $tenant, $resolved);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $requestError = $this->rejectInvalidRequest($flow, $client, $response);
         if ($requestError !== null) {
@@ -330,7 +349,7 @@ class AuthorizeHtml
 
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
-                return $this->responseBuilder->buildSuccessRedirect($flow, $result->authResponse, $client, $clientRequest, $response);
+                return $this->completeAuthorization($flow, $result->authResponse, $client, $clientRequest, $response);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
                 $response = $this->cookies->clearSession($result->response, $tenant);
@@ -357,56 +376,71 @@ class AuthorizeHtml
     }
 
     /**
-     * Redirects with an error when PKCE is missing or malformed, or when an audience not
-     * registered for the client is requested; only approved audiences reach the code.
+     * Redirects with an error when PKCE is missing for a client that requires it (public or
+     * require-pkce), is incomplete (a method without challenge) or is not a valid S256 challenge,
+     * or when an audience not registered for the client is requested; only approved audiences
+     * reach the code. The token endpoint applies the same PKCE policy when the code is redeemed.
      */
     private function rejectInvalidRequest(OidcFlowContext $flow, ClientData $client, ResponseInterface $response): ?ResponseInterface
     {
         if (!$client->allowsAudiences($flow->audiences)) {
             return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_target', $response);
         }
-        if ($flow->codeChallenge === null) {
-            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
-        }
         try {
-            PkceChallenge::fromRequest($flow->codeChallenge, $flow->codeChallengeMethod);
+            $pkce = PkceChallenge::fromRequest($flow->codeChallenge, $flow->codeChallengeMethod);
         } catch (\InvalidArgumentException) {
             return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
         }
-        return null;
+        return $pkce === null && $client->requiresPkce()
+            ? $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response)
+            : null;
     }
 
-    private function buildContext(ServerRequestInterface $request, string $tenant): OidcFlowContext
-    {
-        $query = $request->getQueryParams();
-        if (isset($query['request_uri']) && $query['request_uri'] !== '') {
-            try {
-                $parRequest = $this->resolveParRequest->resolve((string) $query['request_uri'], $tenant);
-            } catch (ParException) {
-                throw new UnauthorizedException('invalid_request_uri');
-            }
-            $request = $request->withQueryParams(array_merge($parRequest->params, $query));
-            $query = $request->getQueryParams();
-        }
+    /**
+     * Issues the authorization response, closing the request reference of a PAR or JAR request:
+     * a reference that already completed an authorization gets invalid_request instead, and one
+     * whose issuance fails stays open for a retry.
+     */
+    private function completeAuthorization(
+        OidcFlowContext $flow,
+        PublicLoginAuthResponse $auth,
+        ClientData $client,
+        AuthenticationRequest $authRequest,
+        ResponseInterface $response
+    ): ResponseInterface {
+        $issued = $this->requestResolver->complete(
+            $flow->tenant,
+            $flow->requestRef,
+            fn (): ResponseInterface => $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response)
+        );
+        return $issued ?? $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
+    }
 
-        if (isset($query['request']) && $query['request'] !== '') {
-            $clientId = (string) ($query['client_id'] ?? '');
-            if ($clientId === '') {
-                throw new UnauthorizedException('invalid_request_object');
-            }
-            $client = $this->clients->preValidatedClient($tenant, $clientId);
-            if ($client === null) {
-                throw new UnauthorizedException('invalid_request_object');
-            }
-            try {
-                $verifiedParams = $this->requestObjectValidator->validate((string) $query['request'], $client);
-            } catch (\InvalidArgumentException) {
-                throw new UnauthorizedException('invalid_request_object');
-            }
-            $query = array_merge($query, $verifiedParams);
-            $request = $request->withQueryParams($query);
-        }
-        return OidcFlowContext::fromRequest($request, $tenant, $this->context);
+    private function resolveRequest(ServerRequestInterface $request, string $tenant): ResolvedAuthorizationRequest
+    {
+        return $this->requestResolver->resolve($tenant, $this->context->getIssuer($tenant), $request->getQueryParams());
+    }
+
+    /**
+     * Sends the browser to /authorize with only the client_id and the signed reference of the
+     * PAR or JAR request just consumed, so every following step posts back to that URL.
+     */
+    private function redirectToReference(string $tenant, ResolvedAuthorizationRequest $resolved, ResponseInterface $response): ResponseInterface
+    {
+        $url = $this->context->getIssuer($tenant) . '/authorize?' . http_build_query([
+            'client_id' => (string) ($resolved->params['client_id'] ?? ''),
+            AuthorizationRequestResolver::REFERENCE_PARAM => $resolved->reference,
+        ], '', '&', PHP_QUERY_RFC3986);
+        return $response->withStatus(302)->withHeader('Location', $url);
+    }
+
+    /**
+     * The flow context only reads the resolved parameters; the query of a PAR or JAR request is
+     * never merged in. Cookies and headers still come from the HTTP request.
+     */
+    private function buildContext(ServerRequestInterface $request, string $tenant, ResolvedAuthorizationRequest $resolved): OidcFlowContext
+    {
+        return OidcFlowContext::fromRequest($request->withQueryParams($resolved->params), $tenant, $this->context, $resolved->reference);
     }
 
     private function buildAuthRequest(OidcFlowContext $flow, ClientData $client): AuthenticationRequest
@@ -514,7 +548,7 @@ class AuthorizeHtml
                 $flow->tenant,
                 $flow->state,
                 $flow->nonce,
-                ['prompt' => $flow->prompt]
+                ['prompt' => $flow->prompt] + $flow->continuationParams()
             );
             $response = $response->withStatus(302)->withHeader('Location', $url);
             return $this->cookies->clearSession($response, $flow->tenant);
@@ -524,11 +558,12 @@ class AuthorizeHtml
     private function renderNotFound(string $tenant, string $locale, RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $this->logWarning('OIDC tenant not found', ['tenant' => $tenant]);
+        $translator = $this->translator($locale);
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $request,
-                'Not Found',
-                '<div class="error-page"><h1>404</h1><p>Tenant not found or not available.</p></div>',
+                $translator->get('authorize.not-found.title'),
+                '<div class="error-page"><h1>404</h1><p>' . $translator->get('authorize.not-found.help') . '</p></div>',
                 $locale,
                 'index',
                 null
@@ -555,16 +590,19 @@ class AuthorizeHtml
         $safeMessage = htmlspecialchars($errorMessage, ENT_QUOTES);
         $safeCode = htmlspecialchars($errorCode, ENT_QUOTES);
         $backUrl = htmlspecialchars($backUrl, ENT_QUOTES);
+        $translator = $this->translator($locale);
+        $title = $translator->get('authorize.error.title');
+        $back = $translator->get('authorize.error.back');
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $request,
-                'Authorization Error',
+                $title,
                 <<<HTML
                     <div class="error-page">
-                        <h1>Authorization Error</h1>
+                        <h1>{$title}</h1>
                         <p><strong>{$safeCode}</strong></p>
                         <p>{$safeMessage}</p>
-                        <a class="primary-button" href="{$backUrl}">Back</a>
+                        <a class="primary-button" href="{$backUrl}">{$back}</a>
                     </div>
                 HTML,
                 $locale,
@@ -573,6 +611,14 @@ class AuthorizeHtml
             )
         );
         return $response->withStatus(400);
+    }
+
+    /**
+     * Login catalogue in the UI language negotiated for the request (UiLocale).
+     */
+    private function translator(string $locale): MessageCatalogue
+    {
+        return $this->messages->messages('forms', $locale, __DIR__ . '/../Translations');
     }
 
     private function cisdPage(
@@ -593,9 +639,10 @@ class AuthorizeHtml
                 'prompt' => $flow->prompt,
                 'code_challenge' => $flow->codeChallenge,
                 'code_challenge_method' => $flow->codeChallengeMethod,
-            ]
+            ] + $flow->continuationParams()
         );
-        $response->getBody()->write($this->decorator->getFullPage($request, 'Mfa', $js . "<h1>Verifiy login source...</h1>"
+        $title = $this->translator($flow->locale)->get('authorize.check-session.title');
+        $response->getBody()->write($this->decorator->getFullPage($request, $title, $js . "<h1>{$title}</h1>"
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"
             . "<input type=\"hidden\" name=\"csid\" id=\"sign\" />"
             . "<input type=\"submit\" style=\"display:none\" />"

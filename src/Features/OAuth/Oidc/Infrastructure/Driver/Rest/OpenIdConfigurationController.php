@@ -10,6 +10,7 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\OidcCapabilities;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway;
+use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\TenantParPolicyGateway;
 use OpenApi\Attributes as OA;
 
 /**
@@ -18,7 +19,7 @@ use OpenApi\Attributes as OA;
  * Exposes GET /oauth/openid/{tenant}/.well-known/openid-configuration and returns a JSON object
  * containing the OpenID Provider Metadata for the requested tenant. The configuration is built
  * on each request via OpenIdConfiguration::forIssuer() from the canonical tenant issuer and the
- * implemented OidcCapabilities, then enriched by the registered DiscoveryContributorGateway
+ * implemented OidcCapabilities (with the tenant's PAR policy), then enriched by the registered DiscoveryContributorGateway
  * instances (which may only add fields, never override base ones). Clients (relying parties, SDKs, and CLI
  * tools) use this document to discover the issuer, authorization endpoint, token endpoint, JWKS
  * URI, and supported capabilities without requiring static configuration. The response is served
@@ -29,6 +30,7 @@ class OpenIdConfigurationController
     /** @param DiscoveryContributorGateway[] $contributors */
     public function __construct(
         private readonly Context $context,
+        private readonly TenantParPolicyGateway $parPolicy,
         private readonly array $contributors = [],
     ) {
     }
@@ -52,7 +54,10 @@ class OpenIdConfigurationController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $config = OpenIdConfiguration::forIssuer($this->context->getIssuer($tenant), OidcCapabilities::implemented());
+        $config = OpenIdConfiguration::forIssuer(
+            $this->context->getIssuer($tenant),
+            OidcCapabilities::implemented($this->parPolicy->requiresPar($tenant))
+        );
 
         $document = $config->toArray();
         foreach ($this->contributors as $contributor) {

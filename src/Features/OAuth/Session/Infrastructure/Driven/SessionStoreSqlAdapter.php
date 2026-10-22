@@ -19,10 +19,9 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
  * SQL-backed implementation of the SessionStoreGateway port using PDO.
  *
  * Persists OAuth authorization session records in the _oauth_session table, storing the
- * serialised user identity and MFA state as a JSON blob in the auth_data column. On
- * construction, expired sessions are purged proactively so that old rows do not accumulate.
- * All lookups filter by expiration to ensure stale sessions are never returned even if a
- * periodic cleanup has not yet run. The client IP address and User-Agent are recorded for
+ * serialised user identity and MFA state as a JSON blob in the auth_data column. Expired
+ * sessions are purged by OAuthCleanupScheduler after the response. All lookups filter by
+ * expiration to ensure stale sessions are never returned even if that cleanup has not yet run. The client IP address and User-Agent are recorded for
  * auditing purposes but are not used for any validation logic. Session rotation (via
  * updateSession) replaces the opaque state key while keeping all other session data intact,
  * preventing session fixation between authentication steps.
@@ -32,7 +31,6 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     public function __construct(
         private readonly PDO $pdo
     ) {
-        $this->clearTemp();
     }
 
     /**
@@ -193,12 +191,14 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
 
     /**
      * Deletes all expired session rows from the database.
-     * Delegates to the internal clearTemp helper which is also called on construction.
+     * Deletes the sessions whose expiration is in the past.
      */
     #[Override]
     public function purgeExpired(): void
     {
-        $this->clearTemp();
+        $stmt = $this->pdo->prepare('DELETE FROM _oauth_session where expiration < :expiration');
+        $stmt->bindValue('expiration', (new \DateTimeImmutable())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
     }
 
     /** @param array<string, string> $params */
@@ -228,13 +228,5 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
             );
         }
         return $result;
-    }
-
-    private function clearTemp(): void
-    {
-        $now = new \DateTimeImmutable();
-        $stmt = $this->pdo->prepare('DELETE FROM _oauth_session where expiration < :expiration');
-        $stmt->bindValue('expiration', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $stmt->execute();
     }
 }

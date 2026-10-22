@@ -32,7 +32,8 @@ use Civi\Lughauth\Shared\Value\Random;
  * verification tries the current key first, then retries with the fallback, raising
  * SignatureVerificationException only when both attempts fail. Short-lived authorization codes
  * are stored as JSON in _oauth_temporal_codes with a 3-minute TTL and are consumed atomically
- * on retrieval to enforce the single-use invariant mandated by the OAuth 2.0 specification.
+ * on retrieval to enforce the single-use invariant mandated by the OAuth 2.0 specification;
+ * expired codes are deleted by OAuthCleanupScheduler after the response.
  */
 class TemporalKeysSqlAdapter implements TemporalKeysGateway
 {
@@ -40,7 +41,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         private readonly PDO $pdo,
         private readonly AesCypherService $cipher
     ) {
-        $this->clearTemp();
+        $this->rotateKeyIfExpired();
     }
 
     /**
@@ -106,7 +107,15 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         return $current !== null ? (string) $current['current'] : '';
     }
 
-    private function clearTemp(): void
+    #[\Override]
+    public function purgeExpiredCodes(): void
+    {
+        $delCodes = $this->pdo->prepare('DELETE FROM _oauth_temporal_codes where expiration < :now');
+        $delCodes->bindValue('now', (new \DateTimeImmutable())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $delCodes->execute();
+    }
+
+    private function rotateKeyIfExpired(): void
     {
         $now = new \DateTimeImmutable();
         $row = $this->getCurrent();
@@ -115,9 +124,6 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         } elseif (!$row) {
             $this->execute('INSERT INTO _oauth_temporal_keys (current, old, expiration) VALUES(:new, :old, :expiration)', '-');
         }
-        $delCodes = $this->pdo->prepare('DELETE FROM _oauth_temporal_codes where expiration < :now');
-        $delCodes->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $delCodes->execute();
     }
 
     private function execute(string $sql, string $old): void

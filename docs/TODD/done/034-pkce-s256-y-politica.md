@@ -1,7 +1,7 @@
 # 034 — Restringir PKCE a S256 y aplicar política del cliente
 
-- **Estado:** pendiente. **Prioridad:** media.
-- **Evidencia:** [PkceChallenge](../../src/Features/OAuth/Authentication/Domain/ValueObject/PkceChallenge.php) permite `plain` por defecto; [AuthorizeHtml::requirePkce](../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) exige challenge en general; el atributo `requirePkce` del TrustedClient no llega a [ClientData](../../src/Features/OAuth/Client/Domain/ClientData.php).
+- **Estado:** hecho (EP-07). **Prioridad:** media.
+- **Evidencia:** [PkceChallenge](../../../src/Features/OAuth/Authentication/Domain/ValueObject/PkceChallenge.php) permite `plain` por defecto; [AuthorizeHtml::requirePkce](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Html/AuthorizeHtml.php) exige challenge en general; el atributo `requirePkce` del TrustedClient no llega a [ClientData](../../../src/Features/OAuth/Client/Domain/ClientData.php).
 - **Impacto:** PKCE débil y configuración del cliente ignorada.
 - **Por hacer:** exigir S256 para nuevos flujos, actualizar discovery y decidir política de transición/obligatoriedad para clientes confidenciales según requisitos OAuth actuales.
 - **Aceptación:** `plain` rechazado en authorize y code exchange; clientes con política PKCE reciben validación coherente.

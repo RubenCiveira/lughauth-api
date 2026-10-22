@@ -13,12 +13,13 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
  * Application use case that resolves a previously pushed authorization request_uri at the
  * authorization endpoint.
  *
- * Fetches the ParRequest aggregate from storage by its URI and tenant, enforces the single-use
- * and expiry invariants, and marks the request as consumed so it cannot be replayed. The
- * returned ParRequest contains the original authorization parameters that the authorization
- * endpoint must use to drive the user's login flow. Any invalid, expired, or already-used
- * request_uri results in a ParException with the 'invalid_request_uri' error code, as required
- * by RFC 9126 Section 3.
+ * Fetches the ParRequest aggregate from storage by its URI and tenant, checks that it was pushed
+ * by the client named at the authorization endpoint (RFC 9126 §4), enforces the single-use and
+ * expiry invariants, and consumes it atomically so it cannot be replayed, not even by two
+ * concurrent requests. The returned ParRequest contains the original authorization parameters
+ * that the authorization endpoint must use to drive the user's login flow. Any invalid, expired,
+ * already-used or foreign request_uri results in a ParException with the 'invalid_request_uri'
+ * error code, as required by RFC 9126 Section 3.
  */
 final class ResolveParRequestUsecase
 {
@@ -28,14 +29,14 @@ final class ResolveParRequestUsecase
     }
 
     /**
-     * Looks up the PAR request by URI, validates it is unused and unexpired, marks it consumed, and returns it.
-     * Throws ParException with 'invalid_request_uri' if the URI is unknown, already used, or expired.
+     * Looks up the PAR request by URI, validates its client, that it is unused and unexpired,
+     * consumes it, and returns it. Throws ParException with 'invalid_request_uri' otherwise.
      */
-    public function resolve(string $requestUri, string $tenant): ParRequest
+    public function resolve(string $requestUri, string $tenant, string $clientId): ParRequest
     {
         $parRequest = $this->gateway->findByUri($requestUri, $tenant);
 
-        if ($parRequest === null) {
+        if ($parRequest === null || $parRequest->clientId !== $clientId) {
             throw ParException::invalidRequestUri();
         }
         if ($parRequest->isUsed()) {
@@ -44,8 +45,9 @@ final class ResolveParRequestUsecase
         if ($parRequest->isExpired()) {
             throw ParException::invalidRequestUri();
         }
-
-        $this->gateway->markUsed($requestUri, $tenant);
+        if (!$this->gateway->consume($requestUri, $tenant)) {
+            throw ParException::invalidRequestUri();
+        }
 
         return $parRequest;
     }

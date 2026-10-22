@@ -209,7 +209,7 @@ final class ParUnitTest extends TestCase
         $this->expectException(ParException::class);
         $gateway = $this->makeParGateway(byUri: null);
         $usecase = new ResolveParRequestUsecase($gateway);
-        $usecase->resolve('urn:missing', 'tenant');
+        $usecase->resolve('urn:missing', 'tenant', 'c');
     }
 
     public function test_resolve_throws_when_already_used(): void
@@ -219,7 +219,7 @@ final class ParUnitTest extends TestCase
         $gateway = $this->makeParGateway(byUri: $used);
         $usecase = new ResolveParRequestUsecase($gateway);
         try {
-            $usecase->resolve('urn:test', 'tenant');
+            $usecase->resolve('urn:test', 'tenant', 'c');
         } catch (ParException $e) {
             $this->assertSame('invalid_request_uri', $e->error());
             throw $e;
@@ -233,29 +233,79 @@ final class ParUnitTest extends TestCase
         $gateway = $this->makeParGateway(byUri: $expired);
         $usecase = new ResolveParRequestUsecase($gateway);
         try {
-            $usecase->resolve('urn:test', 'tenant');
+            $usecase->resolve('urn:test', 'tenant', 'c');
         } catch (ParException $e) {
             $this->assertSame('invalid_request_uri', $e->error());
             throw $e;
         }
     }
 
-    public function test_resolve_marks_used_and_returns_request(): void
+    public function test_resolve_consumes_and_returns_request(): void
     {
-        $markedUri = null;
+        $consumedUri = null;
         $r = new ParRequest('urn:test', 'tenant', 'c', ['a' => 'b'], new DateTimeImmutable('+60 seconds'));
         $gateway = $this->makeParGateway(
             byUri: $r,
-            onMarkUsed: function (string $uri) use (&$markedUri) {
-                $markedUri = $uri;
+            onConsume: function (string $uri) use (&$consumedUri): bool {
+                $consumedUri = $uri;
+                return true;
             }
         );
         $usecase = new ResolveParRequestUsecase($gateway);
 
-        $result = $usecase->resolve('urn:test', 'tenant');
+        $result = $usecase->resolve('urn:test', 'tenant', 'c');
 
         $this->assertSame($r, $result);
-        $this->assertSame('urn:test', $markedUri);
+        $this->assertSame('urn:test', $consumedUri);
+    }
+
+    public function test_resolve_throws_when_pushed_by_another_client(): void
+    {
+        $this->expectException(ParException::class);
+        $r = new ParRequest('urn:test', 'tenant', 'c', [], new DateTimeImmutable('+60 seconds'));
+        $usecase = new ResolveParRequestUsecase($this->makeParGateway(byUri: $r));
+        $usecase->resolve('urn:test', 'tenant', 'other-client');
+    }
+
+    public function test_resolve_throws_when_a_concurrent_request_consumed_it_first(): void
+    {
+        $this->expectException(ParException::class);
+        $r = new ParRequest('urn:test', 'tenant', 'c', [], new DateTimeImmutable('+60 seconds'));
+        $usecase = new ResolveParRequestUsecase($this->makeParGateway(byUri: $r, onConsume: fn (): bool => false));
+        $usecase->resolve('urn:test', 'tenant', 'c');
+    }
+
+    public function test_push_throws_when_client_id_is_not_the_authenticated_client(): void
+    {
+        $usecase = new PushAuthorizationUsecase($this->makeClientStore(new ClientData('c', ['authorization_code'], false)), $this->makeParGateway());
+
+        try {
+            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+                'response_type' => 'code',
+                'redirect_uri' => 'https://app/cb',
+                'client_id' => 'other-client',
+            ]));
+            $this->fail('A request pushed for another client must be rejected');
+        } catch (ParException $e) {
+            $this->assertSame('invalid_request', $e->error());
+        }
+    }
+
+    public function test_push_throws_when_request_uri_is_nested(): void
+    {
+        $usecase = new PushAuthorizationUsecase($this->makeClientStore(new ClientData('c', ['authorization_code'], false)), $this->makeParGateway());
+
+        try {
+            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+                'response_type' => 'code',
+                'redirect_uri' => 'https://app/cb',
+                'client_id' => 'c',
+                'request_uri' => 'urn:ietf:params:oauth:request_uri:other',
+            ]));
+            $this->fail('A pushed request cannot reference another request_uri');
+        } catch (ParException $e) {
+            $this->assertSame('invalid_request', $e->error());
+        }
     }
 
     // --- helpers ---
@@ -289,10 +339,10 @@ final class ParUnitTest extends TestCase
         };
     }
 
-    private function makeParGateway(?ParRequest $byUri = null, ?callable $onStore = null, ?callable $onMarkUsed = null): ParRequestGateway
+    private function makeParGateway(?ParRequest $byUri = null, ?callable $onStore = null, ?callable $onConsume = null): ParRequestGateway
     {
-        return new class ($byUri, $onStore, $onMarkUsed) implements ParRequestGateway {
-            public function __construct(private ?ParRequest $byUri, private $onStore, private $onMarkUsed)
+        return new class ($byUri, $onStore, $onConsume) implements ParRequestGateway {
+            public function __construct(private ?ParRequest $byUri, private $onStore, private $onConsume)
             {
             }
             public function store(ParRequest $r): void
@@ -305,11 +355,12 @@ final class ParUnitTest extends TestCase
             {
                 return $this->byUri;
             }
-            public function markUsed(string $requestUri, string $tenant): void
+            public function consume(string $requestUri, string $tenant): bool
             {
-                if ($this->onMarkUsed) {
-                    ($this->onMarkUsed)($requestUri, $tenant);
-                }
+                return $this->onConsume ? ($this->onConsume)($requestUri, $tenant) : true;
+            }
+            public function purgeExpired(): void
+            {
             }
         };
     }

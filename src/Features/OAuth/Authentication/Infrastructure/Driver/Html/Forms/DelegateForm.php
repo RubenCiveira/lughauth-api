@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
  * Login step form that handles federated / delegated authentication via external identity providers.
@@ -40,7 +41,8 @@ class DelegateForm implements StepForm
         private readonly DelegateLogin $delegated,
         private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
-        private readonly HtmlSecurer $securer
+        private readonly HtmlSecurer $securer,
+        private readonly MessageProvider $messages
     ) {
     }
 
@@ -94,6 +96,8 @@ class DelegateForm implements StepForm
         $body = $input->request->getParsedBody();
         $params = $input->request->getQueryParams();
         $route = '/oauth/openid/-/delegated/verify';
+        $translator = $this->messages->messages('forms', $input->context->locale, __DIR__ . '/../../Translations');
+        $title = $translator->get('delegated.title');
         if (isset($params['provider-data']) && isset($params['provider'])) {
             $js = $this->securer->configureScripts([
                 $this->securer->addSignAndSend("sign", "login"),
@@ -101,7 +105,7 @@ class DelegateForm implements StepForm
             $step = StepName::DELEGATED_LOGIN->value;
             $html = $this->decorator->getFullPage(
                 $input->request,
-                'Login',
+                $title,
                 $js . <<<HTML
                     <form id="login" method="POST">
                         <input type="hidden" name="csid" id="sign" />
@@ -110,7 +114,7 @@ class DelegateForm implements StepForm
                         <input type="hidden" name="step" value="{$step}" />
                     </form>
                 HTML,
-                'es',
+                $input->context->locale,
                 'index',
                 $input->context->tenant
             );
@@ -128,8 +132,8 @@ class DelegateForm implements StepForm
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $input->request,
-                'Delegated login',
-                "<h1>Tengo que definir el método de url para {$target->method}</h1>",
+                $title,
+                '<h1>' . $translator->get('delegated.unsupported-method', [htmlspecialchars($target->method, ENT_QUOTES)]) . '</h1>',
                 $input->context->locale,
                 'index',
                 $input->context->tenant
