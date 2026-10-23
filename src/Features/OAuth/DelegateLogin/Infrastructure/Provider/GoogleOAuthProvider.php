@@ -107,7 +107,7 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
                 providerUserId: $sub,
                 email: $email,
                 name: $name,
-                emailVerified: ((bool) ($data['email_verified'] ?? false))
+                emailVerified: filter_var($data['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN)
             );
         } catch (IdentityProviderException $ex) {
             return null;

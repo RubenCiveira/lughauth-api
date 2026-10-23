@@ -30,6 +30,8 @@ mfa:
   send: Verificar
   back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
   back-label: aquí
+  recovery-help: ¿Ha perdido su aplicación de autenticación? Use un código de recuperación
+  recovery-code: Código de recuperación
 
 recoverpass:
   ask:
@@ -134,7 +136,7 @@ error:
   wrong_credential: Usuario o contraseña incorrectos.
   wrong_old_pass: No se ha indicado correctamente la contraseña anterior.
   unable_to_change: Ha habido un error al intentar cambiar la contraseña.
-  wrong_auth_code: El código otp no es válido, vuelva a intentarlo.
+  wrong_auth_code: El código de verificación no es válido, vuelva a intentarlo.
   missing_scopes_consent: Debe aprobar los permisos obligatorios.
 
 magic-link:

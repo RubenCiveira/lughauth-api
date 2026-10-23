@@ -378,7 +378,7 @@ class DcrInitialAccessTokenPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_dcr_initial_access_token".*) as count ' : '"access_dcr_initial_access_token".*').' FROM "access_dcr_initial_access_token"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_dcr_initial_access_token".*').' FROM "access_dcr_initial_access_token"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

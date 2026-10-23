@@ -366,7 +366,7 @@ class RolePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_role".*) as count ' : '"access_role".*').' FROM "access_role"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_role".*').' FROM "access_role"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

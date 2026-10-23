@@ -385,7 +385,7 @@ class UserWebauthnCredentialPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_webauthn_credential".*) as count ' : '"access_user_webauthn_credential".*').' FROM "access_user_webauthn_credential"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_webauthn_credential".*').' FROM "access_user_webauthn_credential"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

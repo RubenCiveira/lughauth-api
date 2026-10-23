@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 
 /**
  * Unit tests for {@see DelegateForm} step integration.
@@ -54,5 +55,93 @@ final class DelegateFormStepUnitTest extends FormsTestCase
         $this->assertSame('user-1', $result->challenges->username);
         $this->assertSame($input->challenges->withMfa, $result->challenges->withMfa);
         $this->assertSame($input->challenges->session, $result->challenges->session);
+    }
+
+    public function testStartingALoginKeepsItsBindingInThePreSession(): void
+    {
+        $sent = null;
+        $delegated = $this->createMock(DelegateLogin::class);
+        $delegated->method('getTargetEndpoint')->willReturnCallback(
+            function (string $route, string $tenant, string $provider, array $data, string $binding) use (&$sent): DelegatedLoginEndpoint {
+                $sent = $binding;
+                return new DelegatedLoginEndpoint('GET', 'https://idp/sso');
+            }
+        );
+        $input = $this->buildInput([], new ChallengesState());
+        $input = new \Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput(
+            context: $input->context,
+            authRequest: $input->authRequest,
+            challenges: $input->challenges,
+            body: [],
+            request: $input->request->withParsedBody(['delegated-provider' => 'saml-1'])
+        );
+
+        $result = $this->form($delegated)->render($input, new \Slim\Psr7\Response(), null);
+
+        $this->assertSame(64, strlen((string) $sent));
+        $this->assertSame(['value' => $sent, 'provider' => 'saml-1'], $result->challenges->extra[DelegateLogin::BINDING]);
+    }
+
+    public function testTheStoredBindingIsRequiredAndSpentOnUse(): void
+    {
+        $binding = ['value' => 'stored-binding', 'provider' => 'saml-1'];
+        $delegated = $this->createMock(DelegateLogin::class);
+        $delegated->expects($this->once())->method('validateRedirection')
+            ->with($this->anything(), 'saml-1', 'data', 'tenant1', $this->anything(), 'stored-binding')
+            ->willReturn(new AuthenticationResult(valid: true, id: 'user-1'));
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->method('preAuthenticate')->willReturn($this->createMock(PublicLoginAuthResponse::class));
+
+        $result = $this->form($delegated, $authenticator)->authenticate(
+            $this->buildInput(['provider' => 'saml-1', 'provider-data' => 'data'], (new ChallengesState())->withExtra(DelegateLogin::BINDING, $binding))
+        );
+
+        $this->assertArrayNotHasKey(DelegateLogin::BINDING, $result->challenges->extra);
+    }
+
+    public function testTheBindingOfAnotherProviderIsNotUsed(): void
+    {
+        $delegated = $this->createMock(DelegateLogin::class);
+        $delegated->expects($this->once())->method('validateRedirection')
+            ->with($this->anything(), 'github', $this->anything(), $this->anything(), $this->anything(), '')
+            ->willReturn(null);
+
+        $this->expectException(\Civi\Lughauth\Shared\Exception\UnauthorizedException::class);
+        $this->form($delegated)->authenticate(
+            $this->buildInput(['provider' => 'github', 'provider-data' => 'data'], (new ChallengesState())->withExtra(DelegateLogin::BINDING, ['value' => 'stored-binding', 'provider' => 'saml-1']))
+        );
+    }
+
+    public function testTheProviderDataPostedBackIsEscaped(): void
+    {
+        $page = null;
+        $decorator = $this->createMock(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(function ($request, string $title, string $content) use (&$page): string {
+            return $page = $content;
+        });
+        $input = $this->buildInput([], new ChallengesState());
+        $input = new \Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput(
+            context: $input->context,
+            authRequest: $input->authRequest,
+            challenges: $input->challenges,
+            body: [],
+            request: $input->request->withParsedBody(['provider' => 'saml-1', 'provider-data' => '"><script>steal()</script>'])
+        );
+
+        $this->form($this->createMock(DelegateLogin::class), null, $decorator)->render($input, new \Slim\Psr7\Response(), null);
+
+        $this->assertStringNotContainsString('<script>steal()', (string) $page);
+    }
+
+    private function form(DelegateLogin $delegated, ?AuthenticateUser $authenticator = null, ?DecorateHtml $decorator = null): DelegateForm
+    {
+        $messages = new \Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider(new \Civi\Lughauth\Shared\AppConfig());
+        return new DelegateForm(
+            $delegated,
+            $authenticator ?? $this->createMock(AuthenticateUser::class),
+            $decorator ?? $this->createMock(DecorateHtml::class),
+            $this->createMock(HtmlSecurer::class),
+            $messages
+        );
     }
 }

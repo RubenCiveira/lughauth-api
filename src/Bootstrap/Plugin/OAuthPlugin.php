@@ -62,6 +62,8 @@ use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Infrastructure\Driven\UserMfaAdapter;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Driven\DelegateLoginAdapter;
+use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Driven\FederatedIdentityAdapter;
+use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\FederatedIdentityGateway;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
 use Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven\ScopesConsentAdapter;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway;
@@ -163,6 +165,7 @@ class OAuthPlugin extends MicroPlugin
         $def[SigningKeyProvisioner::class] = \DI\get(KeyRotationService::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
+        $def[FederatedIdentityGateway::class] = \DI\autowire(FederatedIdentityAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
@@ -262,6 +265,8 @@ class OAuthPlugin extends MicroPlugin
         $collector->delete('/api/me/sessions', [UserSessionController::class, 'revokeAll']);
         $collector->delete('/api/me/sessions/{sessionId}', [UserSessionController::class, 'revoke']);
         $collector->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
+        // SAML IdPs post their response (HTTP-POST binding).
+        $collector->post('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
         $collector->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
             $group->get('/me', [ProfileHtml::class, 'view']);
             $group->get('/me/edit', [ProfileHtml::class, 'edit']);

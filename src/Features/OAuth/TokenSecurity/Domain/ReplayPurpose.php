@@ -17,4 +17,6 @@ enum ReplayPurpose: string
     case JwtBearer = 'jwt_bearer';
     /** A request_ref whose authorization was completed: it cannot issue a second code. */
     case AuthorizationRequest = 'authorization_request';
+    /** The binding of a delegated login to its browser: one callback finishes the login, once. */
+    case DelegatedLogin = 'delegated_login';
 }

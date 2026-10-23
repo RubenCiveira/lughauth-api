@@ -47,6 +47,19 @@ interface LoginGateway
     ): AuthenticationResult;
 
     /**
+     * True when the user must enrol a second factor before signing in: no TOTP seed yet, and MFA
+     * switched on for the user or forced by the tenant. Enrolment replaces any stored seed, so it
+     * is only allowed while this holds.
+     */
+    public function mfaEnrolmentPending(string $tenant, string $username): bool;
+
+    /**
+     * Counts a wrong second factor as a failed sign-in attempt of the user, blocking the
+     * account once the failures reach the same limit as wrong passwords.
+     */
+    public function markSecondFactorFailed(string $tenant, string $username): void;
+
+    /**
      * Validates username and password credentials and returns the resulting authentication state.
      *
      * The returned result may be valid (successful login) or may signal a required next step

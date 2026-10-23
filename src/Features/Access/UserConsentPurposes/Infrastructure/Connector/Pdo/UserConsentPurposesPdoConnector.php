@@ -364,7 +364,7 @@ class UserConsentPurposesPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_consent_purposes".*) as count ' : '"access_user_consent_purposes".*').' FROM "access_user_consent_purposes"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_consent_purposes".*').' FROM "access_user_consent_purposes"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

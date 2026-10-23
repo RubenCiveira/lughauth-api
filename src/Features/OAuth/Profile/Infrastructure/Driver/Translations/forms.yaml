@@ -66,6 +66,8 @@ profile:
     otp: One-time code
     enable: Enable MFA
     cancel: Cancel
+    wrongOtp: The one-time code is not valid. Try the code your app shows now.
+    error: The MFA settings could not be updated. Please try again.
   sessions:
     title: Active sessions
     help: Review devices and applications where your account is signed in.

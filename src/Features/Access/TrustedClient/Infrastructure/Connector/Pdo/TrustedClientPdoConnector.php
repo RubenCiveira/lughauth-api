@@ -493,7 +493,7 @@ class TrustedClientPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_trusted_client".*) as count ' : '"access_trusted_client".*').' FROM "access_trusted_client"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_trusted_client".*').' FROM "access_trusted_client"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

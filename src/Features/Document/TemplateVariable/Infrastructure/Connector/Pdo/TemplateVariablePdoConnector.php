@@ -371,7 +371,7 @@ class TemplateVariablePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_template_variable".*) as count ' : '"document_template_variable".*').' FROM "document_template_variable"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_template_variable".*').' FROM "document_template_variable"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

@@ -325,7 +325,7 @@ class ThemeVersionPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_theme_version".*) as count ' : '"document_theme_version".*').' FROM "document_theme_version"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_theme_version".*').' FROM "document_theme_version"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

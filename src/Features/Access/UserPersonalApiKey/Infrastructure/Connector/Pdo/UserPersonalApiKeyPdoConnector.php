@@ -378,7 +378,7 @@ class UserPersonalApiKeyPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_personal_api_key".*) as count ' : '"access_user_personal_api_key".*').' FROM "access_user_personal_api_key"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_personal_api_key".*').' FROM "access_user_personal_api_key"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

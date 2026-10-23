@@ -368,7 +368,7 @@ class TenantPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_tenant".*) as count ' : '"access_tenant".*').' FROM "access_tenant"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_tenant".*').' FROM "access_tenant"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

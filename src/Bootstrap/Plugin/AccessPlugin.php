@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClien
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driver\UserPersonalApiKeyPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driver\UserProfilePlugin;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\UserFederatedIdentityPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Infrastructure\Driver\UserRoleAssignmentPlugin;
@@ -44,6 +45,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new UserPersonalApiKeyPlugin(),
           new TenantPlugin(),
           new UserProfilePlugin(),
+          new UserFederatedIdentityPlugin(),
           new TrustedClientPlugin(),
           new TenantConfigPlugin(),
           new UserRoleAssignmentPlugin(),

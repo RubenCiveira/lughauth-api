@@ -324,7 +324,7 @@ class TemplateVersionPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_template_version".*) as count ' : '"document_template_version".*').' FROM "document_template_version"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_template_version".*').' FROM "document_template_version"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

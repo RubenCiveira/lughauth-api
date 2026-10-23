@@ -330,7 +330,7 @@ class MessagePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("notification_message".*) as count ' : '"notification_message".*').' FROM "notification_message"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"notification_message".*').' FROM "notification_message"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

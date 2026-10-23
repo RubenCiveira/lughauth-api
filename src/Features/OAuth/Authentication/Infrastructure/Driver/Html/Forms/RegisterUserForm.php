@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
@@ -92,7 +93,7 @@ class RegisterUserForm implements StepForm
         $csid = (string) ($body['csid'] ?? '');
         $user = $this->registerUser->verifyRegister($input->context->tenant, $code);
         if ($user !== null && $user !== '') {
-            $updated = $input->challenges->withUsername($user);
+            $updated = $input->challenges->withUsername($user)->identifiedBy(IdentificationMethod::REGISTRATION);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,

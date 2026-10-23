@@ -51,6 +51,17 @@ final class AppleOAuthProviderUnitTest extends TestCase
         $this->assertEquals('Apple', $user->familyName);
     }
 
+    public function testEmailVerifiedSentAsTheTextFalseIsNotVerified(): void
+    {
+        $jwt = $this->fakeJwt(['sub' => 'apple-2', 'email' => 'apple@example.com', 'email_verified' => 'false', 'nonce' => hash('sha256', 'state-123')]);
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturn(new Response(200, [], '{"id_token":"' . $jwt . '"}'));
+
+        $user = $this->createProvider($http)->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code', 'state' => 'state-123']);
+
+        $this->assertFalse($user?->emailVerified);
+    }
+
     private function createProvider(ClientInterface $http): AppleOAuthProvider
     {
         $config = $this->createMock(AppConfig::class);

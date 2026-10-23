@@ -29,14 +29,15 @@ final class GitHubOAuthProviderUnitTest extends TestCase
         $this->assertEquals('https://app.local/delegate/callback', $query['redirect_uri'] ?? null);
     }
 
-    public function testAuthorizeUsesUserEmailWhenAvailable(): void
+    public function testAuthorizeUsesTheVerifiedPrimaryEmailRatherThanTheProfileOne(): void
     {
         $http = $this->createMock(ClientInterface::class);
-        $http->expects($this->exactly(2))
+        $http->expects($this->exactly(3))
             ->method('request')
             ->willReturnOnConsecutiveCalls(
                 new Response(200, [], '{"access_token":"token-1"}'),
-                new Response(200, [], '{"id":10,"email":"dev@example.com","name":"Dev","avatar_url":"https://img.local/a.png"}')
+                new Response(200, [], '{"id":10,"email":"shown@example.com","name":"Dev","avatar_url":"https://img.local/a.png"}'),
+                new Response(200, [], '[{"email":"shown@example.com","primary":false,"verified":false},{"email":"dev@example.com","primary":true,"verified":true}]')
             );
 
         $provider = $this->createProvider($http);
@@ -48,6 +49,20 @@ final class GitHubOAuthProviderUnitTest extends TestCase
         $this->assertEquals('Dev', $user->name);
         $this->assertEquals('https://img.local/a.png', $user->pictureUrl);
         $this->assertTrue($user->emailVerified);
+    }
+
+    public function testAnUnverifiedPrimaryEmailIsReportedAsSuch(): void
+    {
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturnOnConsecutiveCalls(
+            new Response(200, [], '{"access_token":"token-3"}'),
+            new Response(200, [], '{"id":12,"login":"dev-user"}'),
+            new Response(200, [], '[{"email":"victim@example.com","primary":true,"verified":false}]')
+        );
+
+        $user = $this->createProvider($http)->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
+
+        $this->assertFalse($user?->emailVerified);
     }
 
     public function testAuthorizeUsesPrimaryEmailEndpointWhenProfileEmailIsMissing(): void

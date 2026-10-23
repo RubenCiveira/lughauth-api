@@ -370,7 +370,7 @@ class SmtpOutboundConfigPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("notification_smtp_outbound_config".*) as count ' : '"notification_smtp_outbound_config".*').' FROM "notification_smtp_outbound_config"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"notification_smtp_outbound_config".*').' FROM "notification_smtp_outbound_config"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

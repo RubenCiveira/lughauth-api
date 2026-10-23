@@ -1,7 +1,7 @@
 # 039 — Permitir códigos de recuperación MFA en login
 
-- **Estado:** pendiente. **Prioridad:** media.
-- **Evidencia:** [MfaAdapter](../../src/Features/OAuth/Profile/Infrastructure/Driven/MfaAdapter.php) genera y cuenta códigos sin usar; [OAuthPlugin](../../src/Bootstrap/Plugin/OAuthPlugin.php) expone panel de recuperación, pero el flujo de login no consume esos códigos.
+- **Estado:** hecho (EP-10). **Prioridad:** media.
+- **Evidencia:** [MfaAdapter](../../../src/Features/OAuth/Profile/Infrastructure/Driven/MfaAdapter.php) genera y cuenta códigos sin usar; [OAuthPlugin](../../../src/Bootstrap/Plugin/OAuthPlugin.php) expone panel de recuperación, pero el flujo de login no consume esos códigos.
 - **Impacto:** el usuario con TOTP perdido no puede usar los códigos emitidos.
 - **Por hacer:** paso alternativo MFA con verificación del hash y marcado de un solo uso en transacción, sin revelar si existe; enlazarlo a la sesión/challenge.
 - **Aceptación:** código correcto permite una vez; repetido, de otro usuario o tenant falla.

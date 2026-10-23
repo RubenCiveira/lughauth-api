@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
@@ -407,7 +408,9 @@ class ProfileHtml
                 $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
                 $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
                 $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
-                $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, $ex->getMessage(), false, $this->mfaTexts($translator)) . '</div>';
+                // A wrong code is the user's to fix; anything else is not worth showing in detail.
+                $error = $translator->get($ex instanceof ConstraintException ? 'profile.mfa.wrongOtp' : 'profile.mfa.error');
+                $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, $error, false, $this->mfaTexts($translator)) . '</div>';
                 $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full', $tenant));
                 return $response->withStatus(422);
             }

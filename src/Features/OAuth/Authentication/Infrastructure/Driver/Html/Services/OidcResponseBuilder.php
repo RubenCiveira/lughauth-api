@@ -110,6 +110,6 @@ class OidcResponseBuilder
             }
         }
 
-        return $cookie->attach($this->writer->success($flow, $params, $response));
+        return $cookie->attach($this->cookies->clearPreSession($this->writer->success($flow, $params, $response), $flow->tenant));
     }
 }

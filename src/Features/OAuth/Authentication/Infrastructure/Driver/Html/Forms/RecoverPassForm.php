@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
@@ -89,7 +90,7 @@ class RecoverPassForm implements StepForm
         }
         $user = $this->changePassword->validateChangeRequest($input->context->tenant, $code, $newpass);
         if ($user !== null && $user !== '') {
-            $updated = $input->challenges->withUsername($user);
+            $updated = $input->challenges->withUsername($user)->identifiedBy(IdentificationMethod::PASSWORD_RECOVERY);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,

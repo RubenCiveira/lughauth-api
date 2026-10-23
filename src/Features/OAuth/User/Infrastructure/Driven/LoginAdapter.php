@@ -30,6 +30,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\ScopesConsentUsecase;
@@ -109,6 +110,12 @@ class LoginAdapter implements LoginGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUserOrSubject($theTenant, $username);
+            $byPassword = $challenges->identifiedBy === IdentificationMethod::PASSWORD;
+            // A password login keeps the steps validatedUserData asked for: no later step skips them.
+            if ($byPassword && $pending = $this->pendingPasswordStep($theTenant, $theUser, $challenges->withMfa)) {
+                $this->logInfo('OIDC login still requires a password step', ['tenant' => $tenant, 'username' => $username, 'step' => $pending->error ?? '']);
+                return $pending;
+            }
             if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
                 $this->logInfo('OIDC login requires terms acceptance', ['tenant' => $tenant, 'username' => $username]);
                 return $terms;
@@ -116,6 +123,10 @@ class LoginAdapter implements LoginGateway
             if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
                 $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
                 return $scopes;
+            }
+            if ($byPassword) {
+                // The password step left the failure counter alone while MFA was pending.
+                $this->markLoginOk($theUser);
             }
             $root = $theTenant->isRoot();
             return new AuthenticationResult(
@@ -138,6 +149,20 @@ class LoginAdapter implements LoginGateway
         } finally {
             $span->end();
         }
+    }
+
+    #[Override]
+    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    {
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        return $this->checkMfaConfigurationRequired($theTenant, $this->users->checkUserOrSubject($theTenant, $username)) !== null;
+    }
+
+    #[Override]
+    public function markSecondFactorFailed(string $tenant, string $username): void
+    {
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $this->markLoginFail($this->users->checkUserOrSubject($theTenant, $username));
     }
 
     #[Override]
@@ -224,6 +249,12 @@ class LoginAdapter implements LoginGateway
             $this->logWarning('OIDC login password rehash error', ['tenant' => $tenant->getName(), 'username' => $user->getName(), 'error' => $ex->getMessage()]);
             return $user;
         }
+    }
+
+    private function pendingPasswordStep(Tenant $tenant, User $user, bool $mfaDone): ?AuthenticationResult
+    {
+        return $this->checkTemporalPassword($tenant, $user)
+            ?? ($mfaDone ? null : $this->checkMfaConfigurationRequired($tenant, $user) ?? $this->checkMfa($tenant, $user));
     }
 
     private function checkTemporalPassword(Tenant $tenant, User $user): ?AuthenticationResult

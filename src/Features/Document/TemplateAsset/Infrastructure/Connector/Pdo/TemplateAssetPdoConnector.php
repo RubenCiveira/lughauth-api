@@ -390,7 +390,7 @@ class TemplateAssetPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_template_asset".*) as count ' : '"document_template_asset".*').' FROM "document_template_asset"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_template_asset".*').' FROM "document_template_asset"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

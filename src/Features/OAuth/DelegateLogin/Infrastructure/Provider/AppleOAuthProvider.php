@@ -153,7 +153,7 @@ class AppleOAuthProvider implements DelegatedLoginProvider
                 name: $name,
                 givenName: $givenName,
                 familyName: $familyName,
-                emailVerified: ((bool) ($claims['email_verified'] ?? false))
+                emailVerified: filter_var($claims['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN)
             );
         } catch (Throwable $ex) {
             return null;

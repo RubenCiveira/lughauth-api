@@ -10,6 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
@@ -230,6 +231,7 @@ class AuthorizeHtml
             ]);
             $challenges = (new ChallengesState())
                 ->withUsername($sess->userId)
+                ->identifiedBy(IdentificationMethod::SESSION)
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
             $input = $this->buildStepInput($flow, $request, $authRequest, $challenges, $body);

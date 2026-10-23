@@ -5,47 +5,81 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use OneLogin\Saml2\Utils;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\Saml2Provider;
 
+/**
+ * A SAML response is only trusted once php-saml has validated it: signed by the configured IdP,
+ * for this SP and callback, in time, and answering the AuthnRequest sent for the same state.
+ */
 #[AllowMockObjectsWithoutExpectations]
 final class Saml2ProviderUnitTest extends TestCase
 {
+    private const string CALLBACK = 'https://app.local/oauth/openid/-/delegated/verify';
+    private const string SP_ENTITY_ID = 'lughauth-sp';
+    private const string IDP_ENTITY_ID = 'https://idp.example.com/metadata';
+    private const string STATE = 'state-123';
+
+    /** @var array{key: string, cert: string} */
+    private static array $idp;
+    /** @var array{key: string, cert: string} */
+    private static array $otherIdp;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$idp = self::keyPair('Trusted IdP');
+        self::$otherIdp = self::keyPair('Other IdP');
+    }
+
     public function testDelegatedUrlContainsSamlRequestAndRelayState(): void
     {
-        $provider = $this->createProvider();
-        $endpoint = $provider->delegeatedUrl('https://app.local/delegate/callback', 'state-123');
+        $endpoint = $this->provider()->delegeatedUrl(self::CALLBACK, self::STATE);
 
         $this->assertStringContainsString('SAMLRequest=', $endpoint->url);
-        $this->assertStringContainsString('RelayState=state-123', $endpoint->url);
+        $this->assertStringContainsString('RelayState=' . self::STATE, $endpoint->url);
     }
 
-    public function testAuthorizeMapsSamlAttributesToDelegatedUserData(): void
+    public function testASignedResponseForThisRequestMapsTheUser(): void
     {
-        $provider = $this->createProvider();
-        $xml = '<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">'
-            . '<saml:Assertion><saml:Subject><saml:NameID>user-1</saml:NameID></saml:Subject>'
-            . '<saml:AttributeStatement>'
-            . '<saml:Attribute Name="email"><saml:AttributeValue>user@example.com</saml:AttributeValue></saml:Attribute>'
-            . '<saml:Attribute Name="displayName"><saml:AttributeValue>User Name</saml:AttributeValue></saml:Attribute>'
-            . '</saml:AttributeStatement></saml:Assertion></samlp:Response>';
-
-        $user = $provider->authorize('https://app.local/delegate/callback', [
-            'SAMLResponse' => base64_encode($xml),
-        ]);
+        $user = $this->provider()->authorize(self::CALLBACK, $this->posted($this->signed(self::$idp)));
 
         $this->assertNotNull($user);
-        $this->assertEquals('user-1', $user->providerUserId);
-        $this->assertEquals('user@example.com', $user->email);
-        $this->assertEquals('User Name', $user->name);
+        $this->assertSame(['user-1', 'user@example.com', 'User Name'], [$user->providerUserId, $user->email, $user->name]);
     }
 
-    private function createProvider(): Saml2Provider
+    public static function rejectedResponses(): array
+    {
+        return [
+            'unsigned (forged by anyone)' => [fn (self $t) => $t->posted(base64_encode($t->responseXml()))],
+            'signed by another IdP' => [fn (self $t) => $t->posted($t->signed(self::$otherIdp))],
+            'answering the request of another state' => [fn (self $t) => $t->posted($t->signed(self::$idp), 'other-state')],
+            'for another SP' => [fn (self $t) => $t->posted($t->signed(self::$idp, ['audience' => 'other-sp']))],
+            'expired' => [fn (self $t) => $t->posted($t->signed(self::$idp, ['notOnOrAfter' => time() - 3600]))],
+            'without RelayState' => [fn (self $t) => ['SAMLResponse' => $t->signed(self::$idp)]],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('rejectedResponses')]
+    public function testAnInvalidResponseYieldsNoUser(Closure $request): void
+    {
+        $this->assertNull($this->provider()->authorize(self::CALLBACK, $request($this)));
+    }
+
+    public function testTheValidationLeavesTheServerVariablesAsTheyWere(): void
+    {
+        $before = $_SERVER;
+
+        $this->provider()->authorize(self::CALLBACK, $this->posted($this->signed(self::$idp)));
+
+        $this->assertSame($before, $_SERVER);
+    }
+
+    private function provider(): Saml2Provider
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')->willReturn('https://assets.local');
-
         $context = $this->createMock(Context::class);
         $context->method('getBaseUrl')->willReturn('https://app.local');
 
@@ -54,8 +88,49 @@ final class Saml2ProviderUnitTest extends TestCase
             $context,
             'saml-provider',
             'https://idp.example.com/sso',
-            'lughauth-sp',
+            self::SP_ENTITY_ID,
+            self::IDP_ENTITY_ID,
+            self::$idp['cert'],
             'Corporate SSO'
         );
+    }
+
+    /** @return array<string, string> */
+    private function posted(string $samlResponse, string $relayState = self::STATE): array
+    {
+        return ['SAMLResponse' => $samlResponse, 'RelayState' => $relayState];
+    }
+
+    /** @param array{key: string, cert: string} $idp */
+    private function signed(array $idp, array $overrides = []): string
+    {
+        return base64_encode(Utils::addSign($this->responseXml($overrides), $idp['key'], $idp['cert']));
+    }
+
+    private function responseXml(array $overrides = []): string
+    {
+        $time = static fn (int $at): string => gmdate('Y-m-d\TH:i:s\Z', $at);
+        $now = $time(time());
+        $notOnOrAfter = $time($overrides['notOnOrAfter'] ?? time() + 300);
+        $notBefore = $time(time() - 60);
+        $audience = $overrides['audience'] ?? self::SP_ENTITY_ID;
+        // The AuthnRequest ID the provider derives from the state it was sent with.
+        $inResponseTo = '_' . hash('sha256', 'saml-authn-request|' . self::STATE);
+        $callback = self::CALLBACK;
+        $issuer = self::IDP_ENTITY_ID;
+
+        return <<<XML
+            <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_response-1" Version="2.0" IssueInstant="{$now}" Destination="{$callback}" InResponseTo="{$inResponseTo}"><saml:Issuer>{$issuer}</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status><saml:Assertion ID="_assertion-1" Version="2.0" IssueInstant="{$now}"><saml:Issuer>{$issuer}</saml:Issuer><saml:Subject><saml:NameID>user-1</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml:SubjectConfirmationData NotOnOrAfter="{$notOnOrAfter}" Recipient="{$callback}" InResponseTo="{$inResponseTo}"/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore="{$notBefore}" NotOnOrAfter="{$notOnOrAfter}"><saml:AudienceRestriction><saml:Audience>{$audience}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AuthnStatement AuthnInstant="{$now}" SessionIndex="_session-1"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement><saml:AttributeStatement><saml:Attribute Name="email"><saml:AttributeValue>user@example.com</saml:AttributeValue></saml:Attribute><saml:Attribute Name="displayName"><saml:AttributeValue>User Name</saml:AttributeValue></saml:Attribute></saml:AttributeStatement></saml:Assertion></samlp:Response>
+            XML;
+    }
+
+    /** @return array{key: string, cert: string} */
+    private static function keyPair(string $name): array
+    {
+        $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        $cert = openssl_csr_sign(openssl_csr_new(['commonName' => $name], $key), null, $key, 1);
+        openssl_pkey_export($key, $keyPem);
+        openssl_x509_export($cert, $certPem);
+        return ['key' => $keyPem, 'cert' => $certPem];
     }
 }

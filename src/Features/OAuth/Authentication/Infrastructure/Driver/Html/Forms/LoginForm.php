@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
@@ -199,9 +200,11 @@ class LoginForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
-            return StepResult::proceed($auth, $challenges);
+            return StepResult::proceed($auth, $challenges->identifiedBy(IdentificationMethod::PASSWORD));
         } catch (LoginException $ex) {
-            throw new LoginException($ex->auth, $ex->getMessage(), $ex->getCode(), $ex, $challenges);
+            // Only a right password comes back with an identified state (a step is still pending):
+            // a wrong one keeps the typed username without proof, which no later step accepts.
+            throw new LoginException($ex->auth, $ex->getMessage(), $ex->getCode(), $ex, $ex->challenges ?? $challenges);
         }
     }
 }

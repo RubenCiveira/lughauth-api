@@ -117,11 +117,9 @@ class GitHubOAuthProvider implements DelegatedLoginProvider
             $userResponse = $this->http->request('GET', self::API_URL, ['headers' => $headers]);
             $user = json_decode((string) $userResponse->getBody(), true);
 
-            $email = (string) ($user['email'] ?? '');
-            $verified = true;
-            if ($email === '') {
-                [$email, $verified] = $this->fetchPrimaryEmail($headers);
-            }
+            // The profile email is whatever the user chose to show: only /user/emails says
+            // whether an address is verified, so the verified primary one is used.
+            [$email, $verified] = $this->fetchPrimaryEmail($headers);
             if ($email === '') {
                 return null;
             }

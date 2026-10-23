@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
@@ -85,7 +86,8 @@ class AuthenticateUser
 
     /**
      * Performs pre-authentication for a flow where the user identity was established in a prior step.
-     * Fills the authentication result from previously validated state rather than re-checking credentials.
+     * Fills the authentication result from previously validated state rather than re-checking credentials,
+     * so a state without that proof (a username that was only typed) is sent back to the login.
      */
     public function preAuthenticate(
         AuthenticationRequest $request,
@@ -99,6 +101,9 @@ class AuthenticateUser
         $this->logDebug('OIDC pre-authenticate start', ['tenant' => $tenant]);
         $span = $this->startSpan('oidc.pre_authenticate', ['tenant' => $tenant]);
         try {
+            if (!$challenges->isIdentified()) {
+                throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant, $challenges->username ?? ''));
+            }
             $result = $this->saveIt(
                 $this->loginRepository->fillPreAuthenticated($tenant, $request, $challenges),
                 $request,
@@ -137,8 +142,11 @@ class AuthenticateUser
         $this->logDebug('OIDC authenticate start', ['tenant' => $tenant, 'username' => $username]);
         $span = $this->startSpan('oidc.authenticate', ['tenant' => $tenant]);
         try {
+            $validation = $this->loginRepository->validatedUserData($tenant, $username, $password, $request);
+            // Reaching here means the password was right, also when a step (MFA, terms...) is still pending.
+            $challenges = $challenges->identifiedBy(IdentificationMethod::PASSWORD);
             $result = $this->saveIt(
-                $this->loginRepository->validatedUserData($tenant, $username, $password, $request),
+                $validation,
                 $request,
                 $challenges,
                 $issuer,
@@ -155,6 +163,25 @@ class AuthenticateUser
         } finally {
             $span->end();
         }
+    }
+
+    /**
+     * True when the user must still enrol a second factor (no seed yet, and MFA required for the
+     * user or the tenant): the only case in which a new TOTP seed may be shown or stored.
+     */
+    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    {
+        return $this->loginRepository->mfaEnrolmentPending($tenant, $username);
+    }
+
+    /**
+     * Records a wrong second factor (TOTP or recovery code) against the user's failed sign-in
+     * attempts, so guessing it locks the account like guessing the password does.
+     */
+    public function secondFactorFailed(string $tenant, string $username): void
+    {
+        $this->logWarning('OIDC second factor rejected', ['tenant' => $tenant, 'username' => $username]);
+        $this->loginRepository->markSecondFactorFailed($tenant, $username);
     }
 
     private function saveIt(
@@ -182,8 +209,13 @@ class AuthenticateUser
             return $this->buildResponse($validation, $request, $issuer, $activeSessionId);
         }
 
-        // Only methods with evidence (RFC 8176): a password checked here, or a completed MFA step.
-        $amr = array_values(array_filter([$emitLoginEvent ? 'pwd' : null, $challenges->withMfa ? 'mfa' : null]));
+        // Only methods with evidence (RFC 8176): a password checked in this flow, or a completed MFA
+        // step with the method of its factor (`otp` for TOTP; a recovery code has no own value).
+        $amr = array_values(array_filter([
+            $challenges->identifiedBy === IdentificationMethod::PASSWORD ? 'pwd' : null,
+            $challenges->withMfa ? $challenges->mfaMethod : null,
+            $challenges->withMfa ? 'mfa' : null,
+        ]));
 
         if (!$challenges->session) {
             $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid, $issuer);

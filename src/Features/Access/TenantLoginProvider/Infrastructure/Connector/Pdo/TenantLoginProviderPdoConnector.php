@@ -405,7 +405,7 @@ class TenantLoginProviderPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_tenant_login_provider".*) as count ' : '"access_tenant_login_provider".*').' FROM "access_tenant_login_provider"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_tenant_login_provider".*').' FROM "access_tenant_login_provider"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

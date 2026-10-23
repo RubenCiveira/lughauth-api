@@ -69,4 +69,13 @@ interface MfaGateway
      * Returns the number of recovery codes that have not yet been used.
      */
     public function countUnusedRecoveryCodes(string $userUid, string $tenant): int;
+
+    /**
+     * Spends one unused recovery code of the user as a second factor.
+     *
+     * The user is given by name or uid within the tenant. Returns true only when the code
+     * matched an unused one and this call marked it used: a wrong, spent or foreign code, or
+     * one consumed at the same time by a concurrent attempt, returns false.
+     */
+    public function consumeRecoveryCode(string $user, string $tenant, string $code): bool;
 }

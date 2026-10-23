@@ -13,6 +13,8 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
+use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose;
 
 /**
  * Application service that orchestrates the delegated (federated) login flow.
@@ -20,17 +22,29 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGatew
  * This service acts as the primary entry point for all operations related to
  * third-party identity provider authentication, covering OAuth 2.0 / OIDC social
  * logins as well as SAML 2.0 federations. It retrieves the list of configured
- * providers for a tenant, builds the provider-specific redirect URL including
- * a signed state parameter that carries the tenant and original request context,
- * handles the inbound callback by forwarding the raw provider data to the
- * gateway for validation and user-provisioning, and finally redirects the browser
- * back to the correct tenant-scoped URL after a successful cross-origin callback.
+ * providers for a tenant, builds the provider-specific redirect URL with a state that
+ * carries the tenant, the original request context and a random binding to the browser's
+ * pre-session, hands the inbound callback to the tenant's authorize endpoint in an
+ * auto-submitted form, and validates the callback data (binding first, then the provider)
+ * before the gateway resolves or provisions the local user.
  */
 class DelegateLogin
 {
+    /** State key of the random value that ties a delegated login to the browser that started it. */
+    public const string BINDING = 'delegation';
+    /**
+     * Client column of the spent bindings: a binding belongs to one login, whatever client it is
+     * presented for, so it is spent once per tenant rather than once per client.
+     */
+    private const string ANY_CLIENT = '-';
+    /** As long as the pre-session cookie that carries the binding lives. */
+    private const string BINDING_LIFETIME = 'PT10M';
+    private const string AUTO_SUBMIT = 'document.forms[0].submit();';
+
     public function __construct(
         private readonly Context $context,
-        private readonly DelegateLoginGateway $delegate
+        private readonly DelegateLoginGateway $delegate,
+        private readonly ReplayJtiGateway $replays
     ) {
     }
 
@@ -44,57 +58,109 @@ class DelegateLogin
     }
 
     /**
-     * Handles the OAuth callback that arrives at the shared (root) redirect URI and
-     * forwards the browser to the tenant-scoped verification route with all query
-     * parameters re-encoded in the state.
-     * Returns a 302 redirect response pointing at the correct tenant path.
+     * Handles the provider callback (GET for OAuth providers, POST for SAML) and hands its
+     * parameters to the delegated login step of the tenant's authorize endpoint. They travel in
+     * the body of an auto-submitted form rather than in a URL, so neither codes nor assertions
+     * reach logs or Referer headers, and a SAML response fits whatever its size.
      */
     public function redirectToTenant(string $directory, string $path, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $params = $request->getQueryParams();
-        $state = $params['state'];
-        $info = json_decode(base64_decode($state), true);
-        $tenant = $info['tenant'] ?? null;
-        unset($info['tenant']);
-        $info['step'] = StepName::DELEGATED_LOGIN->value;
+        $body = $request->getParsedBody();
+        $params = array_merge($request->getQueryParams(), is_array($body) ? $body : []);
+        $info = self::decodeState((string) ($params['state'] ?? $params['RelayState'] ?? ''));
+        $tenant = (string) ($info['tenant'] ?? '');
+        $provider = (string) ($info['provider'] ?? '');
+        if ($tenant === '' || $provider === '') {
+            return $response->withStatus(400);
+        }
+        // What is left are the parameters of the original authorization request.
+        unset($info['tenant'], $info['provider'], $info[self::BINDING]);
+        $action = $this->context->getBaseUrl() . $directory . rawurlencode($tenant) . $path . '?' . http_build_query($info);
         $encodedParams = json_encode($params);
-        $info['provider-data'] = base64_encode($encodedParams === false ? '{}' : $encodedParams);
-
-        $url = $this->context->getBaseUrl() . $directory . $tenant . $path;
-
-        $queryString = http_build_query($info);
-        // Comprobamos si la URL ya tiene parámetros
-        $separator = str_contains($url, '?') ? '&' : '?';
-        // Concatenamos
-        $finalUrl = $url . $separator . $queryString;
-        return $response->withHeader('Location', $finalUrl)->withStatus(302);
+        $fields = '';
+        foreach ([
+            'step' => StepName::DELEGATED_LOGIN->value,
+            'provider' => $provider,
+            'provider-data' => base64_encode($encodedParams === false ? '{}' : $encodedParams),
+        ] as $name => $value) {
+            $fields .= '<input type="hidden" name="' . self::escape($name) . '" value="' . self::escape($value) . '"/>';
+        }
+        $response->getBody()->write(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Submit</title></head><body>'
+            . '<form method="post" action="' . self::escape($action) . '">' . $fields . '<noscript><button type="submit">Continue</button></noscript></form>'
+            . '<script>' . self::AUTO_SUBMIT . '</script></body></html>'
+        );
+        $csp = "default-src 'none'; script-src 'sha256-" . base64_encode(hash('sha256', self::AUTO_SUBMIT, true)) . "'; "
+            . "form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
+        return $response->withStatus(200)
+            ->withHeader('Content-Type', 'text/html; charset=utf-8')
+            ->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Content-Security-Policy', $csp)
+            ->withHeader('Referrer-Policy', 'no-referrer');
     }
 
     /**
-     * Processes the provider callback for a specific tenant and provider, extracts and
-     * validates the user claims, then delegates user lookup or just-in-time provisioning
-     * to the gateway, returning an AuthenticationResult on success or null on failure.
+     * Validates the provider callback data for the delegated login started in this browser.
+     * The state the provider echoes back must carry the binding stored in the pre-session when
+     * the login started, for the same provider, tenant and client: data of another browser's
+     * flow, or made up, or presented for another client, is refused before the provider is even
+     * asked. The pre-session is a stateless
+     * cookie, so the binding is spent here, server side: a copy of the cookie and of the
+     * callback data cannot finish the login a second time. What the provider data proves is
+     * then up to the provider (a code exchange, or a signed SAML assertion).
      */
-    public function validateRedirection(string $route, string $providerId, string $data, string $tenant, AuthenticationRequest $request): ?AuthenticationResult
+    public function validateRedirection(string $route, string $providerId, string $data, string $tenant, AuthenticationRequest $request, string $binding): ?AuthenticationResult
     {
-        $info = json_decode(base64_decode($data), true);
+        $info = json_decode((string) base64_decode($data, true), true);
+        if (!is_array($info)) {
+            return null;
+        }
+        $state = self::decodeState((string) ($info['state'] ?? $info['RelayState'] ?? ''));
+        if ($binding === ''
+            || !hash_equals($binding, (string) ($state[self::BINDING] ?? ''))
+            || ($state['provider'] ?? null) !== $providerId
+            || ($state['tenant'] ?? null) !== $tenant
+            || ($state['client_id'] ?? null) !== $request->client->id
+            || !$this->replays->consume(
+                $tenant,
+                self::ANY_CLIENT,
+                ReplayPurpose::DelegatedLogin,
+                hash('sha256', $binding),
+                (new \DateTimeImmutable())->add(new \DateInterval(self::BINDING_LIFETIME))
+            )
+        ) {
+            return null;
+        }
         $provider =  $this->delegate->getProvider($tenant, $providerId);
         $clientData = $provider->authorize($this->context->getBaseUrl() . $route, $info);
         return  $clientData ? $this->delegate->save($tenant, $request, $clientData, $providerId) : null;
     }
 
     /**
-     * Builds the provider-specific authorization endpoint descriptor for the given tenant
-     * and provider, embedding a base64-encoded state that contains tenant, provider ID,
-     * and any additional caller-supplied data so the callback can reconstruct context.
+     * Builds the provider endpoint for a new delegated login. The state sent to the provider
+     * carries the authorization request, the tenant, the provider and the binding to the
+     * pre-session of this browser, which validateRedirection requires on return.
      */
-    public function getTargetEndpoint(string $route, string $tenant, string $providerId, array $data): DelegatedLoginEndpoint
+    public function getTargetEndpoint(string $route, string $tenant, string $providerId, array $data, string $binding): DelegatedLoginEndpoint
     {
         $provider =  $this->delegate->getProvider($tenant, $providerId);
         $data['tenant'] = $tenant;
         $data['provider'] = $providerId;
+        $data[self::BINDING] = $binding;
         $encodedData = json_encode($data);
         $state = base64_encode($encodedData === false ? '{}' : $encodedData);
         return $provider->delegeatedUrl($this->context->getBaseUrl() . $route, $state);
+    }
+
+    /** @return array<string, mixed> */
+    private static function decodeState(string $state): array
+    {
+        $decoded = json_decode((string) base64_decode($state, true), true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private static function escape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }

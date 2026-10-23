@@ -354,7 +354,7 @@ class RelyingPartyPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_relying_party".*) as count ' : '"access_relying_party".*').' FROM "access_relying_party"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_relying_party".*').' FROM "access_relying_party"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

@@ -372,7 +372,7 @@ class SnippetAssetPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_snippet_asset".*) as count ' : '"document_snippet_asset".*').' FROM "document_snippet_asset"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_snippet_asset".*').' FROM "document_snippet_asset"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

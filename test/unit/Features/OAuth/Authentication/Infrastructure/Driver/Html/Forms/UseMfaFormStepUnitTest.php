@@ -6,7 +6,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/FormsTestCase.php';
 
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
@@ -24,7 +27,7 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateSkipsMfaWhenAlreadyVerified(): void
     {
-        $input = $this->buildInput(['mfa_code' => '123456'], new ChallengesState(withMfa: true, username: 'user-1'));
+        $input = $this->buildInput(['mfa_code' => '123456'], new ChallengesState(withMfa: true, username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD));
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
         $authenticator = $this->createMock(AuthenticateUser::class);
@@ -46,6 +49,96 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
         $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
         $this->assertSame($authResponse, $result->authResponse);
         $this->assertSame($input->challenges, $result->challenges);
+    }
+
+    public function testAuthenticateWithTotpRecordsOtp(): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->expects($this->once())->method('verifyOtp')->with('tenant1', 'user-1', '123456')->willReturn(true);
+        $publicMfa->expects($this->never())->method('consumeRecoveryCode');
+
+        $result = $this->formWith($publicMfa)->authenticate(
+            $this->buildInput(['mfa_code' => '123456'], new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD))
+        );
+
+        $this->assertSame('otp', $result->challenges->mfaMethod);
+    }
+
+    public function testAuthenticateWithRecoveryCodeConsumesItInsteadOfTheOtp(): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->expects($this->never())->method('verifyOtp');
+        $publicMfa->expects($this->once())->method('consumeRecoveryCode')->with('tenant1', 'user-1', 'A1B2C3D4E5')->willReturn(true);
+
+        $result = $this->formWith($publicMfa)->authenticate(
+            $this->buildInput(['recovery_code' => ' A1B2C3D4E5 ', 'mfa_code' => ''], new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD))
+        );
+
+        $this->assertTrue($result->challenges->withMfa);
+        $this->assertNull($result->challenges->mfaMethod);
+    }
+
+    public static function rejectedCodes(): array
+    {
+        return [
+            'wrong otp' => [['mfa_code' => '000000']],
+            'wrong or spent recovery code' => [['recovery_code' => 'FFFFFFFFFF']],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('rejectedCodes')]
+    public function testRejectedCodesGiveTheSameErrorWithoutAuthenticating(array $body): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->method('verifyOtp')->willReturn(false);
+        $publicMfa->method('consumeRecoveryCode')->willReturn(false);
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->never())->method('preAuthenticate');
+        $authenticator->expects($this->once())->method('secondFactorFailed')->with('tenant1', 'user-1');
+
+        try {
+            $this->formWith($publicMfa, $authenticator)->authenticate($this->buildInput($body, new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD)));
+            $this->fail('A rejected code must not authenticate');
+        } catch (LoginException $ex) {
+            $this->assertSame([AuthenticationResult::ERR_MFA_REQUIRED, 'wrong_auth_code'], [$ex->auth->error, $ex->auth->errorMessage]);
+        }
+    }
+
+    /**
+     * A wrong password leaves the typed username in the state: sending step=mfa straight after
+     * must not check any code (no recovery code spent, no TOTP oracle) nor authenticate.
+     */
+    public function testAUsernameWithoutAVerifiedPasswordIsSentBackToTheLogin(): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->expects($this->never())->method('verifyOtp');
+        $publicMfa->expects($this->never())->method('consumeRecoveryCode');
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->never())->method('preAuthenticate');
+
+        try {
+            $this->formWith($publicMfa, $authenticator)->authenticate(
+                $this->buildInput(['recovery_code' => 'A1B2C3D4E5'], new ChallengesState(username: 'user-1'))
+            );
+            $this->fail('An unidentified user must not pass the MFA step');
+        } catch (LoginException $ex) {
+            $this->assertSame(AuthenticationResult::ERR_WRONG_CREDENTIAL, $ex->auth->error);
+        }
+    }
+
+    private function formWith(PublicMfa $publicMfa, ?AuthenticateUser $authenticator = null): UseMfaForm
+    {
+        if ($authenticator === null) {
+            $authenticator = $this->createMock(AuthenticateUser::class);
+            $authenticator->method('preAuthenticate')->willReturn($this->createMock(PublicLoginAuthResponse::class));
+        }
+        return new UseMfaForm(
+            $this->createMock(MessageProvider::class),
+            $authenticator,
+            $publicMfa,
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(HtmlSecurer::class)
+        );
     }
 
     public static function languages(): array
@@ -82,5 +175,6 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
 
         $this->assertSame($locale, $pageLocale);
         $this->assertStringContainsString("<h1>{$title}</h1>", (string) $page);
+        $this->assertStringContainsString('name="recovery_code"', (string) $page);
     }
 }

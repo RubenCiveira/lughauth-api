@@ -26,10 +26,11 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  * code input field. If the ChallengesState already carries withMfa=true (e.g. the session was
  * resumed), the authentication phase skips the OTP check and proceeds immediately.
  *
- * On submission, the OTP is verified via PublicMfa. A valid code updates the challenges state
- * with withMfa=true and calls AuthenticateUser::preAuthenticate to produce the pre-auth result.
- * An invalid code throws a LoginException with an ERR_MFA_REQUIRED result so the form is
- * re-rendered with a wrong-code error message.
+ * On submission, the OTP is verified via PublicMfa. A user without the authenticator can send
+ * one of their recovery codes instead, which is spent on use. A valid code updates the challenges
+ * state with withMfa=true and calls AuthenticateUser::preAuthenticate to produce the pre-auth
+ * result. An invalid code of either kind throws a LoginException with the same ERR_MFA_REQUIRED
+ * result, so the re-rendered form does not tell whether a recovery code exists.
  *
  * Relationships: uses PublicMfa for OTP verification, calls AuthenticateUser for post-MFA
  * pre-authentication, relies on HtmlSecurer for CSRF injection and auto-focus scripts, and
@@ -59,6 +60,7 @@ class UseMfaForm implements StepForm
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
+            $this->securer->addSign("rsign"),
             $this->securer->focusOn("mfa_code")
         ]);
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
@@ -72,6 +74,8 @@ class UseMfaForm implements StepForm
         $help = $translator->get("mfa.help");
         $code = $translator->get("mfa.code");
         $send = $translator->get("mfa.send");
+        $recoveryHelp = $translator->get("mfa.recovery-help");
+        $recoveryCode = $translator->get("mfa.recovery-code");
 
         $backLabel = $translator->get("mfa.back-label");
         $backText = $translator->get(
@@ -95,6 +99,17 @@ class UseMfaForm implements StepForm
                         </label>
                         <input class="primary-button" type="submit" value="{$send}" />
                     </form>
+                    <details>
+                        <summary>{$recoveryHelp}</summary>
+                        <form method="POST">
+                            <input type="hidden" name="csid" id="rsign" />
+                            <input type="hidden" name="step" value="{$step}" />
+                            <label> {$recoveryCode}
+                                <input type="text" name="recovery_code" autocomplete="off" value="" />
+                            </label>
+                            <input class="primary-button" type="submit" value="{$send}" />
+                        </form>
+                    </details>
                     <form method="POST">
                         <input type="hidden" name="step" value="" />
                         {$backText}
@@ -111,14 +126,20 @@ class UseMfaForm implements StepForm
      * Validates the submitted OTP code and pre-authenticates the user on success.
      *
      * If the challenges state already indicates MFA was satisfied (e.g. session resume),
-     * the OTP check is bypassed. Otherwise the code is verified via PublicMfa, the challenges
-     * state is updated with withMfa=true, and preAuthenticate is called to continue the flow.
+     * the OTP check is bypassed. Otherwise a recovery code, when sent, is consumed, or else the
+     * OTP is verified via PublicMfa; on success the challenges state is updated with
+     * withMfa=true, and preAuthenticate is called to continue the flow.
      */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges;
+        if (!$challenges->isIdentified()) {
+            // Checking a code for a username that was only typed would spend recovery codes and
+            // tell a guesser whether a TOTP is right, without knowing the password.
+            throw new LoginException(auth: AuthenticationResult::wrongCredentials($input->context->tenant, $challenges->username ?? ''));
+        }
 
         if ($challenges->withMfa) {
             $auth = $this->authenticator->preAuthenticate(
@@ -133,9 +154,14 @@ class UseMfaForm implements StepForm
             return StepResult::proceed($auth, $challenges);
         }
 
-        $otp = $input->body['mfa_code'] ?? '';
-        if ($this->publicMfa->verifyOtp($input->context->tenant, $challenges->username ?? '', $otp)) {
-            $updated = $challenges->withMfa(true);
+        $tenant = $input->context->tenant;
+        $username = $challenges->username ?? '';
+        $recovery = trim((string) ($input->body['recovery_code'] ?? ''));
+        $verified = $recovery !== ''
+            ? $this->publicMfa->consumeRecoveryCode($tenant, $username, $recovery)
+            : $this->publicMfa->verifyOtp($tenant, $username, (string) ($input->body['mfa_code'] ?? ''));
+        if ($verified) {
+            $updated = $challenges->withMfa(true, $recovery !== '' ? null : 'otp');
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
@@ -148,6 +174,7 @@ class UseMfaForm implements StepForm
             return StepResult::proceed($auth, $updated);
         }
 
+        $this->authenticator->secondFactorFailed($tenant, $username);
         throw new LoginException(auth: AuthenticationResult::mfaRequired('wrong_auth_code'));
     }
 }

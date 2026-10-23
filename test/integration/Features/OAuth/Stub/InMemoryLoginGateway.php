@@ -26,6 +26,15 @@ class InMemoryLoginGateway implements LoginGateway
         ];
     }
 
+    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    {
+        return false;
+    }
+
+    public function markSecondFactorFailed(string $tenant, string $username): void
+    {
+    }
+
     public function validatedUserData(string $tenant, string $username, string $password, AuthenticationRequest $client): AuthenticationResult
     {
         $entry = $this->users[$tenant . ':' . $username] ?? null;

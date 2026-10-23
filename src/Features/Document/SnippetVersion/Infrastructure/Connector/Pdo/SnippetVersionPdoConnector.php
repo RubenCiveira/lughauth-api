@@ -324,7 +324,7 @@ class SnippetVersionPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_snippet_version".*) as count ' : '"document_snippet_version".*').' FROM "document_snippet_version"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_snippet_version".*').' FROM "document_snippet_version"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

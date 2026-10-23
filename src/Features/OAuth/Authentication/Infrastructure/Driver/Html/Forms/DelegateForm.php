@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 
 use Override;
 use Psr\Http\Message\ResponseInterface;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -22,13 +23,13 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  * Login step form that handles federated / delegated authentication via external identity providers.
  *
  * This form covers two distinct sub-flows within the delegated login step. During the render
- * phase it either (a) detects an incoming redirect from the external provider (provider-data
- * query parameter is present) and auto-submits a signed CSRF form, or (b) initiates the
- * outbound redirect to the external provider's endpoint by querying DelegateLogin for the
- * target URL and redirecting the browser there.
+ * phase it either (a) receives the provider data posted back by the callback page and
+ * auto-submits it in a signed CSRF form, or (b) initiates the outbound redirect to the external
+ * provider, keeping in the pre-session a random binding that the provider echoes in the state.
  *
  * During the authenticate phase it validates the provider callback payload received in the
- * POST body, resolves the local user identity, and calls AuthenticateUser to produce a
+ * POST body against that binding (only the browser that started the login can finish it, and
+ * only once), resolves the local user identity, and calls AuthenticateUser to produce a
  * pre-authenticated result that subsequent steps (MFA, consent, etc.) can continue from.
  *
  * Relationships: delegates OAuth provider interactions to DelegateLogin, relies on
@@ -37,6 +38,8 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  */
 class DelegateForm implements StepForm
 {
+    private const int BINDING_BYTES = 32;
+
     public function __construct(
         private readonly DelegateLogin $delegated,
         private readonly AuthenticateUser $authenticator,
@@ -58,16 +61,24 @@ class DelegateForm implements StepForm
     {
         $route = '/oauth/openid/-/delegated/verify';
         $body = $input->body ?? [];
+        $provider = (string) ($body['provider'] ?? '');
+        // Only a login this browser started, with this provider: its pre-session holds the binding.
+        $started = $input->challenges->extra[DelegateLogin::BINDING] ?? null;
+        $binding = is_array($started) && ($started['provider'] ?? null) === $provider ? (string) ($started['value'] ?? '') : '';
         $result = $this->delegated->validateRedirection(
             $route,
-            $body['provider'],
-            $body['provider-data'],
+            $provider,
+            (string) ($body['provider-data'] ?? ''),
             $input->context->tenant,
-            $input->authRequest
+            $input->authRequest,
+            $binding
         );
         if ($result && $result->valid) {
             $csid = (string) ($body['csid'] ?? '');
-            $updated = $input->challenges->withUsername($result->id ?? '');
+            $updated = $input->challenges
+                ->withExtra(DelegateLogin::BINDING, null)
+                ->withUsername($result->id ?? '')
+                ->identifiedBy(IdentificationMethod::FEDERATED);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
@@ -94,11 +105,14 @@ class DelegateForm implements StepForm
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $body = $input->request->getParsedBody();
-        $params = $input->request->getQueryParams();
+        $body = is_array($body) ? $body : [];
         $route = '/oauth/openid/-/delegated/verify';
         $translator = $this->messages->messages('forms', $input->context->locale, __DIR__ . '/../../Translations');
         $title = $translator->get('delegated.title');
-        if (isset($params['provider-data']) && isset($params['provider'])) {
+        // Back from the provider: the callback page posted its data here; sign it and send it on.
+        if (isset($body['provider-data'], $body['provider'])) {
+            $provider = htmlspecialchars((string) $body['provider'], ENT_QUOTES);
+            $providerData = htmlspecialchars((string) $body['provider-data'], ENT_QUOTES);
             $js = $this->securer->configureScripts([
                 $this->securer->addSignAndSend("sign", "login"),
             ]);
@@ -109,8 +123,8 @@ class DelegateForm implements StepForm
                 $js . <<<HTML
                     <form id="login" method="POST">
                         <input type="hidden" name="csid" id="sign" />
-                        <input type="hidden" name="provider" value="{$params['provider']}" />
-                        <input type="hidden" name="provider-data" value="{$params['provider-data']}" />
+                        <input type="hidden" name="provider" value="{$provider}" />
+                        <input type="hidden" name="provider-data" value="{$providerData}" />
                         <input type="hidden" name="step" value="{$step}" />
                     </form>
                 HTML,
@@ -123,10 +137,13 @@ class DelegateForm implements StepForm
         }
 
         /** @var array<string, mixed> $body */
-        $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, (string) ($body['delegated-provider'] ?? ''), $input->request->getQueryParams());
+        $provider = (string) ($body['delegated-provider'] ?? '');
+        $binding = bin2hex(random_bytes(self::BINDING_BYTES));
+        $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, $provider, $input->request->getQueryParams(), $binding);
         if ($target->method == 'GET') {
             $response = $response->withStatus(302)->withHeader('Location', $target->url);
-            return StepResult::render($response, $input->challenges);
+            // Kept in the pre-session: the callback data is only accepted by this browser.
+            return StepResult::render($response, $input->challenges->withExtra(DelegateLogin::BINDING, ['value' => $binding, 'provider' => $provider]));
         }
 
         $response->getBody()->write(

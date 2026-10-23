@@ -7,26 +7,29 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 
 use Civi\Lughauth\Features\OAuth\Mfa\Application\Usecase\UserMfa;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
+use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
 
 /**
  * Infrastructure façade that exposes the MFA operations needed by the HTML login step forms.
  *
  * PublicMfa acts as a thin anti-corruption layer between the HTML driver layer and the UserMfa
- * application service. It encapsulates the three MFA operations relevant to the login flow:
- * generating a new TOTP seed for enrolment, verifying an OTP code during normal login, and
- * verifying an OTP code against a candidate seed during the enrolment step.
+ * application service. It encapsulates the MFA operations relevant to the login flow:
+ * generating a new TOTP seed for enrolment, verifying an OTP code during normal login,
+ * spending a recovery code in place of that OTP, and verifying an OTP code against a
+ * candidate seed during the enrolment step.
  *
  * The verifyNewOpt method combines validation and persistence: it calls UserMfa to verify the
  * OTP against the seed, and only if the code is correct does it immediately persist the seed
  * via storeSeed, ensuring the seed is never stored before it has been proven valid.
  *
- * Relationships: delegates all real MFA logic to UserMfa; consumed exclusively by NewMfaForm
- * and UseMfaForm in the HTML driver layer.
+ * Relationships: delegates TOTP logic to UserMfa and recovery codes to the profile MfaGateway;
+ * consumed exclusively by NewMfaForm and UseMfaForm in the HTML driver layer.
  */
 class PublicMfa
 {
     public function __construct(
-        private readonly UserMfa $gateway
+        private readonly UserMfa $gateway,
+        private readonly MfaGateway $profileMfa
     ) {
     }
 
@@ -50,6 +53,16 @@ class PublicMfa
     public function verifyOtp(string $tenant, string $username, string $otp): bool
     {
         return $this->gateway->verifyOtp($tenant, $username, $otp);
+    }
+
+    /**
+     * Spends one of the user's unused recovery codes in place of the OTP code.
+     *
+     * Returns true only for this single use: a wrong or spent code returns false.
+     */
+    public function consumeRecoveryCode(string $tenant, string $username, string $code): bool
+    {
+        return $this->profileMfa->consumeRecoveryCode($username, $tenant, $code);
     }
 
     /**

@@ -400,7 +400,7 @@ class TenantConfigPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_tenant_config".*) as count ' : '"access_tenant_config".*').' FROM "access_tenant_config"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_tenant_config".*').' FROM "access_tenant_config"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

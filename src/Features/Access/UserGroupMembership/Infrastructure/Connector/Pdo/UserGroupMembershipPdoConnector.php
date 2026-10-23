@@ -375,7 +375,7 @@ class UserGroupMembershipPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_group_membership".*) as count ' : '"access_user_group_membership".*').' FROM "access_user_group_membership"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_group_membership".*').' FROM "access_user_group_membership"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

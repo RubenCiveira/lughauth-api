@@ -30,6 +30,8 @@ mfa:
   send: Verify
   back-text: Click {0} to cancel and go back to the sign-in page
   back-label: here
+  recovery-help: Lost your authenticator? Use a recovery code
+  recovery-code: Recovery code
 
 recoverpass:
   ask:
@@ -134,7 +136,7 @@ error:
   wrong_credential: Wrong username or password.
   wrong_old_pass: The current password is not correct.
   unable_to_change: There was an error while changing the password.
-  wrong_auth_code: The OTP code is not valid, try again.
+  wrong_auth_code: The verification code is not valid, try again.
   missing_scopes_consent: You must approve the required permissions.
 
 magic-link:

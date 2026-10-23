@@ -56,6 +56,7 @@ class NewMfaForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
+        $this->assertEnrolmentPending($input);
         $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $challenges = $input->challenges;
@@ -135,12 +136,13 @@ class NewMfaForm implements StepForm
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
+        $this->assertEnrolmentPending($input);
         $csid = (string) ($input->body['csid'] ?? '');
         $seed = isset($input->body['seed']) ? $this->securer->decrypt((string) $input->body['seed']) : '';
         $code = $input->body['mfa_code'] ?? '';
 
         if ($seed !== null && $seed !== '' && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
-            $updated = $input->challenges->withMfa(true);
+            $updated = $input->challenges->withMfa(true, 'otp');
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
@@ -154,5 +156,19 @@ class NewMfaForm implements StepForm
         }
 
         throw new LoginException(auth: AuthenticationResult::newMfaRequired('wrong_auth_code'));
+    }
+
+    /**
+     * Enrolling stores the seed over any existing one, so it is only for an identified user who
+     * still has to set up MFA: never for a username that was only typed, nor for an account whose
+     * MFA is already active (that would replace the second factor with the password alone).
+     */
+    private function assertEnrolmentPending(StepInput $input): void
+    {
+        $tenant = $input->context->tenant;
+        $username = $input->challenges->username ?? '';
+        if (!$input->challenges->isIdentified() || !$this->authenticator->mfaEnrolmentPending($tenant, $username)) {
+            throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant, $username));
+        }
     }
 }

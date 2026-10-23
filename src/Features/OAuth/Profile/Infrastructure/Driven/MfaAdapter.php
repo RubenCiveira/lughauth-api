@@ -7,9 +7,12 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use DateTimeImmutable;
+use Ramsey\Uuid\Uuid;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Exception\BadRequestException;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
+use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
@@ -18,6 +21,7 @@ use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaReco
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeAttributes;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeRef;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\ValueObject\UserMfaRecoveryCodeCodeHashVO;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
@@ -37,7 +41,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
  * without coupling the domain layer to any particular tracing library.
  *
  * When enabling MFA the adapter validates the user-supplied OTP against the provisional
- * seed and throws BadRequestException for an invalid code, preventing storage of an
+ * seed and throws a ConstraintException for an invalid code, preventing storage of an
  * unverified seed.
  */
 class MfaAdapter implements MfaGateway
@@ -98,8 +102,9 @@ class MfaAdapter implements MfaGateway
     /**
      * Verifies the supplied OTP against the provisional seed and, if valid, stores the seed.
      *
-     * Throws BadRequestException when the OTP is incorrect so the profile UI can render
-     * an inline error without triggering a generic 500 response.
+     * Throws a ConstraintException (code `wrong_otp`, field `otp`) when the OTP is incorrect, so
+     * the profile UI can render an inline error and the API answers 422 rather than 500. The
+     * submitted code is not echoed back.
      */
     #[Override]
     public function enable(string $userUid, string $tenant, string $seed, string $otp): void
@@ -111,7 +116,7 @@ class MfaAdapter implements MfaGateway
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
             $valid = $this->mfaGateway->verifyNewOpt($tenant, $theUser->getName(), $seed, $otp);
             if (!$valid) {
-                throw new BadRequestException('Invalid OTP code');
+                throw ConstraintException::ofError('wrong_otp', ['otp'], ['']);
             }
             $this->mfaGateway->storeSeed($tenant, $theUser->getName(), $seed);
         } catch (Throwable $ex) {
@@ -164,6 +169,7 @@ class MfaAdapter implements MfaGateway
                 $plain = strtoupper(bin2hex(random_bytes(5)));
                 $attrs = (new UserMfaRecoveryCodeAttributes())
                     ->withDefaults()
+                    ->uid(Uuid::uuid4()->toString())
                     ->user($userRef)
                     ->codeHash(UserMfaRecoveryCodeCodeHashVO::fromPlainText($this->hasher, $plain));
                 $this->recoveryWrite->create(UserMfaRecoveryCode::create($attrs));
@@ -185,5 +191,50 @@ class MfaAdapter implements MfaGateway
         return $this->recoveryWrite->count(
             (new UserMfaRecoveryCodeFilter())->withUserUnused($userRef),
         );
+    }
+
+    /**
+     * Looks for the code among the user's unused ones and marks the match as used.
+     *
+     * The update is guarded by the row version, so of two attempts with the same code only
+     * the first one to write wins; the other gets an OptimistLockException and fails.
+     */
+    #[Override]
+    public function consumeRecoveryCode(string $user, string $tenant, string $code): bool
+    {
+        $this->logDebug("Consume MFA recovery code for user");
+        $span = $this->startSpan("Consume MFA recovery code for user");
+        try {
+            // Codes are shown as upper-case hex: accept them typed in lower case or grouped.
+            $plain = strtoupper((string) preg_replace('/[\s-]+/', '', $code));
+            if ($plain === '') {
+                return false;
+            }
+            $theTenant = $this->users->checkTenant($tenant, $user);
+            $theUser = $this->users->checkUserOrSubject($theTenant, $user);
+            $unused = $this->recoveryWrite->listForUpdate(
+                (new UserMfaRecoveryCodeFilter())->withUserUnused(new UserRef($theUser->uid())),
+            );
+            foreach ($unused->values() as $stored) {
+                if ($stored->verifyCodeHash($this->hasher, $plain)) {
+                    try {
+                        $this->recoveryWrite->update(
+                            new UserMfaRecoveryCodeRef($stored->uid() ?? ''),
+                            $stored->consume(new DateTimeImmutable()),
+                        );
+                        return true;
+                    } catch (OptimistLockException) {
+                        $this->logWarning("MFA recovery code already consumed by a concurrent attempt");
+                        return false;
+                    }
+                }
+            }
+            return false;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 }

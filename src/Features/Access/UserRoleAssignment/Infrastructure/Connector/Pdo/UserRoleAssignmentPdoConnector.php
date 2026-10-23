@@ -384,7 +384,7 @@ class UserRoleAssignmentPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_role_assignment".*) as count ' : '"access_user_role_assignment".*').' FROM "access_user_role_assignment"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_role_assignment".*').' FROM "access_user_role_assignment"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

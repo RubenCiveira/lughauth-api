@@ -411,7 +411,7 @@ class UserInvitationPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_invitation".*) as count ' : '"access_user_invitation".*').' FROM "access_user_invitation"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_invitation".*').' FROM "access_user_invitation"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

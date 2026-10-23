@@ -26,10 +26,29 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescripti
  * resolved first from the "email" claim and then from "preferred_username" to handle
  * work/school accounts where the primary SMTP address is exposed differently. The JWT
  * payload is decoded without signature verification since the token was received directly
- * from a TLS-secured token endpoint.
+ * from a TLS-secured token endpoint (OIDC Core 3.1.3.7).
+ *
+ * Neither claim is verified by Microsoft for work accounts: the administrator of any Entra
+ * directory can set them to any address ("nOAuth"). The email only counts as verified when
+ * Microsoft vouches for it (`xms_edov`, an optional claim the app registration must request,
+ * or a personal Microsoft account), or when the provider is pinned to one directory whose
+ * administrator the tenant trusts and the token's `tid` matches. The pin is the configured
+ * directory ID or, for a domain name, the directory Microsoft's discovery names for it. A domain
+ * that cannot be resolved pins nothing and counts as any directory.
  */
 class MicrosoftOAuthProvider implements DelegatedLoginProvider
 {
+    /** Directory ID of personal Microsoft accounts, whose email Microsoft has verified. */
+    private const string PERSONAL_ACCOUNTS_TENANT = '9188040d-6c67-4c5b-b112-36a304b66dad';
+    /** Authorities that accept users of any directory: none of them pins one. */
+    private const array MULTI_TENANT_AUTHORITIES = ['common', 'organizations', 'consumers'];
+    private const string DIRECTORY_ID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+    private const int DISCOVERY_TIMEOUT_SECONDS = 5;
+
+    /** The directory a domain authority resolves to, looked up once per instance. */
+    private ?string $resolvedDirectory = null;
+    private bool $directoryResolved = false;
+
     private readonly string $assetsPath;
 
     public function __construct(
@@ -114,7 +133,11 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
                 return null;
             }
 
-            $email = (string) ($claims['email'] ?? $claims['preferred_username'] ?? '');
+            $email = (string) ($claims['email'] ?? '');
+            $fromUsername = $email === '';
+            if ($fromUsername) {
+                $email = (string) ($claims['preferred_username'] ?? '');
+            }
             if ($email === '') {
                 return null;
             }
@@ -125,9 +148,67 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
                 name: (string) ($claims['name'] ?? ''),
                 givenName: (string) ($claims['given_name'] ?? ''),
                 familyName: (string) ($claims['family_name'] ?? ''),
-                emailVerified: true
+                emailVerified: $this->emailVerified($claims, $fromUsername)
             );
         } catch (Throwable $ex) {
+            return null;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     */
+    private function emailVerified(array $claims, bool $fromUsername): bool
+    {
+        $directory = strtolower((string) ($claims['tid'] ?? ''));
+        if ($directory === self::PERSONAL_ACCOUNTS_TENANT) {
+            return true;
+        }
+        $pinned = $this->pinnedDirectory();
+        if ($pinned !== null) {
+            // Pinned: only the administrator of that directory, checked against the token.
+            return $pinned === $directory;
+        }
+        // xms_edov speaks for the email claim, not for preferred_username.
+        return !$fromUsername && filter_var($claims['xms_edov'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /** The directory ID the configured authority pins, or null when it accepts any directory. */
+    private function pinnedDirectory(): ?string
+    {
+        $authority = strtolower($this->tenantId);
+        if (preg_match('/^' . self::DIRECTORY_ID . '$/', $authority) === 1) {
+            return $authority;
+        }
+        if (in_array($authority, self::MULTI_TENANT_AUTHORITIES, true)) {
+            return null;
+        }
+        if (!$this->directoryResolved) {
+            $this->directoryResolved = true;
+            $this->resolvedDirectory = $this->resolveDirectory($authority);
+        }
+        return $this->resolvedDirectory;
+    }
+
+    /**
+     * Microsoft's OpenID discovery for a domain names its directory in the issuer
+     * (https://login.microsoftonline.com/{directory}/v2.0). Null when the domain is unknown or
+     * the answer is not that shape. The host is fixed and the domain encoded, so the configured
+     * value cannot send the request elsewhere.
+     */
+    private function resolveDirectory(string $domain): ?string
+    {
+        try {
+            $response = $this->http->request(
+                'GET',
+                'https://login.microsoftonline.com/' . rawurlencode($domain) . '/v2.0/.well-known/openid-configuration',
+                ['timeout' => self::DISCOVERY_TIMEOUT_SECONDS]
+            );
+            $issuer = json_decode((string) $response->getBody(), true)['issuer'] ?? null;
+            return is_string($issuer) && preg_match('#^https://login\.microsoftonline\.com/(' . self::DIRECTORY_ID . ')/v2\.0$#', strtolower($issuer), $match) === 1
+                ? $match[1]
+                : null;
+        } catch (Throwable) {
             return null;
         }
     }

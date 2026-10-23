@@ -351,7 +351,7 @@ class ApiKeyClientPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_api_key_client".*) as count ' : '"access_api_key_client".*').' FROM "access_api_key_client"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_api_key_client".*').' FROM "access_api_key_client"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

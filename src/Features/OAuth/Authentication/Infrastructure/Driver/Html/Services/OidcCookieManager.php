@@ -58,6 +58,15 @@ class OidcCookieManager
     }
 
     /**
+     * Removes the pre-session cookie: once the authorization completes, the steps that led to it
+     * must not be resumed from this browser.
+     */
+    public function clearPreSession(ResponseInterface $response, string $tenant): ResponseInterface
+    {
+        return (new Cookie(name: 'PRE_SESSION_ID', path: $this->cookiePath($tenant)))->remove($response);
+    }
+
+    /**
      * Creates a signed, short-lived PRE_SESSION_ID cookie containing the serialised ChallengesState.
      *
      * The cookie carries the accumulated challenge progress (username, MFA flags, etc.) so it can

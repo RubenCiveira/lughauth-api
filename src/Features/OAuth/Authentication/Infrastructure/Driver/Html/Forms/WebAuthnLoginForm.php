@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
@@ -211,7 +212,7 @@ class WebAuthnLoginForm implements StepForm
             );
         }
 
-        $updated = $input->challenges->withUsername($challenge->verifiedUsername);
+        $updated = $input->challenges->withUsername($challenge->verifiedUsername)->identifiedBy(IdentificationMethod::WEBAUTHN);
         $auth = $this->authenticator->preAuthenticate(
             $input->authRequest,
             $updated,

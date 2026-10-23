@@ -26,17 +26,69 @@ final class ChallengesState
         public readonly bool $session = false,
         public readonly ?string $username = null,
         public readonly array $extra = [],
+        /** RFC 8176 amr value of the second factor used (e.g. `otp`); null when it has no own value. */
+        public readonly ?string $mfaMethod = null,
+        /** How the user proved who they are; null while the username is only what was typed. */
+        public readonly ?IdentificationMethod $identifiedBy = null,
     ) {
+    }
+
+    /**
+     * True once a step has checked who the user is. The steps that continue an identified flow
+     * (MFA, consent, password change) must refuse a state that is not.
+     */
+    public function isIdentified(): bool
+    {
+        return $this->identifiedBy !== null;
+    }
+
+    /**
+     * Returns a new instance with the given extra entry set, or removed when the value is null.
+     * Extra entries carry step-specific data between requests, such as a delegated login in flight.
+     */
+    public function withExtra(string $key, mixed $value): self
+    {
+        $extra = $this->extra;
+        if ($value === null) {
+            unset($extra[$key]);
+        } else {
+            $extra[$key] = $value;
+        }
+        return new self(
+            withMfa: $this->withMfa,
+            session: $this->session,
+            username: $this->username,
+            extra: $extra,
+            mfaMethod: $this->mfaMethod,
+            identifiedBy: $this->identifiedBy
+        );
+    }
+
+    /**
+     * Returns a new instance recording how the user proved who they are.
+     * Only the step that checked that proof may call it.
+     */
+    public function identifiedBy(IdentificationMethod $method): self
+    {
+        return new self(
+            withMfa: $this->withMfa,
+            session: $this->session,
+            username: $this->username,
+            extra: $this->extra,
+            mfaMethod: $this->mfaMethod,
+            identifiedBy: $method
+        );
     }
 
     /**
      * Returns a new instance with the username field set to the given value.
      * Used after the user provides their identifier so subsequent steps can reference it.
+     * Declaring who the user is discards any proof gathered so far (identification and MFA):
+     * the caller records the new proof, if any, once it has checked it.
      */
     public function withUsername(string $username): self
     {
         return new self(
-            withMfa: $this->withMfa,
             session: $this->session,
             username: $username,
             extra: $this->extra
@@ -45,15 +97,18 @@ final class ChallengesState
 
     /**
      * Returns a new instance with the withMfa flag set to the given boolean.
-     * Set to true after the user successfully completes a multi-factor authentication challenge.
+     * Set to true after the user successfully completes a multi-factor authentication challenge,
+     * naming the RFC 8176 method of that factor when it has one.
      */
-    public function withMfa(bool $withMfa): self
+    public function withMfa(bool $withMfa, ?string $method = null): self
     {
         return new self(
             withMfa: $withMfa,
             session: $this->session,
             username: $this->username,
-            extra: $this->extra
+            extra: $this->extra,
+            mfaMethod: $withMfa ? $method : null,
+            identifiedBy: $this->identifiedBy
         );
     }
 
@@ -67,7 +122,9 @@ final class ChallengesState
             withMfa: $this->withMfa,
             session: $session,
             username: $this->username,
-            extra: $this->extra
+            extra: $this->extra,
+            mfaMethod: $this->mfaMethod,
+            identifiedBy: $this->identifiedBy
         );
     }
 
@@ -82,7 +139,9 @@ final class ChallengesState
                 withMfa: (bool) ($data['with_mfa'] ?? false),
                 session: (bool) ($data['session'] ?? false),
                 username: $data['username'] ?? null,
-                extra: is_array($extra = $data['extra'] ?? null) ? $extra : []
+                extra: is_array($extra = $data['extra'] ?? null) ? $extra : [],
+                mfaMethod: is_string($method = $data['mfa_method'] ?? null) ? $method : null,
+                identifiedBy: IdentificationMethod::tryFrom((string) ($data['identified_by'] ?? ''))
             );
         }
 
@@ -100,7 +159,7 @@ final class ChallengesState
      *
      * @return (array|bool|int|null|string)[]
      *
-     * @psalm-return array{v: 1, with_mfa: bool, session: bool, username: null|string, extra: array}
+     * @psalm-return array{v: 1, with_mfa: bool, session: bool, username: null|string, extra: array, mfa_method: null|string, identified_by: null|string}
      */
     public function toArray(): array
     {
@@ -109,7 +168,9 @@ final class ChallengesState
             'with_mfa' => $this->withMfa,
             'session' => $this->session,
             'username' => $this->username,
-            'extra' => $this->extra
+            'extra' => $this->extra,
+            'mfa_method' => $this->mfaMethod,
+            'identified_by' => $this->identifiedBy?->value
         ];
     }
 

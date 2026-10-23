@@ -66,6 +66,8 @@ profile:
     otp: Codigo de un solo uso
     enable: Habilitar MFA
     cancel: Cancelar
+    wrongOtp: El código de un solo uso no es válido. Pruebe con el código que muestra ahora su aplicación.
+    error: No se pudo actualizar la configuración de MFA. Inténtelo de nuevo.
   sessions:
     title: Sesiones activas
     help: Revise dispositivos y aplicaciones donde su cuenta esta iniciada.

@@ -7,6 +7,7 @@ require_once __DIR__ . '/FormsTestCase.php';
 
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
@@ -22,9 +23,58 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 #[AllowMockObjectsWithoutExpectations]
 final class NewMfaFormStepUnitTest extends FormsTestCase
 {
+    public function testAnUnidentifiedUserCannotEnrolASeed(): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->expects($this->never())->method('verifyNewOpt');
+        $form = new NewMfaForm(
+            $this->createMock(MessageProvider::class),
+            $this->createMock(AuthenticateUser::class),
+            $publicMfa,
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(HtmlSecurer::class)
+        );
+
+        $this->expectException(\Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException::class);
+
+        $form->authenticate($this->buildInput(['seed' => 'enc-seed', 'mfa_code' => '123456'], new ChallengesState(username: 'user-1')));
+    }
+
+    /**
+     * The password alone must not replace an active second factor: posting step=build-mfa for an
+     * account whose MFA is already set up neither shows nor stores a new seed.
+     */
+    public function testAnAccountWithActiveMfaCannotEnrolAnotherSeed(): void
+    {
+        $publicMfa = $this->createMock(PublicMfa::class);
+        $publicMfa->expects($this->never())->method('configurationForNewMfa');
+        $publicMfa->expects($this->never())->method('verifyNewOpt');
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->method('mfaEnrolmentPending')->willReturn(false);
+        $authenticator->expects($this->never())->method('preAuthenticate');
+        $securer = $this->createMock(HtmlSecurer::class);
+        $securer->method('decrypt')->willReturn('attacker-seed');
+        $form = new NewMfaForm($this->createMock(MessageProvider::class), $authenticator, $publicMfa, $this->createMock(DecorateHtml::class), $securer);
+        $identified = new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD);
+
+        $refused = 0;
+        foreach ([
+            fn () => $form->render($this->buildInput([], $identified), new \Slim\Psr7\Response(), null),
+            fn () => $form->authenticate($this->buildInput(['seed' => 'enc-seed', 'mfa_code' => '123456'], $identified)),
+        ] as $attempt) {
+            try {
+                $attempt();
+            } catch (\Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException) {
+                $refused++;
+            }
+        }
+
+        $this->assertSame(2, $refused);
+    }
+
     public function testAuthenticateStoresNewMfaAndProceeds(): void
     {
-        $input = $this->buildInput(['seed' => 'enc-seed', 'mfa_code' => '123456'], new ChallengesState(username: 'user-1'));
+        $input = $this->buildInput(['seed' => 'enc-seed', 'mfa_code' => '123456'], new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::PASSWORD));
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
         $securer = $this->createMock(HtmlSecurer::class);
@@ -40,6 +90,7 @@ final class NewMfaFormStepUnitTest extends FormsTestCase
             ->willReturn(true);
 
         $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->atLeastOnce())->method('mfaEnrolmentPending')->with('tenant1', 'user-1')->willReturn(true);
         $authenticator->expects($this->once())
             ->method('preAuthenticate')
             ->willReturn($authResponse);

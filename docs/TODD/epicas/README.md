@@ -23,7 +23,7 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 | [EP-07 Autorización: origen y política de la solicitud](../done/EP-07-autorizacion-solicitud.md) (hecha) | [046](../done/046-par-no-sobrescribible.md), [047](../done/047-jar-claims-y-jwks-uri.md), [034](../done/034-pkce-s256-y-politica.md), [068](../done/068-ui-locales.md) (opc.) | alta | L | EP-03 |
 | [EP-08 Autorización: construcción de la respuesta](../done/EP-08-autorizacion-respuesta.md) (hecha) | [027](../done/027-respuestas-autorizacion-seguras.md), [037](../done/037-iss-respuesta-autorizacion.md), [033](../done/033-hybrid-y-response-types.md), [070](../done/070-validacion-nonce.md), [045](../done/045-response-mode-form-post.md) (opc., aprobada) | alta | M | EP-03, EP-05 (hashes) |
 | [EP-09 Sesión SSO y logout](../done/EP-09-sesion-sso-y-logout.md) (hecha) | [031](../done/031-prompt-max-age-sso.md), [036](../done/036-logout-validado-y-post.md), 067 (opc.), 041 (opc.), 062 (opc.) | alta | M | EP-04, EP-05 |
-| [EP-10 Login de usuario: MFA y federación](EP-10-login-mfa-y-federacion.md) | 039, 040 (opc.), 051 (opc.) | media | S + opc. | EP-03 (040), EP-07 (051) |
+| [EP-10 Login de usuario: MFA y federación](../done/EP-10-login-mfa-y-federacion.md) (hecha) | [039](../done/039-consumir-recovery-mfa.md), [040](../done/040-grant-mfa-no-interactivo.md) (descartada), [051](../done/051-federacion-oidc-generica.md) (descartada) | media | S + opc. | EP-03 (040), EP-07 (051) |
 | [EP-11 Aserciones JWT de cliente](EP-11-aserciones-jwt-cliente.md) | 044, 069 (opc.) | media | M | EP-02 (decisión), EP-03, EP-07 |
 | [EP-12 Grants por decisión de producto](EP-12-grants-decision-producto.md) | 043, 052, 055 | baja | decisión + M/L | EP-05, EP-06 |
 | [EP-13 Tokens ligados a clave o certificado](EP-13-tokens-ligados.md) | 048, 053 | baja | L | EP-05, EP-06, EP-07 |
@@ -85,7 +85,7 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 1. **El `sid` publicado es el valor de la cookie.** [LogoutController.php:129](../../../src/Features/OAuth/Authentication/Infrastructure/Driver/Rest/LogoutController.php#L129) añade `sid=$sessionId` al front-channel, y el refresh y el logout token llevan el mismo identificador de `_oauth_session.session`. Es el hallazgo 2 de [MODELO_Y_ESQUEMA](../MODELO_Y_ESQUEMA_018-071.md) y no tiene tarea propia; resuelto en **EP-05** (`_oauth_session.sid` aleatorio).
 2. **`ClientData` como snapshot único.** 024, 033, 034, 046, 053, 056, 057, 060 y 065 añaden cada una un metadato. EP-03 los mapea todos de una vez, y las demás épicas solo los consumen.
 3. **Almacén anti-replay compartido** `_oauth_replay_jti` (B.2): se crea en EP-07 (047) y lo reutilizan EP-11 (044, 069) y EP-13 (048).
-4. **Descarga segura de JWKS remoto**: se extrae de `RequestObjectValidator` en EP-07 y la reutilizan EP-10 (051), EP-11 (044) y EP-14 (057).
+4. **Descarga segura de JWKS remoto**: se extrae de `RequestObjectValidator` en EP-07 y la reutilizan EP-11 (044) y EP-14 (057); EP-10 (051) se descartó.
 5. **`TokenSigner` por propósito** (EP-04) es la base de 049, 032, 026, 028, 036 (`id_token_hint`), 054, 057 y 060.
 6. **Constructor único de respuestas de autorización** (EP-08, hecho): query, fragment y `form_post` (045) son modos de `AuthorizationResponseWriter`; JARM (054) será uno más.
 7. **Discovery por capacidades** (EP-01): cada épica posterior activa su flag en lugar de editar el documento a mano, y el test de contrato impide anunciar lo no registrado.
@@ -112,7 +112,9 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 | Semántica de `audiences`: «todas» o «al menos una» | EP-06 | «Al menos una» (RFC 7519 §4.1.3) |
 | ~~Retirar o mantener `implicit`~~ | EP-01, EP-08 | Decidido: retirado en EP-08 |
 | Re-hash de contraseñas en bloque o perezoso | EP-02 | En bloque |
-| Aprobar cada opcional (040, 041, 043, 044, 048, 050–062, 067–069; 045 aprobada) | varias | Ver ficha |
+| ~~Grant MFA no interactivo (040)~~ | EP-10 | Decidido: descartado; code + PKCE o device |
+| ~~Proveedor OIDC genérico (051)~~ | EP-10 | Decidido: descartado; SAML para SSO corporativo |
+| Aprobar cada opcional (041, 043, 044, 048, 050–062, 067–069; 045 aprobada) | varias | Ver ficha |
 
 ## Mapa tarea → épica
 

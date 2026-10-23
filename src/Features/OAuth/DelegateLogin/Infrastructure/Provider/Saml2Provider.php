@@ -6,8 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider;
 
 use Override;
+use Throwable;
+use OneLogin\Saml2\Response;
+use OneLogin\Saml2\Settings;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedUserData;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
@@ -19,13 +23,20 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescripti
  * This provider builds a minimal SAML 2.0 AuthnRequest XML, deflates and base64-encodes it
  * following the HTTP-Redirect binding specification, and appends the RelayState parameter
  * to carry the original OAuth state through the identity provider round-trip. On callback,
- * it decodes the base64-encoded SAMLResponse POST parameter, parses the assertion XML using
- * SimpleXML, extracts standard SAML attributes (email/mail, name/displayName) and the
- * NameID subject, and maps them to DelegatedUserData. This implementation performs no
- * signature validation; a production deployment should add XML signature verification.
+ * the SAMLResponse is validated with onelogin/php-saml in strict mode before any attribute is
+ * read: the signature (of the response or of the assertion) against the IdP certificate, the
+ * issuer, the audience (this SP entity ID), the destination and recipient (the callback URL),
+ * the validity window, and InResponseTo against the ID of the AuthnRequest sent for this state.
+ * An unsigned, foreign, expired or unsolicited response yields no user.
  */
 class Saml2Provider implements DelegatedLoginProvider
 {
+    use LoggerAwareTrait;
+
+    private const string NAME_ID_FORMAT = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
+    private const array EMAIL_ATTRIBUTES = ['email', 'mail', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+    private const array NAME_ATTRIBUTES = ['name', 'displayName', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+
     private readonly string $assetsPath;
 
     public function __construct(
@@ -34,6 +45,8 @@ class Saml2Provider implements DelegatedLoginProvider
         private readonly string $id,
         private readonly string $idpSsoUrl,
         private readonly string $entityId,
+        private readonly string $idpEntityId,
+        private readonly string $idpCertificate,
         private readonly string $name = 'SAML'
     ) {
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
@@ -55,71 +68,125 @@ class Saml2Provider implements DelegatedLoginProvider
 
     /**
      * Generates a SAML 2.0 AuthnRequest XML document, compresses and encodes it for the
-     * HTTP-Redirect binding, and returns a DelegatedLoginEndpoint pointing at the IdP SSO URL
-     * with the SAMLRequest and RelayState query parameters appended.
+     * HTTP-Redirect binding, and returns a DelegatedLoginEndpoint pointing at the IdP SSO URL.
+     * The request ID derives from the state, so the response can be matched to it on return.
      */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
-        $requestId = '_' . bin2hex(random_bytes(16));
+        $requestId = self::requestIdFor($state);
         $instant = gmdate('Y-m-d\TH:i:s\Z');
         $xml = '<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="' . $requestId . '" Version="2.0" IssueInstant="' . $instant . '" Destination="' . htmlspecialchars($this->idpSsoUrl, ENT_QUOTES) . '" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" AssertionConsumerServiceURL="' . htmlspecialchars($redirect, ENT_QUOTES) . '"><saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">' . htmlspecialchars($this->entityId, ENT_QUOTES) . '</saml:Issuer></samlp:AuthnRequest>';
 
         $encoded = urlencode(base64_encode(gzdeflate($xml)));
         $relay = urlencode($state);
-        $url = $this->idpSsoUrl . '?SAMLRequest=' . $encoded . '&RelayState=' . $relay;
+        $separator = str_contains($this->idpSsoUrl, '?') ? '&' : '?';
+        $url = $this->idpSsoUrl . $separator . 'SAMLRequest=' . $encoded . '&RelayState=' . $relay;
 
         return new DelegatedLoginEndpoint('GET', $url);
     }
 
     /**
-     * Decodes and parses the SAMLResponse from the identity provider, extracts the NameID
-     * and SAML attributes, and maps email and display name to normalized DelegatedUserData.
-     * Returns null when the response is absent, malformed, or contains no usable email address.
+     * Validates the SAMLResponse posted back by the IdP for the AuthnRequest of its RelayState
+     * and maps the NameID and the email/name attributes to DelegatedUserData. Returns null when
+     * the response is absent or fails any check of the strict validation.
      */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {
         $raw = (string) ($request['SAMLResponse'] ?? '');
-        if ($raw === '') {
+        $relayState = (string) ($request['RelayState'] ?? '');
+        if ($raw === '' || $relayState === '') {
             return null;
         }
-
-        $xmlString = base64_decode($raw, true);
-        if ($xmlString === false || $xmlString === '') {
-            return null;
-        }
-
-        $xml = @simplexml_load_string($xmlString);
-        if ($xml === false) {
-            return null;
-        }
-
-        $attributes = [];
-        $result = $xml->xpath('//*[local-name()="Attribute"]');
-        if (is_array($result)) {
-            foreach ($result as $attr) {
-                $name = (string) ($attr['Name'] ?? '');
-                $vals = $attr->xpath('./*[local-name()="AttributeValue"]');
-                if ($name === '' || !is_array($vals) || !isset($vals[0])) {
-                    continue;
-                }
-                $attributes[$name] = (string) $vals[0];
+        try {
+            $response = new Response($this->settings($redirect), $raw);
+            if (!self::receivedAt($redirect, fn (): bool => $response->isValid(self::requestIdFor($relayState)))) {
+                $this->logWarning('SAML response rejected', ['provider' => $this->id, 'error' => $response->getError()]);
+                return null;
             }
-        }
-
-        $subject = (string) ($xml->xpath('//*[local-name()="NameID"]')[0] ?? '');
-        $email = (string) ($attributes['email'] ?? $attributes['mail'] ?? $subject);
-        if ($email === '') {
+            $attributes = $response->getAttributes();
+            $subject = $response->getNameId();
+        } catch (Throwable $ex) {
+            $this->logWarning('SAML response rejected', ['provider' => $this->id, 'error' => $ex->getMessage()]);
             return null;
         }
 
-        $name = (string) ($attributes['name'] ?? $attributes['displayName'] ?? '');
+        $email = self::firstAttribute($attributes, self::EMAIL_ATTRIBUTES)
+            ?? (filter_var($subject, FILTER_VALIDATE_EMAIL) !== false ? $subject : null);
+        if ($email === null) {
+            return null;
+        }
         return new DelegatedUserData(
             providerUserId: $subject !== '' ? $subject : $email,
             email: $email,
-            name: $name !== '' ? $name : null,
+            name: self::firstAttribute($attributes, self::NAME_ATTRIBUTES),
+            // The assertion is signed by the IdP the tenant administrator configured and trusts.
             emailVerified: true
         );
+    }
+
+    /** The AuthnRequest ID sent for a state: an NCName, so it starts with an underscore. */
+    private static function requestIdFor(string $state): string
+    {
+        return '_' . hash('sha256', 'saml-authn-request|' . $state);
+    }
+
+    private function settings(string $redirect): Settings
+    {
+        return new Settings([
+            'strict' => true,
+            'sp' => [
+                'entityId' => $this->entityId,
+                'assertionConsumerService' => ['url' => $redirect],
+                'NameIDFormat' => self::NAME_ID_FORMAT,
+            ],
+            'idp' => [
+                'entityId' => $this->idpEntityId,
+                'singleSignOnService' => ['url' => $this->idpSsoUrl],
+                'x509cert' => $this->idpCertificate,
+            ],
+            'security' => [
+                'rejectUnsolicitedResponsesWithInResponseTo' => true,
+                'destinationStrictlyMatches' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * php-saml checks Destination and Recipient against the URL of the current request, which it
+     * reads from $_SERVER. The response is validated on the authorize step, not on the callback
+     * it was posted to, so the callback URL stands in for the current one during the check only.
+     */
+    private static function receivedAt(string $url, callable $check): bool
+    {
+        $saved = $_SERVER;
+        $parts = parse_url($url);
+        $https = ($parts['scheme'] ?? '') === 'https';
+        $_SERVER['HTTPS'] = $https ? 'on' : 'off';
+        $_SERVER['HTTP_HOST'] = $parts['host'] ?? '';
+        $_SERVER['SERVER_PORT'] = (string) ($parts['port'] ?? ($https ? 443 : 80));
+        $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'] = $parts['path'] ?? '/';
+        unset($_SERVER['QUERY_STRING'], $_SERVER['PATH_INFO']);
+        try {
+            return (bool) $check();
+        } finally {
+            $_SERVER = $saved;
+        }
+    }
+
+    /**
+     * @param array<string, list<string>> $attributes
+     * @param list<string> $names
+     */
+    private static function firstAttribute(array $attributes, array $names): ?string
+    {
+        foreach ($names as $name) {
+            $value = trim((string) ($attributes[$name][0] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+        return null;
     }
 }

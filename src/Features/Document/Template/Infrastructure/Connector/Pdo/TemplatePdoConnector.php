@@ -379,7 +379,7 @@ class TemplatePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_template".*) as count ' : '"document_template".*').' FROM "document_template"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_template".*').' FROM "document_template"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

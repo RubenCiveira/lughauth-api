@@ -376,7 +376,7 @@ class ThemePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("document_theme".*) as count ' : '"document_theme".*').' FROM "document_theme"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"document_theme".*').' FROM "document_theme"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

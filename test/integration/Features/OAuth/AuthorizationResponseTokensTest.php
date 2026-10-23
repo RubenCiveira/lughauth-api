@@ -113,6 +113,17 @@ final class AuthorizationResponseTokensTest extends OidcIntegrationTestCase
         $this->assertArrayNotHasKey('email', $id);
     }
 
+    public function testACompletedAuthorizationRemovesThePreSession(): void
+    {
+        $preSession = array_values(array_filter(
+            $this->redirect('code')->getHeader('Set-Cookie'),
+            static fn (string $cookie): bool => str_starts_with($cookie, 'PRE_SESSION_ID=')
+        ));
+
+        $this->assertCount(1, $preSession);
+        $this->assertStringContainsString('Max-Age=0', $preSession[0]);
+    }
+
     public function testRedirectNeverCarriesTheSessionCookie(): void
     {
         $location = $this->redirect('code id_token token')->getHeaderLine('Location');

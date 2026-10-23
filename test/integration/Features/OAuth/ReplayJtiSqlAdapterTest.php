@@ -43,6 +43,15 @@ final class ReplayJtiSqlAdapterTest extends TestCase
         $this->assertTrue($store->consume(self::TENANT, 'client-a', ReplayPurpose::ClientAssertion, 'jti-1', $expires));
     }
 
+    public function testADelegatedLoginBindingIsSpentOnce(): void
+    {
+        $store = new ReplayJtiSqlAdapter($this->pdo);
+        $expires = new \DateTimeImmutable('+10 minutes');
+
+        $this->assertTrue($store->consume(self::TENANT, 'client-a', ReplayPurpose::DelegatedLogin, 'binding-hash', $expires));
+        $this->assertFalse($store->consume(self::TENANT, 'client-a', ReplayPurpose::DelegatedLogin, 'binding-hash', $expires));
+    }
+
     public function testReleasedJtiCanBeConsumedAgain(): void
     {
         $store = new ReplayJtiSqlAdapter($this->pdo);

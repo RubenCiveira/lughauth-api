@@ -366,7 +366,7 @@ class UserConsentedScopesPdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_consented_scopes".*) as count ' : '"access_user_consented_scopes".*').' FROM "access_user_consented_scopes"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_consented_scopes".*').' FROM "access_user_consented_scopes"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

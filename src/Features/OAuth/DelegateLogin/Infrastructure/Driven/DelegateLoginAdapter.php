@@ -11,6 +11,7 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
@@ -21,17 +22,18 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedUserData;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
+use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\FederatedIdentityGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\AppleOAuthProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\GitHubOAuthProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\MicrosoftOAuthProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\GoogleOAuthProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\Saml2Provider;
-use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAccountLinkPolicyOptions;
 
 /**
  * Infrastructure adapter that implements DelegateLoginGateway by wiring together
@@ -47,21 +49,31 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
  */
 class DelegateLoginAdapter implements DelegateLoginGateway
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly AppConfig $conf,
         private readonly Context $context,
         private readonly UserLoaderAdapter $userLoader,
         private readonly UserCommandRepositoryGateway $users,
-        private readonly LoginGateway $login,
         private readonly PasswordHasher $hasher,
-        private readonly TenantLoginProviderQueryRepositoryGateway $loginProviders
+        private readonly TenantLoginProviderQueryRepositoryGateway $loginProviders,
+        private readonly FederatedIdentityGateway $identities
     ) {
     }
 
     /**
-     * Looks up or just-in-time provisions the user identified by the provider assertion within
-     * the given tenant, fills the pre-authentication challenge state, and returns a populated
-     * AuthenticationResult ready for the OIDC token issuance pipeline.
+     * Resolves the local user of a provider assertion within the tenant, provisioning it on first
+     * sight. Links are kept per provider record (FederatedIdentityGateway), so:
+     * - a subject already linked to an account of this provider signs in to it, whatever email the
+     *   provider sends now;
+     * - otherwise the email decides, and only when the provider verified it; `manual` stops here:
+     *   it neither links nor provisions on its own;
+     * - an existing account is joined under `verified-email` (the default); under `none` only when
+     *   this provider already reaches it (another subject of the same IdP user) or provisioned it
+     *   before links were recorded, as the only enabled provider of its type in the tenant;
+     * - a new email gets a new account. Each sign-in that is let through records its link.
+     * Returns an invalid result when the assertion may not sign in, and the user name otherwise.
      */
     #[Override]
     public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user, string $providerId): AuthenticationResult
@@ -74,11 +86,29 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         if (!$existent = $this->loginProviders->retrieve($filter)) {
             throw new NotFoundException('No provider ' . $providerId);
         }
-        $prev = $this->users->findOneForUpdateByTenantAndName(
+        $providerUid = $existent->uid() ?? $providerId;
+        $subject = $user->providerUserId;
+        if ($subject === '') {
+            return $this->refuse($tenant, $providerId, $user, 'missing_subject');
+        }
+        $linked = $this->identities->linkedUser($providerUid, $subject);
+        if ($linked !== null && $account = $this->accountInTenant($linked, $theTenant)) {
+            return new AuthenticationResult(valid: true, id: $account->getName(), tenant: $tenant);
+        }
+        if ($existent->getAccountLinkPolicy() === TenantLoginProviderAccountLinkPolicyOptions::MANUAL) {
+            return $this->refuse($tenant, $providerId, $user, 'account_link_not_allowed');
+        }
+        if (!$user->emailVerified) {
+            return $this->refuse($tenant, $providerId, $user, 'unverified_email');
+        }
+        $account = $this->users->findOneForUpdateByTenantAndName(
             $theTenant,
             $user->email
         );
-        if (!$prev) {
+        if ($account && !$this->mayJoin($account, $existent, $theTenant)) {
+            return $this->refuse($tenant, $providerId, $user, 'account_link_not_allowed');
+        }
+        if (!$account) {
             $enabled = $existent->isUsersEnabledByDefault();
             $attr = new UserAttributes();
             $attr->uid(Random::comb());
@@ -86,24 +116,61 @@ class DelegateLoginAdapter implements DelegateLoginGateway
             $attr->provider($existent->getSource()->value);
             $attr->tenant($theTenant);
             $attr->password(UserPasswordVO::fromPlainText($this->hasher, Random::password()));
-            $prev = $this->users->create(User::create($attr));
+            $account = $this->users->create(User::create($attr));
             if ($enabled) {
-                $this->users->update($prev, $prev->enable());
+                $this->users->update($account, $account->enable());
             }
         }
-        $challenges = (new ChallengesState())->withUsername($user->email);
-        $this->login->fillPreAuthenticated($tenant, $client, $challenges);
-        // Si no existe lo creo
-        return new AuthenticationResult(
-            valid: true,
-            id: $user->email,
-            tenant: $tenant,
-            tenantName: 'tenantName',
-            scope: $client->scope,
-            audiences: $client->audiences,
-            roles: ['rol-1'],
-            groups: ['group-1']
-        );
+        $linked = $this->identities->link($providerUid, $subject, $account->uid() ?? '');
+        if ($linked !== $account->uid()) {
+            // A concurrent sign-in of the same subject linked it first: the subject's account is that one.
+            $account = $this->accountInTenant($linked, $theTenant);
+            if ($account === null) {
+                return $this->refuse($tenant, $providerId, $user, 'account_link_conflict');
+            }
+        }
+        // Only the identity: the claims come from the login pipeline once the user is identified.
+        return new AuthenticationResult(valid: true, id: $account->getName(), tenant: $tenant);
+    }
+
+    private function accountInTenant(string $userUid, Tenant $tenant): ?User
+    {
+        $account = $this->users->findOneForUpdateByUid($userUid);
+        return $account && $account->getTenant()->uid() === $tenant->uid() ? $account : null;
+    }
+
+    /** Whether a verified email of this provider may sign in to an account it is not linked to yet. */
+    private function mayJoin(User $account, TenantLoginProvider $provider, Tenant $tenant): bool
+    {
+        if ($provider->getAccountLinkPolicy() === TenantLoginProviderAccountLinkPolicyOptions::VERIFIED_EMAIL) {
+            return true;
+        }
+        $accountUid = $account->uid() ?? '';
+        if ($this->identities->isLinkedTo($accountUid, $provider->uid() ?? '')) {
+            return true;
+        }
+        // Accounts provisioned before links were recorded only carry the provider type: they are
+        // attributed to this provider when no other enabled provider of that type could have made them.
+        return $account->getProvider() === $provider->getSource()->value
+            && !$this->identities->hasLinks($accountUid)
+            && $this->enabledProvidersOf($provider->getSource(), $tenant) === 1;
+    }
+
+    private function enabledProvidersOf(TenantLoginProviderSourceOptions $source, Tenant $tenant): int
+    {
+        $count = 0;
+        foreach ($this->loginProviders->list(new TenantLoginProviderFilter(tenant: $tenant)) as $provider) {
+            if ($provider !== null && !$provider->isDisabled() && $provider->getSource() === $source) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    private function refuse(string $tenant, string $providerId, DelegatedUserData $user, string $reason): AuthenticationResult
+    {
+        $this->logWarning('Delegated login refused', ['tenant' => $tenant, 'provider' => $providerId, 'reason' => $reason]);
+        return AuthenticationResult::wrongCredentials($tenant, $user->email, $reason);
     }
 
     /**
@@ -197,16 +264,36 @@ class DelegateLoginAdapter implements DelegateLoginGateway
                 (string) ($this->conf->get('apple.key.id', '')),
                 (string) ($provider->getPrivateKey() ?? '')
             ),
-            TenantLoginProviderSourceOptions::SAML => new Saml2Provider(
-                $this->conf,
-                $this->context,
-                $provider->uid() ?? '',
-                (string) ($saml['idp_sso_url'] ?? $provider->getPublicKey() ?? ''),
-                (string) ($saml['entity_id'] ?? $provider->getName() ?? 'saml-sp'),
-                (string) ($saml['name'] ?? $provider->getName() ?? 'SAML')
-            ),
+            TenantLoginProviderSourceOptions::SAML => $this->samlProvider($provider, $saml),
             default => null,
         };
+    }
+
+    /**
+     * A SAML provider is only offered once the IdP entity ID and signing certificate are set:
+     * without them no response could be validated.
+     *
+     * @param array<string, mixed> $saml
+     */
+    private function samlProvider(TenantLoginProvider $provider, array $saml): ?Saml2Provider
+    {
+        $ssoUrl = (string) ($provider->getSamlIdpSsoUrl() ?: ($saml['idp_sso_url'] ?? $provider->getPublicKey() ?? ''));
+        $idpEntityId = (string) $provider->getSamlIdpEntityId();
+        $certificate = (string) $provider->getSamlIdpCert();
+        if ($ssoUrl === '' || $idpEntityId === '' || $certificate === '') {
+            $this->logWarning('SAML provider disabled: IdP SSO URL, entity ID or certificate missing', ['provider' => $provider->uid() ?? '']);
+            return null;
+        }
+        return new Saml2Provider(
+            $this->conf,
+            $this->context,
+            $provider->uid() ?? '',
+            $ssoUrl,
+            (string) ($saml['entity_id'] ?? $provider->getName()),
+            $idpEntityId,
+            $certificate,
+            (string) ($saml['name'] ?? $provider->getName())
+        );
     }
 
     /**

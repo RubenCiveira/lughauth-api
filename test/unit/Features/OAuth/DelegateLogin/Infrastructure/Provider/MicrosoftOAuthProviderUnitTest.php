@@ -45,7 +45,75 @@ final class MicrosoftOAuthProviderUnitTest extends TestCase
         $this->assertEquals('MS User', $user->name);
     }
 
-    private function createProvider(ClientInterface $http): MicrosoftOAuthProvider
+    public static function emailVerification(): array
+    {
+        $directory = '11111111-2222-3333-4444-555555555555';
+        return [
+            // nOAuth: any Entra administrator can set the email of their users.
+            'any directory, email set by its administrator' => ['common', ['tid' => $directory, 'email' => 'victim@example.com'], false],
+            'any directory, only preferred_username' => ['common', ['tid' => $directory, 'preferred_username' => 'victim@example.com', 'xms_edov' => true], false],
+            'any directory, domain owner verified (xms_edov)' => ['organizations', ['tid' => $directory, 'email' => 'user@example.com', 'xms_edov' => true], true],
+            'any directory, xms_edov as a string' => ['common', ['tid' => $directory, 'email' => 'user@example.com', 'xms_edov' => '1'], true],
+            'personal Microsoft account' => ['common', ['tid' => '9188040d-6c67-4c5b-b112-36a304b66dad', 'email' => 'user@outlook.com'], true],
+            'pinned directory, same tid' => [$directory, ['tid' => $directory, 'email' => 'user@example.com'], true],
+            'pinned directory, other tid' => [$directory, ['tid' => '99999999-2222-3333-4444-555555555555', 'email' => 'user@example.com'], false],
+            'pinned directory, other tid even with xms_edov' => [$directory, ['tid' => '99999999-2222-3333-4444-555555555555', 'email' => 'user@example.com', 'xms_edov' => true], false],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('emailVerification')]
+    public function testTheEmailIsVerifiedOnlyWhenMicrosoftOrATrustedDirectoryVouchesForIt(string $authority, array $claims, bool $verified): void
+    {
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturn(new Response(200, [], '{"id_token":"' . $this->fakeJwt(['sub' => 'ms-1'] + $claims) . '"}'));
+
+        $user = $this->createProvider($http, $authority)->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
+
+        $this->assertSame($verified, $user?->emailVerified);
+    }
+
+    public static function domainAuthorities(): array
+    {
+        $directory = '11111111-2222-3333-4444-555555555555';
+        $other = '99999999-2222-3333-4444-555555555555';
+        $issuer = static fn (string $tid): string => '{"issuer":"https://login.microsoftonline.com/' . $tid . '/v2.0"}';
+        return [
+            'resolves to the token directory' => [$issuer($directory), ['tid' => $directory, 'preferred_username' => 'user@contoso.com'], true],
+            'resolves to another directory, even with xms_edov' => [$issuer($other), ['tid' => $directory, 'email' => 'user@contoso.com', 'xms_edov' => true], false],
+            'issuer of another shape pins nothing' => ['{"issuer":"https://evil.example/' . $directory . '/v2.0"}', ['tid' => $directory, 'email' => 'user@contoso.com'], false],
+            // An unresolvable domain counts as any directory: only Microsoft's xms_edov verifies.
+            'unknown domain, email set by an administrator' => [null, ['tid' => $directory, 'email' => 'user@contoso.com'], false],
+            'unknown domain, domain owner verified (xms_edov)' => [null, ['tid' => $directory, 'email' => 'user@contoso.com', 'xms_edov' => true], true],
+        ];
+    }
+
+    /** A domain authority pins the directory Microsoft's discovery names for it. */
+    #[\PHPUnit\Framework\Attributes\DataProvider('domainAuthorities')]
+    public function testADomainAuthorityPinsTheDirectoryItResolvesTo(?string $discovery, array $claims, bool $verified): void
+    {
+        $lookups = [];
+        $token = '{"id_token":"' . $this->fakeJwt(['sub' => 'ms-1'] + $claims) . '"}';
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturnCallback(function (string $method, string $url) use (&$lookups, $discovery, $token): Response {
+            if ($method === 'POST') {
+                return new Response(200, [], $token);
+            }
+            $lookups[] = $url;
+            if ($discovery === null) {
+                throw new \RuntimeException('400 Bad Request: unknown tenant');
+            }
+            return new Response(200, [], $discovery);
+        });
+        $provider = $this->createProvider($http, 'Contoso.com/x');
+
+        $first = $provider->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
+        $second = $provider->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
+
+        $this->assertSame([$verified, $verified], [$first?->emailVerified, $second?->emailVerified]);
+        $this->assertSame(['https://login.microsoftonline.com/contoso.com%2Fx/v2.0/.well-known/openid-configuration'], $lookups, 'One lookup, on Microsoft, with the domain encoded');
+    }
+
+    private function createProvider(ClientInterface $http, string $authority = 'contoso-tenant'): MicrosoftOAuthProvider
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')->willReturn('https://assets.local');
@@ -53,7 +121,7 @@ final class MicrosoftOAuthProviderUnitTest extends TestCase
         $context = $this->createMock(Context::class);
         $context->method('getBaseUrl')->willReturn('https://app.local');
 
-        return new MicrosoftOAuthProvider($config, $context, 'ms-provider', 'id', 'secret', 'contoso-tenant', $http);
+        return new MicrosoftOAuthProvider($config, $context, 'ms-provider', 'id', 'secret', $authority, $http);
     }
 
     private function fakeJwt(array $payload): string

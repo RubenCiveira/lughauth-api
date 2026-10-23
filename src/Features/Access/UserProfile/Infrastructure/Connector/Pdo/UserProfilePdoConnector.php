@@ -377,7 +377,7 @@ class UserProfilePdoConnector
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count("access_user_profile".*) as count ' : '"access_user_profile".*').' FROM "access_user_profile"'
+              'query' => 'SELECT '.($count ? ' count(*) as count ' : '"access_user_profile".*').' FROM "access_user_profile"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,
