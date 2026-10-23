@@ -63,6 +63,9 @@ use Civi\Lughauth\Features\OAuth\Mfa\Infrastructure\Driven\UserMfaAdapter;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Driven\DelegateLoginAdapter;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Driven\FederatedIdentityAdapter;
+use Civi\Lughauth\Features\OAuth\DelegateLogin\Application\Listener\FederatedIdentityWithinOneTenant;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Usecase\Create\UserFederatedIdentityCreateCheck;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Usecase\Update\UserFederatedIdentityUpdateCheck;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\FederatedIdentityGateway;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
 use Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven\ScopesConsentAdapter;
@@ -233,12 +236,15 @@ class OAuthPlugin extends MicroPlugin
     }
 
     /**
-     * Provisions the signing keys of each new tenant so it can issue tokens immediately.
+     * Provisions the signing keys of each new tenant so it can issue tokens immediately, and keeps
+     * every federated identity link within one tenant (provider and user).
      */
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(TenantCreateEvent::class, ProvisionTenantKeys::class);
+        $listener->registerListener(UserFederatedIdentityCreateCheck::class, FederatedIdentityWithinOneTenant::class);
+        $listener->registerListener(UserFederatedIdentityUpdateCheck::class, FederatedIdentityWithinOneTenant::class);
     }
 
     /**

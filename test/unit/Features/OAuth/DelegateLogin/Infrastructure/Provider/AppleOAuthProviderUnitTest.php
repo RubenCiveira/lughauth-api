@@ -82,8 +82,30 @@ final class AppleOAuthProviderUnitTest extends TestCase
         );
     }
 
+    public static function foreignTokens(): array
+    {
+        return [
+            'issued to another client' => [['aud' => 'com.other.app']],
+            'issued by another issuer' => [['iss' => 'https://evil.example']],
+            'without nonce' => [['nonce' => null]],
+            'nonce of another state' => [['nonce' => hash('sha256', 'other-state')]],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('foreignTokens')]
+    public function testATokenNotIssuedForThisClientAndLoginIsRefused(array $overrides): void
+    {
+        $jwt = $this->fakeJwt($overrides + ['sub' => 'apple-3', 'email' => 'apple@example.com', 'email_verified' => true, 'nonce' => hash('sha256', 'state-123')]);
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturn(new Response(200, [], '{"id_token":"' . $jwt . '"}'));
+
+        $this->assertNull($this->createProvider($http)->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code', 'state' => 'state-123']));
+    }
+
+    /** A token as Apple issues it: by Apple, for this client ('com.example.app'). */
     private function fakeJwt(array $payload): string
     {
+        $payload = array_filter($payload + ['aud' => 'com.example.app', 'iss' => 'https://appleid.apple.com'], static fn ($v) => $v !== null);
         $header = rtrim(strtr(base64_encode('{"alg":"none","typ":"JWT"}'), '+/', '-_'), '=');
         $body = rtrim(strtr(base64_encode((string) json_encode($payload)), '+/', '-_'), '=');
         return $header . '.' . $body . '.sig';

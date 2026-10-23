@@ -68,6 +68,9 @@ profile:
     cancel: Cancel
     wrongOtp: The one-time code is not valid. Try the code your app shows now.
     error: The MFA settings could not be updated. Please try again.
+    currentCode: Current code from your app, or a recovery code
+    requiredByTenant: Your organisation requires MFA; it cannot be disabled.
+    alreadyEnabled: MFA is already enabled. To change apps, disable it first.
   sessions:
     title: Active sessions
     help: Review devices and applications where your account is signed in.

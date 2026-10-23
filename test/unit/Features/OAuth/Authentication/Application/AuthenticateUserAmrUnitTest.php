@@ -29,7 +29,8 @@ final class AuthenticateUserAmrUnitTest extends TestCase
             'password and totp' => [self::byPassword()->withMfa(true, 'otp'), ['pwd', 'otp', 'mfa']],
             'password and recovery code' => [self::byPassword()->withMfa(true), ['pwd', 'mfa']],
             'password only' => [self::byPassword(), ['pwd']],
-            'webauthn' => [(new ChallengesState(username: 'user-1'))->identifiedBy(IdentificationMethod::WEBAUTHN), []],
+            'passkey' => [(new ChallengesState(username: 'user-1'))->identifiedBy(IdentificationMethod::WEBAUTHN), ['pop', 'user']],
+            'federated' => [(new ChallengesState(username: 'user-1'))->identifiedBy(IdentificationMethod::FEDERATED), []],
         ];
     }
 

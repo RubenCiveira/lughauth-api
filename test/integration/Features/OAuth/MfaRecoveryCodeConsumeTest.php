@@ -151,6 +151,8 @@ final class MfaRecoveryCodeConsumeTest extends TestCase
             $repository,
             $this->createMock(ReversibleSecretStorage::class),
             new PasswordHasher(),
+            $this->createMock(\Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway::class),
+            $this->createMock(\Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway::class),
         );
     }
 

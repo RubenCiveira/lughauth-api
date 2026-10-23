@@ -27,6 +27,7 @@ final class MicrosoftOAuthProviderUnitTest extends TestCase
     {
         $jwt = $this->fakeJwt([
             'sub' => 'ms-1',
+            'tid' => '11111111-2222-3333-4444-555555555555',
             'email' => 'ms@example.com',
             'name' => 'MS User',
             'given_name' => 'MS',
@@ -40,7 +41,7 @@ final class MicrosoftOAuthProviderUnitTest extends TestCase
         $user = $provider->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
 
         $this->assertNotNull($user);
-        $this->assertEquals('ms-1', $user->providerUserId);
+        $this->assertEquals('ms-1', $user->providerUserId, 'Without oid the subject is sub');
         $this->assertEquals('ms@example.com', $user->email);
         $this->assertEquals('MS User', $user->name);
     }
@@ -124,8 +125,47 @@ final class MicrosoftOAuthProviderUnitTest extends TestCase
         return new MicrosoftOAuthProvider($config, $context, 'ms-provider', 'id', 'secret', $authority, $http);
     }
 
+    public static function foreignTokens(): array
+    {
+        $directory = '11111111-2222-3333-4444-555555555555';
+        return [
+            'issued to another client' => [['aud' => 'other-client']],
+            'issued by another directory than its tid' => [['iss' => 'https://login.microsoftonline.com/99999999-2222-3333-4444-555555555555/v2.0']],
+            'issued by another issuer' => [['iss' => 'https://evil.example/' . $directory . '/v2.0']],
+            'without tid' => [['tid' => null, 'iss' => null]],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('foreignTokens')]
+    public function testATokenNotIssuedForThisClientByItsDirectoryIsRefused(array $overrides): void
+    {
+        $claims = array_filter(['sub' => 'ms-1', 'tid' => '11111111-2222-3333-4444-555555555555', 'email' => 'ms@example.com'] + $overrides, static fn ($v) => $v !== null);
+        $jwt = $this->fakeJwt($overrides + $claims);
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturn(new Response(200, [], '{"id_token":"' . $jwt . '"}'));
+
+        $this->assertNull($this->createProvider($http, 'common')->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']));
+    }
+
+    public function testTheSubjectIsTheDirectoryAndObjectIdNotThePerApplicationSub(): void
+    {
+        $jwt = $this->fakeJwt(['sub' => 'per-app-sub', 'tid' => '11111111-2222-3333-4444-555555555555', 'oid' => 'AAAAAAAA-0000-0000-0000-000000000001', 'email' => 'ms@example.com']);
+        $http = $this->createMock(ClientInterface::class);
+        $http->method('request')->willReturn(new Response(200, [], '{"id_token":"' . $jwt . '"}'));
+
+        $user = $this->createProvider($http, 'common')->authorize('https://app.local/delegate/callback', ['code' => 'oauth-code']);
+
+        $this->assertSame('11111111-2222-3333-4444-555555555555:aaaaaaaa-0000-0000-0000-000000000001', $user?->providerUserId);
+    }
+
+    /** A token as Microsoft issues it: for this client ('id') and by the directory of its tid. */
     private function fakeJwt(array $payload): string
     {
+        $payload += ['aud' => 'id'];
+        if (isset($payload['tid']) && !array_key_exists('iss', $payload)) {
+            $payload['iss'] = 'https://login.microsoftonline.com/' . $payload['tid'] . '/v2.0';
+        }
+        $payload = array_filter($payload, static fn ($v) => $v !== null);
         $header = rtrim(strtr(base64_encode('{"alg":"none","typ":"JWT"}'), '+/', '-_'), '=');
         $body = rtrim(strtr(base64_encode((string) json_encode($payload)), '+/', '-_'), '=');
         return $header . '.' . $body . '.sig';

@@ -26,7 +26,10 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescripti
  * resolved first from the "email" claim and then from "preferred_username" to handle
  * work/school accounts where the primary SMTP address is exposed differently. The JWT
  * payload is decoded without signature verification since the token was received directly
- * from a TLS-secured token endpoint (OIDC Core 3.1.3.7).
+ * from a TLS-secured token endpoint (OIDC Core 3.1.3.7); its audience must still be this client
+ * and its issuer the directory it names (`https://login.microsoftonline.com/{tid}/v2.0`). The
+ * subject linked to a local account is `tid:oid`, stable across the applications of a directory,
+ * rather than `sub`, which differs per application; `sub` is the fallback without them.
  *
  * Neither claim is verified by Microsoft for work accounts: the administrator of any Entra
  * directory can set them to any address ("nOAuth"). The email only counts as verified when
@@ -129,7 +132,7 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
             }
 
             $claims = $this->parseJwtPayload($idToken);
-            if (!is_array($claims)) {
+            if (!is_array($claims) || !$this->issuedForThisClient($claims)) {
                 return null;
             }
 
@@ -143,7 +146,7 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
             }
 
             return new DelegatedUserData(
-                providerUserId: (string) ($claims['sub'] ?? ''),
+                providerUserId: self::subject($claims),
                 email: $email,
                 name: (string) ($claims['name'] ?? ''),
                 givenName: (string) ($claims['given_name'] ?? ''),
@@ -153,6 +156,27 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
         } catch (Throwable $ex) {
             return null;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     */
+    private function issuedForThisClient(array $claims): bool
+    {
+        $directory = strtolower((string) ($claims['tid'] ?? ''));
+        return ($claims['aud'] ?? null) === $this->clientId
+            && preg_match('/^' . self::DIRECTORY_ID . '$/', $directory) === 1
+            && strtolower((string) ($claims['iss'] ?? '')) === 'https://login.microsoftonline.com/' . $directory . '/v2.0';
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     */
+    private static function subject(array $claims): string
+    {
+        $directory = strtolower((string) ($claims['tid'] ?? ''));
+        $object = strtolower((string) ($claims['oid'] ?? ''));
+        return $directory !== '' && $object !== '' ? $directory . ':' . $object : (string) ($claims['sub'] ?? '');
     }
 
     /**

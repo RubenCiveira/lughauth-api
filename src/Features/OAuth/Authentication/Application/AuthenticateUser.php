@@ -209,10 +209,11 @@ class AuthenticateUser
             return $this->buildResponse($validation, $request, $issuer, $activeSessionId);
         }
 
-        // Only methods with evidence (RFC 8176): a password checked in this flow, or a completed MFA
-        // step with the method of its factor (`otp` for TOTP; a recovery code has no own value).
+        // Only methods with evidence (RFC 8176): how the user was identified in this flow, and a
+        // completed MFA step with the method of its factor (`otp` for TOTP; a recovery code has no
+        // own value).
         $amr = array_values(array_filter([
-            $challenges->identifiedBy === IdentificationMethod::PASSWORD ? 'pwd' : null,
+            ...($challenges->identifiedBy?->amr() ?? []),
             $challenges->withMfa ? $challenges->mfaMethod : null,
             $challenges->withMfa ? 'mfa' : null,
         ]));

@@ -56,6 +56,9 @@ class MfaPanel
                 <p>{$t['enabledHelp']}</p>
                 <form method="POST" action="{$saveUrl}" class="change-password-form">
                     <input type="hidden" name="action" value="disable" />
+                    <label>{$t['currentCode']}
+                        <input type="text" name="code" autocomplete="one-time-code" required />
+                    </label>
                     <div class="profile-actions">
                         <input class="primary-button" type="submit" value="{$t['disable']}" />
                         <a class="secondary-button" href="{$cancelUrl}">{$t['backToProfile']}</a>

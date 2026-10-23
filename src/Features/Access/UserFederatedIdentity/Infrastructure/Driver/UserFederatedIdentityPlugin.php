@@ -5,12 +5,26 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
+use Slim\Routing\RouteCollectorProxy;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityAllowController;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityListController;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityCreateController;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityRetrieveController;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityUpdateController;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driver\Rest\UserFederatedIdentityDeleteController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
+use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driven\UserFederatedIdentityQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserFederatedIdentity\Infrastructure\Driven\UserFederatedIdentityCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserFederatedIdentity\Domain\Gateway\UserFederatedIdentityQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserFederatedIdentity\Domain\Gateway\UserFederatedIdentityCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Service\Visibility\UserFederatedIdentityRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Policy\Filter\TenantAccessible;
 
 class UserFederatedIdentityPlugin extends MicroPlugin
 {
@@ -20,5 +34,49 @@ class UserFederatedIdentityPlugin extends MicroPlugin
         $def[UserFederatedIdentityQueryRepositoryGateway::class] = \DI\autowire(UserFederatedIdentityQueryRepositoryAdapter::class);
         $def[UserFederatedIdentityCommandRepositoryGateway::class] = \DI\autowire(UserFederatedIdentityCommandRepositoryAdapter::class);
         return $def;
+    }
+    #[Override]
+    public function registerRoutes(RouteCollectorProxy $collector): void
+    {
+        $collector->group('/api/access/user-federated-identities', [$this, 'setRoutesForUserFederatedIdentity']);
+        $collector->group('/api/me/acl/access/user-federated-identities', [$this, 'setRoutesForUserFederatedIdentityAcl']);
+    }
+    #[Override]
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
+    {
+        $listener->registerListener(UserFederatedIdentityRestrictFilterToVisibility::class, TenantAccessible::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("user-federated-identity", "list", "READ");
+            $handler->registerResourceAction("user-federated-identity", "create", "WRITE");
+            $handler->registerResourceAction("user-federated-identity", "retrieve", "READ");
+            $handler->registerResourceAction("user-federated-identity", "update", "WRITE");
+            $handler->registerResourceAction("user-federated-identity", "delete", "WRITE");
+
+            $handler->registerResourceAttribute("user-federated-identity", "user", "MANAGE");
+            $handler->registerResourceAttribute("user-federated-identity", "loginProvider", "MANAGE");
+            $handler->registerResourceAttribute("user-federated-identity", "subject", "MANAGE");
+            $handler->registerResourceAttribute("user-federated-identity", "createdAt", "MANAGE");
+            $handler->registerResourceAttribute("user-federated-identity", "version", "MANAGE");
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
+    }
+    public function setRoutesForUserFederatedIdentityAcl(RouteCollectorProxy $userFederatedIdentityGroup): void
+    {
+        $userFederatedIdentityGroup->get('', [UserFederatedIdentityAllowController::class, 'genericAllow']);
+        $userFederatedIdentityGroup->get('/{uid}', [UserFederatedIdentityAllowController::class, 'contextualAllow']);
+    }
+    public function setRoutesForUserFederatedIdentity(RouteCollectorProxy $userFederatedIdentityGroup): void
+    {
+        $userFederatedIdentityGroup->get('', [UserFederatedIdentityListController::class, 'list']);
+        $userFederatedIdentityGroup->post('', [UserFederatedIdentityCreateController::class, 'create']);
+        $userFederatedIdentityGroup->get('/{uid}', [UserFederatedIdentityRetrieveController::class, 'retrieve']);
+        $userFederatedIdentityGroup->put('/{uid}', [UserFederatedIdentityUpdateController::class, 'update']);
+        $userFederatedIdentityGroup->delete('/{uid}', [UserFederatedIdentityDeleteController::class, 'delete']);
+        $userFederatedIdentityGroup->delete('', [UserFederatedIdentityDeleteController::class, 'deleteAllForQuery']);
+        $userFederatedIdentityGroup->get('/~/delete-status/{uid}', [UserFederatedIdentityDeleteController::class, 'checkDeleteAllForQueryStatus']);
     }
 }

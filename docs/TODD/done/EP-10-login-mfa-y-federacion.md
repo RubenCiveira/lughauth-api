@@ -1,6 +1,7 @@
 # EP-10 — Login de usuario: MFA y federación
 
 - **Tareas:** [039](039-consumir-recovery-mfa.md) (códigos de recuperación MFA). Opcionales: [040](040-grant-mfa-no-interactivo.md) (grant MFA para clientes nativos, **descartada**) y [051](051-federacion-oidc-generica.md) (proveedor OIDC genérico, **descartada**).
+- **Estado:** hecho (039; 040 y 051 descartadas, con su decisión en la ficha). Revisión posterior del login federado en [072](072-seguridad-login-federado.md).
 - **Prioridad:** media (039), baja (opcionales). **Tamaño:** S (039) + M por opcional. **Depende de:** nada para 039; EP-03 (024) para 040; EP-07 (`RemoteJwksFetcher`) para 051.
 - **Esquema:** 039 sin cambios (`user-mfa-recovery-code.used-at` existe). 040: `_oauth_mfa_challenge` (B.4). 051: `tenant-login-provider.oidc-scopes`, `oidc-claim-mapping` y `account-link-policy` (A.3).
 
@@ -27,6 +28,8 @@ Las tres son pasos de **autenticación del usuario** previos a la emisión de to
 ## Aceptación
 
 La de 039, más las de 040 y 051 si se aprueban.
+
+**Resultado:** cumplida. 039: un código de recuperación vale una vez; repetido, de otro usuario o de otro tenant falla; de dos intentos concurrentes solo uno gana (`MfaRecoveryCodeConsumeTest`, MySQL). 040 y 051 no se aprueban: su decisión queda documentada en cada ficha.
 
 ## Implementación
 
@@ -57,11 +60,19 @@ La de 039, más las de 040 y 051 si se aprueban.
 - `UseMfaFormStepUnitTest`: el TOTP registra `otp`; el código de recuperación se consume sin mirar el TOTP; TOTP o código rechazados dan el mismo error, cuentan el fallo y no autentican; sin identificación no se comprueba ningún código; el formulario muestra el campo de recuperación. `NewMfaFormStepUnitTest`: sin identificación, o con MFA ya activo, no se muestra ni se guarda una semilla.
 - `AuthenticateUserAmrUnitTest`: `amr` con contraseña y TOTP, con contraseña y código de recuperación, solo con contraseña y con WebAuthn; `preAuthenticate` rechaza un estado sin identificar; `withUsername` descarta las pruebas; `identified_by` y `mfa_method` sobreviven a la serialización.
 
+### Ajustes finales
+
+- **MFA desde el perfil:** la sesión sola ya no sustituye ni retira un segundo factor activo. [MfaAdapter](../../../src/Features/OAuth/Profile/Infrastructure/Driven/MfaAdapter.php)`::enable` se rechaza con MFA activo (`mfa_already_enabled`): para cambiar de aplicación hay que desactivarlo antes. `disable` pide el TOTP actual o un código de recuperación (que se gasta). Un código erróneo es `wrong_otp` y cuenta como intento fallido de login (el mismo bloqueo), y un tenant con `force-mfa` no deja desactivarlo (`mfa_required`). El panel pide el código y cada error tiene su mensaje traducido.
+- **Desactivar MFA de verdad:** `User::setMfaSeed(null)` (acción `set-mfa-seed` del modelo) vacía la semilla pero deja `use-second-factors` a `true`, así que tras desactivar el perfil seguía mostrando MFA activo y el siguiente login exigía un alta nueva. Ahora se apaga también el indicador, y «activo» significa lo que comprueba el login: semilla guardada e indicador encendido. Lo ideal es una acción `clear-mfa-seed` en el modelo que haga ambas cosas.
+- **`amr` de passkeys:** un login con WebAuthn publica `pop` (posesión de una clave, sea de hardware o de software) y `user` (presencia, que el verificador exige). `IdentificationMethod::amr()` concentra estos valores.
+
 ### Pendiente fuera de esta épica
 
 - **040:** descartada; ver la decisión en su ficha.
 - **051:** descartada; ver la decisión en su ficha. Al revisarla aparecieron fallos graves del login federado existente, corregidos en [072](072-seguridad-login-federado.md).
-- **`amr` de otros métodos:** WebAuthn, federado y enlace mágico siguen sin publicar `amr` (`hwk`, `user`…). Solo `pwd` tiene evidencia registrada.
+- **`amr` de otros métodos:** federado, recuperación de contraseña y enlace mágico no tienen valor registrado en RFC 8176. WebAuthn no registra la verificación de usuario (UV; `userVerification` es `preferred`), así que no publica `mfa`: haría falta guardar el flag en `_oauth_webauthn_challenge`.
+- **`amr` en el middleware de bearer (EP-06):** `JwtVerifierMiddleware` trata `amr` como texto (`(string) $payload->amr`), pero es una lista. Hoy no tiene efecto porque el access token no lleva `amr`; si lo llevara, nunca se reconocería el MFA.
+- **Regenerar códigos de recuperación** desde el perfil solo pide la sesión.
 - **Coste de un código de recuperación erróneo:** cada intento verifica hasta diez hashes argon2id; el bloqueo tras 3 fallos lo acota.
 - **`count` generado inválido en MySQL/MariaDB (resuelto):** los conectores PDO generados construían `SELECT count("tabla".*)`, que MariaDB rechaza. Corregido a `count(*)` en los 34 conectores y en el generador (`PhpPdoConnector.java`), para que la próxima regeneración no lo deshaga. `MfaRecoveryCodeConsumeTest` vuelve a comprobar `countUnusedRecoveryCodes`.
 - **`BadRequestException` inexistente (resuelto):** `MfaAdapter::enable` lanzaba una clase que no existe; `ProfileHtml` atrapaba el `Error` y mostraba al usuario el mensaje interno de PHP con un 422. Ahora lanza `ConstraintException` (`wrong_otp`, 422 en la API) y el perfil muestra un mensaje traducido (`profile.mfa.wrongOtp`, o `profile.mfa.error` para cualquier otro fallo). `MfaAdapterEnableUnitTest` lo cubre.

@@ -15,7 +15,10 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Shared\Security\PasswordHasher;
 use Civi\Lughauth\Shared\Security\ReversibleSecretStorage;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeFilter;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
@@ -27,6 +30,7 @@ use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
+use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 
 /**
  * Infrastructure adapter that implements MfaGateway by delegating to the shared MFA subsystem.
@@ -42,7 +46,9 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
  *
  * When enabling MFA the adapter validates the user-supplied OTP against the provisional
  * seed and throws a ConstraintException for an invalid code, preventing storage of an
- * unverified seed.
+ * unverified seed. The session alone never replaces or removes an active second factor:
+ * enabling is refused while one is active, and disabling asks for the current OTP or a
+ * recovery code, whose failures count against the account like failed sign-ins.
  */
 class MfaAdapter implements MfaGateway
 {
@@ -58,21 +64,22 @@ class MfaAdapter implements MfaGateway
         private readonly UserMfaRecoveryCodeCommandRepositoryGateway $recoveryWrite,
         private readonly ReversibleSecretStorage $secrets,
         private readonly PasswordHasher $hasher,
+        private readonly TenantConfigQueryRepositoryGateway $configs,
+        private readonly LoginGateway $logins,
     ) {
     }
 
     /**
      * Checks whether TOTP second-factor authentication is currently active for the user.
      *
-     * Resolves the tenant and user, then reads the isUseSecondFactors flag stored on
-     * the user entity; returns true only when the flag is explicitly set to true.
+     * Active means what the login checks: a stored seed with the second-factor flag on. A
+     * user flagged for MFA without a seed yet still has to enrol, so it is not enabled.
      */
     #[Override]
     public function isEnabled(string $userUid, string $tenant): bool
     {
         $theTenant = $this->users->checkTenant($tenant, $userUid);
-        $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
-        return (bool) $theUser->isUseSecondFactors();
+        return self::isActive($this->users->checkUserSubjet($theTenant, $userUid));
     }
 
     /**
@@ -114,6 +121,10 @@ class MfaAdapter implements MfaGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $userUid);
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
+            if (self::isActive($theUser)) {
+                // Replacing the authenticator takes disabling it first, which asks for a code of it.
+                throw ConstraintException::ofError('mfa_already_enabled', ['seed'], ['']);
+            }
             $valid = $this->mfaGateway->verifyNewOpt($tenant, $theUser->getName(), $seed, $otp);
             if (!$valid) {
                 throw ConstraintException::ofError('wrong_otp', ['otp'], ['']);
@@ -128,27 +139,50 @@ class MfaAdapter implements MfaGateway
     }
 
     /**
-     * Clears the stored TOTP seed so the user is no longer challenged for a second factor.
+     * Clears the stored TOTP seed and the second-factor flag, so the user is no longer challenged
+     * for a second factor, once the code proves the user holds that factor: the current OTP or a
+     * recovery code (spent). A wrong code is a `wrong_otp` ConstraintException and a failed
+     * sign-in attempt; a tenant that forces MFA refuses with `mfa_required`.
      *
-     * Persists the change through UserCommandRepositoryGateway::update() using the change-set returned
-     * by User::setMfaSeed($secrets, null).
+     * User::setMfaSeed() always leaves the flag on, so the flag is cleared by a second update.
      */
     #[Override]
-    public function disable(string $userUid, string $tenant): void
+    public function disable(string $userUid, string $tenant, string $code): void
     {
         $this->logDebug("Disable MFA for user");
         $span = $this->startSpan("Disable MFA for user");
         try {
             $theTenant = $this->users->checkTenant($tenant, $userUid);
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
-            $changed = $theUser->setMfaSeed($this->secrets, null);
-            $this->repository->update($theUser, $changed);
+            if (!self::isActive($theUser)) {
+                return;
+            }
+            if ($this->configs->findOneByTenant($theTenant)?->isForceMfa()) {
+                throw ConstraintException::ofError('mfa_required', ['code'], ['']);
+            }
+            $code = trim($code);
+            $proved = $code !== '' && (
+                $this->mfaGateway->verifyOtp($tenant, $theUser->getName(), $code)
+                || $this->consumeRecoveryCode($userUid, $tenant, $code)
+            );
+            if (!$proved) {
+                $this->logins->markSecondFactorFailed($tenant, $userUid);
+                throw ConstraintException::ofError('wrong_otp', ['code'], ['']);
+            }
+            $withoutSeed = $theUser->setMfaSeed($this->secrets, null);
+            $this->repository->update($theUser, $withoutSeed->update((new UserAttributes())->useSecondFactors(false)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
         } finally {
             $span->end();
         }
+    }
+
+    private static function isActive(User $user): bool
+    {
+        $seed = $user->getSecondFactorSeed();
+        return $seed !== null && $seed !== '' && (bool) $user->isUseSecondFactors();
     }
 
     #[Override]

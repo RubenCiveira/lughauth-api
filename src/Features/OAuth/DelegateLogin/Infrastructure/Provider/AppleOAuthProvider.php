@@ -31,6 +31,8 @@ class AppleOAuthProvider implements DelegatedLoginProvider
 {
     private const AUTH_URL = 'https://appleid.apple.com/auth/authorize';
     private const TOKEN_URL = 'https://appleid.apple.com/auth/token';
+    /** Issuer of Apple's ID tokens, and audience of the client secret sent to Apple. */
+    private const ISSUER = 'https://appleid.apple.com';
     private readonly string $assetsPath;
 
     public function __construct(
@@ -112,14 +114,18 @@ class AppleOAuthProvider implements DelegatedLoginProvider
                 return null;
             }
             $claims = $this->parseJwtPayload($idToken);
-            if (!is_array($claims)) {
+            // Received over TLS from Apple's token endpoint (OIDC Core 3.1.3.7), but still for this
+            // client, from Apple, and for this login: the nonce derives from its random state.
+            if (!is_array($claims)
+                || ($claims['aud'] ?? null) !== $this->clientId
+                || ($claims['iss'] ?? null) !== self::ISSUER
+            ) {
                 return null;
             }
 
             $state = (string) ($request['state'] ?? '');
-            $expectedNonce = $state === '' ? null : hash('sha256', $state);
-            $tokenNonce = isset($claims['nonce']) ? (string) $claims['nonce'] : null;
-            if ($expectedNonce !== null && $tokenNonce !== null && $expectedNonce !== $tokenNonce) {
+            $tokenNonce = $claims['nonce'] ?? null;
+            if ($state === '' || !is_string($tokenNonce) || !hash_equals(hash('sha256', $state), $tokenNonce)) {
                 return null;
             }
 
@@ -168,7 +174,7 @@ class AppleOAuthProvider implements DelegatedLoginProvider
             'iss' => $this->teamId,
             'iat' => $now,
             'exp' => $now + 15777000,
-            'aud' => 'https://appleid.apple.com',
+            'aud' => self::ISSUER,
             'sub' => $this->clientId,
         ];
 

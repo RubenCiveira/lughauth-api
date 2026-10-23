@@ -29,4 +29,21 @@ enum IdentificationMethod: string
 
     /** A valid server-side session of the user already exists. */
     case SESSION = 'session';
+
+    /**
+     * RFC 8176 `amr` values this identification is evidence of. A WebAuthn assertion proves
+     * possession of a key (`pop`: hardware- or software-secured, as passkeys may be) and user
+     * presence (`user`, required by the verifier); user verification is not recorded, so it does
+     * not count as `mfa`. Federated logins, recovery and registration have no registered value.
+     *
+     * @return list<string>
+     */
+    public function amr(): array
+    {
+        return match ($this) {
+            self::PASSWORD => ['pwd'],
+            self::WEBAUTHN => ['pop', 'user'],
+            default => [],
+        };
+    }
 }

@@ -51,6 +51,25 @@ namespace {
         }
 
         /**
+         * Ensures a federated identity link can only join a provider and a user of one tenant,
+         * whether it is created or updated through the access API.
+         */
+        public function testRegisterEventsKeepsFederatedIdentityLinksWithinOneTenant(): void
+        {
+            $registered = [];
+            $registrar = $this->createMock(\Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface::class);
+            $registrar->method('registerListener')->willReturnCallback(function (string $event, string $type) use (&$registered): void {
+                $registered[$event][] = $type;
+            });
+
+            (new OAuthPlugin())->registerEvents($registrar);
+
+            $check = \Civi\Lughauth\Features\OAuth\DelegateLogin\Application\Listener\FederatedIdentityWithinOneTenant::class;
+            $this->assertContains($check, $registered[\Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Usecase\Create\UserFederatedIdentityCreateCheck::class] ?? []);
+            $this->assertContains($check, $registered[\Civi\Lughauth\Features\Access\UserFederatedIdentity\Application\Usecase\Update\UserFederatedIdentityUpdateCheck::class] ?? []);
+        }
+
+        /**
          * Ensures registerServiceDefinition preserves existing definitions.
          */
         public function testRegisterServiceDefinitionPreservesExistingDefs(): void

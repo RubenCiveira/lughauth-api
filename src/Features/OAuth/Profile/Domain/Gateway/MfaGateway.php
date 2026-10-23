@@ -47,12 +47,15 @@ interface MfaGateway
     public function enable(string $userUid, string $tenant, string $seed, string $otp): void;
 
     /**
-     * Disables MFA for the user by clearing the stored second-factor seed.
+     * Disables MFA for the user by clearing the stored second-factor seed, once the code (the
+     * current OTP or a recovery code) proves the user holds that factor: a session alone must
+     * not remove it. Throws a ConstraintException for a wrong code (`wrong_otp`) or when the
+     * tenant forces MFA (`mfa_required`).
      *
      * After this call the user will no longer be challenged for a TOTP code during
      * the authentication flow unless re-enrolled via buildSetup / enable.
      */
-    public function disable(string $userUid, string $tenant): void;
+    public function disable(string $userUid, string $tenant, string $code): void;
 
     /**
      * Replaces all existing recovery codes for the user with a fresh set.

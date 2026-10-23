@@ -385,7 +385,7 @@ class ProfileHtml
             $body = (array) ($request->getParsedBody() ?? []);
             $action = (string) ($body['action'] ?? '');
             if ($action === 'disable') {
-                $this->mfaGateway->disable($session->userId, $tenant);
+                $this->mfaGateway->disable($session->userId, $tenant, (string) ($body['code'] ?? ''));
             } else {
                 $seed = (string) ($body['seed'] ?? '');
                 $otp = (string) ($body['otp'] ?? '');
@@ -408,8 +408,13 @@ class ProfileHtml
                 $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
                 $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
                 $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
-                // A wrong code is the user's to fix; anything else is not worth showing in detail.
-                $error = $translator->get($ex instanceof ConstraintException ? 'profile.mfa.wrongOtp' : 'profile.mfa.error');
+                // A rejected code or request is the user's to fix; anything else is not worth showing in detail.
+                $error = $translator->get(match (true) {
+                    $ex instanceof ConstraintException && $ex->includeViolationCode('mfa_required') => 'profile.mfa.requiredByTenant',
+                    $ex instanceof ConstraintException && $ex->includeViolationCode('mfa_already_enabled') => 'profile.mfa.alreadyEnabled',
+                    $ex instanceof ConstraintException => 'profile.mfa.wrongOtp',
+                    default => 'profile.mfa.error',
+                });
                 $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, $error, false, $this->mfaTexts($translator)) . '</div>';
                 $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full', $tenant));
                 return $response->withStatus(422);
@@ -947,6 +952,7 @@ class ProfileHtml
             'success'     => $t->get('profile.mfa.success'),
             'enabledHelp' => $t->get('profile.mfa.enabledHelp'),
             'disable'     => $t->get('profile.mfa.disable'),
+            'currentCode' => $t->get('profile.mfa.currentCode'),
             'backToProfile' => $t->get('profile.mfa.backToProfile'),
             'help'        => $t->get('profile.mfa.help'),
             'secret'      => $t->get('profile.mfa.secret'),
