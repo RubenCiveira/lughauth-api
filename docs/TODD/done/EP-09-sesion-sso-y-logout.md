@@ -1,6 +1,6 @@
 # EP-09 — Sesión SSO y logout
 
-- **Tareas:** [031](031-prompt-max-age-sso.md) (`prompt`, `max_age` y vigencia SSO) y [036](036-logout-validado-y-post.md) (logout validado y POST). Opcionales: [067](../pospuestos/067-hints-y-acr-step-up.md) (hints y step-up ACR), [041](../pospuestos/041-admin-sesiones-usuario.md) (API administrativa de sesiones) y [062](../pospuestos/062-session-management-iframe.md) (iframe de Session Management).
+- **Tareas:** [031](031-prompt-max-age-sso.md) (`prompt`, `max_age` y vigencia SSO) y [036](036-logout-validado-y-post.md) (logout validado y POST). Opcionales: [067](067-hints-y-acr-step-up.md) (hints y step-up ACR, hecha después del cierre), [041](../pospuestos/041-admin-sesiones-usuario.md) (API administrativa de sesiones) y [062](../pospuestos/062-session-management-iframe.md) (iframe de Session Management).
 - **Estado:** hecho (031 y 036). Los opcionales 067, 041 y 062 quedan [pospuestos](../pospuestos/README.md) hasta que se aprueben.
 - **Prioridad:** alta (036), media (031). **Tamaño:** M (+ opcionales). **Depende de:** EP-04 (verificar `id_token_hint`) y EP-05 (`sid` público y `auth_time`/`amr`/`tenant_id` en `SessionInfo`).
 - **Esquema:** `_oauth_session.auth_time` existe; `tenant_id` lo añade EP-05. Para 067, revisar `acr` (`TINYINT`) y `tenant-config.acr-values-supported`.

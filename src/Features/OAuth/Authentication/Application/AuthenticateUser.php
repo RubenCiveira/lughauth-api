@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Shared\Security\Acr;
 
 /**
  * Core application service that drives the user authentication process during an OIDC authorization flow.
@@ -39,6 +40,12 @@ class AuthenticateUser
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
+
+    /**
+     * ChallengesState extra entry with the public sid of the session a step-up elevates: the one
+     * that vouched for the user when the step-up started (task 067).
+     */
+    public const string STEP_UP_SID = 'step_up_sid';
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
@@ -65,6 +72,7 @@ class AuthenticateUser
         $span = $this->startSpan('oidc.session_authenticated', ['tenant' => $tenant]);
         try {
             $result = $this->saveIt(
+                $tenant,
                 $this->loginRepository->fillPreLoadById($tenant, $request, $challenges),
                 $request,
                 $challenges,
@@ -105,6 +113,7 @@ class AuthenticateUser
                 throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant, $challenges->username ?? ''));
             }
             $result = $this->saveIt(
+                $tenant,
                 $this->loginRepository->fillPreAuthenticated($tenant, $request, $challenges),
                 $request,
                 $challenges,
@@ -146,6 +155,7 @@ class AuthenticateUser
             // Reaching here means the password was right, also when a step (MFA, terms...) is still pending.
             $challenges = $challenges->identifiedBy(IdentificationMethod::PASSWORD);
             $result = $this->saveIt(
+                $tenant,
                 $validation,
                 $request,
                 $challenges,
@@ -167,11 +177,24 @@ class AuthenticateUser
 
     /**
      * True when the user must still enrol a second factor (no seed yet, and MFA required for the
-     * user or the tenant): the only case in which a new TOTP seed may be shown or stored.
+     * user, the tenant or, with $mfaRequested, the client's acr_values): the only case in which a
+     * new TOTP seed may be shown or stored.
      */
-    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    public function mfaEnrolmentPending(string $tenant, string $username, bool $mfaRequested = false): bool
     {
-        return $this->loginRepository->mfaEnrolmentPending($tenant, $username);
+        return $this->loginRepository->mfaEnrolmentPending($tenant, $username, $mfaRequested);
+    }
+
+    /**
+     * The step that starts a step-up for the user of a session (task 067): the TOTP challenge or
+     * its enrolment, with the username the second factor steps look up.
+     *
+     * @return array{0: string, 1: AuthenticationResult}
+     */
+    public function stepUpChallenge(string $tenant, string $subject): array
+    {
+        $username = $this->loginRepository->usernameOf($tenant, $subject);
+        return [$username, $this->loginRepository->secondFactorChallenge($tenant, $username)];
     }
 
     /**
@@ -185,6 +208,7 @@ class AuthenticateUser
     }
 
     private function saveIt(
+        string $tenant,
         AuthenticationResult $validation,
         AuthenticationRequest $request,
         ChallengesState $challenges,
@@ -200,10 +224,12 @@ class AuthenticateUser
         if ($challenges->session && $activeSessionId !== null && $activeSessionId !== '') {
             // Never authorize from a session of another tenant: the client could not join it and
             // would miss its logout, so the authorization must not carry that sid.
-            if ($this->sessionStore->findActiveSession($activeSessionId, $issuer) === null) {
+            $active = $this->sessionStore->findActiveSession($activeSessionId, $issuer);
+            if ($active === null) {
                 $this->logWarning('OIDC saveIt rejected session of another issuer', ['sessionId' => $activeSessionId]);
                 throw new UnauthorizedException();
             }
+            $this->requireAcr($tenant, $request, $active->amr, $challenges);
             $this->logDebug('OIDC saveIt reusing active session', ['sessionId' => $activeSessionId]);
             $this->sessionStore->addSessionClient($activeSessionId, $issuer, $request->client->id);
             return $this->buildResponse($validation, $request, $issuer, $activeSessionId);
@@ -218,20 +244,33 @@ class AuthenticateUser
             $challenges->withMfa ? 'mfa' : null,
         ]));
 
+        // A step-up identifies the user by the session only to ask for the second factor: without
+        // that factor proven here it is no login, so it cannot skip prompt=login or max_age.
+        if (!$challenges->session && $challenges->identifiedBy === IdentificationMethod::SESSION) {
+            if (!$challenges->withMfa) {
+                $this->requireAcr($tenant, $request, $amr, $challenges);
+                throw new UnauthorizedException();
+            }
+            return $this->completeStepUp($tenant, $validation, $request, $challenges, $issuer, $amr);
+        }
+
         if (!$challenges->session) {
             $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid, $issuer);
+            $existing = $existingSessionId !== null && $existingSessionId !== ''
+                ? $this->sessionStore->findActiveSession($existingSessionId, $issuer)
+                : null;
             // Only the same user's session: another account signing in on this browser
             // (prompt=login or select_account) gets a session of its own.
-            if ($existingSessionId !== null && $existingSessionId !== ''
-                && $this->sessionStore->findActiveSession($existingSessionId, $issuer)?->userId === $validation->id
-            ) {
+            if ($existing !== null && $existing->userId === $validation->id) {
                 $this->logDebug('OIDC saveIt reusing csid session', ['existingSessionId' => $existingSessionId]);
+                $this->requireAcr($tenant, $request, $amr, $challenges);
                 // The user has just authenticated in this flow, so max_age and the SSO lifetime count from now.
-                $this->sessionStore->renewAuthentication($existingSessionId, $issuer, $amr);
-                $this->sessionStore->addSessionClient($existingSessionId, $issuer, $request->client->id);
-                return $this->buildResponse($validation, $request, $issuer, $existingSessionId);
+                $this->sessionStore->renewAuthentication((string) $existingSessionId, $issuer, $amr);
+                $this->sessionStore->addSessionClient((string) $existingSessionId, $issuer, $request->client->id);
+                return $this->buildResponse($validation, $request, $issuer, (string) $existingSessionId);
             }
         }
+        $this->requireAcr($tenant, $request, $amr, $challenges);
 
         if ($emitLoginEvent) {
             $this->logDebug('OIDC saveIt dispatching login event', ['userId' => $validation->id ?? '']);
@@ -245,6 +284,63 @@ class AuthenticateUser
         $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration, $amr);
 
         return $this->buildResponse($validation, $request, $issuer, $sessionId);
+    }
+
+    /**
+     * Ends a step-up on the session that started it, found by its public sid: the factor just
+     * proven joins the methods of that session and its auth_time moves to now. When that session
+     * is gone (logout, expiry) or no longer the user's, the step-up proves nothing: it neither
+     * opens another session nor elevates the one the browser has now.
+     *
+     * @param string[] $amr
+     */
+    private function completeStepUp(
+        string $tenant,
+        AuthenticationResult $validation,
+        AuthenticationRequest $request,
+        ChallengesState $challenges,
+        string $issuer,
+        array $amr
+    ): PublicLoginAuthResponse {
+        $sid = $challenges->extra[self::STEP_UP_SID] ?? null;
+        $sessionId = is_string($sid) && $sid !== '' ? $this->sessionStore->findActiveSessionIdBySid($sid, $issuer) : null;
+        $origin = $sessionId !== null ? $this->sessionStore->findActiveSession($sessionId, $issuer) : null;
+        if ($sessionId === null || $origin === null || $origin->userId !== $validation->id) {
+            $this->logWarning('OIDC step-up session no longer active', ['tenant' => $tenant, 'userId' => $validation->id ?? '']);
+            throw new UnauthorizedException();
+        }
+        $amr = array_values(array_unique([...$origin->amr, ...$amr]));
+        $this->requireAcr($tenant, $request, $amr, $challenges);
+        $this->logDebug('OIDC saveIt elevating the step-up session', ['sessionId' => $sessionId]);
+        $this->sessionStore->renewAuthentication($sessionId, $issuer, $amr);
+        $this->sessionStore->addSessionClient($sessionId, $issuer, $request->client->id);
+        return $this->buildResponse($validation, $request, $issuer, $sessionId);
+    }
+
+    /**
+     * Asks for the second factor while the methods the user proved stay below the acr the client
+     * requested (task 067): the TOTP challenge, or its enrolment when the user has no seed. The
+     * proof gathered so far is kept, under the username the second factor steps look up.
+     *
+     * @param string[] $amr
+     */
+    private function requireAcr(string $tenant, AuthenticationRequest $request, array $amr, ChallengesState $challenges): void
+    {
+        $required = $request->requiredAcr;
+        if ($required === null || Acr::fromAmr($amr)->satisfies($required)) {
+            return;
+        }
+        $username = $this->loginRepository->usernameOf($tenant, $challenges->username ?? '');
+        $this->logInfo('OIDC step-up required', ['tenant' => $tenant, 'username' => $username, 'acr' => $required->name]);
+        throw new LoginException(
+            auth: $this->loginRepository->secondFactorChallenge($tenant, $username),
+            challenges: new ChallengesState(
+                session: $challenges->session,
+                username: $username,
+                extra: $challenges->extra,
+                identifiedBy: $challenges->identifiedBy
+            )
+        );
     }
 
     private function buildResponse(

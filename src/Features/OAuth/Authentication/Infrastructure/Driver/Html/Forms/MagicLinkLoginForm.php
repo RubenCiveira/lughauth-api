@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Servi
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Shared\Security\Acr;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -57,6 +58,7 @@ class MagicLinkLoginForm implements StepForm
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
+        self::assertAvailable($input);
         $locale = $input->context->locale;
         $tenant = $input->context->tenant;
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
@@ -95,14 +97,12 @@ class MagicLinkLoginForm implements StepForm
      * Calls RequestMagicLinkUsecase with the tenant and OAuth flow context, then always throws
      * a LoginException carrying AuthenticationResult::waitMagicLink() to transition the UI to
      * the confirmation page on the next render cycle. Throws UnauthorizedException, without
-     * sending anything, when the flow does not expect a code in the query.
+     * sending anything, when the flow does not expect a code in the query or asks for MFA.
      */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
-        if (!$input->context->isCodeInQuery()) {
-            throw new UnauthorizedException('magic_link_unavailable');
-        }
+        self::assertAvailable($input);
         $email = (string) ($input->body['email'] ?? '');
 
         $this->requestMagicLink->request(
@@ -116,6 +116,19 @@ class MagicLinkLoginForm implements StepForm
         );
 
         throw new LoginException(AuthenticationResult::waitMagicLink());
+    }
+
+    /**
+     * The magic link answers with a code in the query only, and gives a single factor: it is
+     * refused, also when posted directly, for any other response or when acr_values asks for a
+     * second factor (task 067). The link carries its own authorization request, so refusing here
+     * leaves no way to complete this one with it.
+     */
+    private static function assertAvailable(StepInput $input): void
+    {
+        if (!$input->context->isCodeInQuery() || ($input->authRequest->requiredAcr?->satisfies(Acr::MULTI_FACTOR) ?? false)) {
+            throw new UnauthorizedException('magic_link_unavailable');
+        }
     }
 
     private function buildAskHtml(object $translator): string

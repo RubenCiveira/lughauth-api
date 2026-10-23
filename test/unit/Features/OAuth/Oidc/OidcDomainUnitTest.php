@@ -109,7 +109,6 @@ final class OidcDomainUnitTest extends TestCase
             'backchannel_authentication_endpoint',
             'backchannel_token_delivery_modes_supported',
             'check_session_iframe',
-            'acr_values_supported',
             'mtls_endpoint_aliases',
             'id_token_encryption_alg_values_supported',
             'userinfo_signing_alg_values_supported',
@@ -122,6 +121,7 @@ final class OidcDomainUnitTest extends TestCase
         }
         $this->assertSame(['public'], $arr['subject_types_supported']);
         $this->assertFalse($arr['claims_parameter_supported']);
+        $this->assertSame(['urn:lugh:acr:1fa', 'urn:lugh:acr:mfa'], $arr['acr_values_supported']);
     }
 
     /**

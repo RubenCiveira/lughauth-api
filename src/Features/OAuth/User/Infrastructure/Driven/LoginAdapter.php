@@ -152,10 +152,33 @@ class LoginAdapter implements LoginGateway
     }
 
     #[Override]
-    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    public function mfaEnrolmentPending(string $tenant, string $username, bool $mfaRequested = false): bool
     {
         $theTenant = $this->users->checkTenant($tenant, $username);
-        return $this->checkMfaConfigurationRequired($theTenant, $this->users->checkUserOrSubject($theTenant, $username)) !== null;
+        $theUser = $this->users->checkUserOrSubject($theTenant, $username);
+        return $this->checkMfaConfigurationRequired($theTenant, $theUser) !== null
+            || ($mfaRequested && !self::hasSeed($theUser));
+    }
+
+    #[Override]
+    public function secondFactorChallenge(string $tenant, string $username): AuthenticationResult
+    {
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        return self::hasSeed($this->users->checkUserOrSubject($theTenant, $username))
+            ? AuthenticationResult::mfaRequired()
+            : AuthenticationResult::newMfaRequired();
+    }
+
+    #[Override]
+    public function usernameOf(string $tenant, string $subject): string
+    {
+        $theTenant = $this->users->checkTenant($tenant, $subject);
+        return $this->users->checkUserOrSubject($theTenant, $subject)->getName();
+    }
+
+    private static function hasSeed(User $user): bool
+    {
+        return $user->getSecondFactorSeed() !== null && $user->getSecondFactorSeed() !== '';
     }
 
     #[Override]

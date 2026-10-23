@@ -9,6 +9,8 @@ use PDO;
 use Override;
 use DateInterval;
 use DateTimeImmutable;
+use Civi\Lughauth\Shared\Security\Acr;
+use Civi\Lughauth\Shared\Security\AcrValues;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
@@ -29,7 +31,8 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 class SessionStoreSqlAdapter implements SessionStoreGateway
 {
     public function __construct(
-        private readonly PDO $pdo
+        private readonly PDO $pdo,
+        private readonly AcrValues $acrValues,
     ) {
     }
 
@@ -60,6 +63,21 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     public function findActiveSessionBySid(string $sid, string $issuer): ?SessionInfo
     {
         return $this->fetchSession('sid = :sid and issuer = :issuer', ['sid' => $sid, 'issuer' => $issuer]);
+    }
+
+    #[Override]
+    public function findActiveSessionIdBySid(string $sid, string $issuer): ?string
+    {
+        if ($sid === '') {
+            return null;
+        }
+        $stmt = $this->pdo->prepare('SELECT session FROM _oauth_session WHERE sid = :sid AND issuer = :issuer AND expiration > :now');
+        $stmt->bindValue('sid', $sid, PDO::PARAM_STR);
+        $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
+        $stmt->bindValue('now', (new \DateTime())->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) && isset($row['session']) ? (string) $row['session'] : null;
     }
 
     /**
@@ -229,6 +247,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $result = null;
         if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $data = (array)json_decode($row['auth_data']);
+            $amr = array_values(array_filter(explode(' ', (string) ($row['amr'] ?? ''))));
             $result = new SessionInfo(
                 csid: $row['csid'],
                 issuer: $row['issuer'],
@@ -238,7 +257,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
                 ssoClients: array_values(array_filter((array) json_decode((string) ($row['sso_clients_json'] ?? '[]'), true), 'is_string')),
                 publicSid: (string) $row['sid'],
                 authTime: $row['auth_time'] !== null ? new DateTimeImmutable((string) $row['auth_time']) : null,
-                amr: array_values(array_filter(explode(' ', (string) ($row['amr'] ?? '')))),
+                amr: $amr,
+                // Derived from the methods recorded, never stored apart (the acr column is unused),
+                // and named by the configured acr values.
+                acr: $this->acrValues->valueOf(Acr::fromAmr($amr)),
                 tenantId: $row['tenant_id'] !== null ? (string) $row['tenant_id'] : null,
             );
         }

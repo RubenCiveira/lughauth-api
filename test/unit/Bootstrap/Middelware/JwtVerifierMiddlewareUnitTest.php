@@ -109,6 +109,37 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     }
 
     /**
+     * The acr and auth_time of the token reach the authentication context, so the logic can ask
+     * for a step-up (task 067); amr is the RFC 8176 list issued by this server.
+     */
+    public function testTheAuthenticationClaimsReachTheContext(): void
+    {
+        $authTime = time() - 120;
+        $cache = new ArrayCache([
+            JwtVerifierMiddleware::CACHE_PREFIX . 'token' => json_encode(['claims' => [
+                ...$this->claims(),
+                'acr' => 'urn:lugh:acr:mfa',
+                'amr' => ['pwd', 'otp', 'mfa'],
+                'auth_time' => $authTime,
+            ]]),
+        ]);
+        $authentication = null;
+        $context = $this->createMock(Context::class);
+        $context->method('setSecurityContext')->willReturnCallback(function ($connection, $identity, $auth) use (&$authentication): void {
+            $authentication = $auth;
+        });
+
+        $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context)($this->request('Bearer token'), $this->handler());
+
+        $this->assertSame(
+            ['urn:lugh:acr:mfa', 'pwd otp mfa', true, $authTime],
+            [$authentication->getAcr(), $authentication->getAuthenticationMethod(), $authentication->isMfa(), $authentication->getAuthenticatedAt()->getTimestamp()]
+        );
+        $this->assertTrue($authentication->satisfies(\Civi\Lughauth\Shared\Security\Acr::MULTI_FACTOR, 300));
+        $this->assertFalse($authentication->satisfies(\Civi\Lughauth\Shared\Security\Acr::MULTI_FACTOR, 60));
+    }
+
+    /**
      * Ensures authorization is read from cookies for GET requests.
      */
     public function testVerifyAuthReadsCookieAuthorization(): void

@@ -185,7 +185,8 @@ class ScopeConsentForm implements StepForm
             scope: $scopeString,
             redirect: $input->authRequest->redirect,
             responseType: $input->authRequest->responseType,
-            audiences: $input->authRequest->audiences
+            audiences: $input->authRequest->audiences,
+            requiredAcr: $input->authRequest->requiredAcr
         );
 
         $auth = $this->authenticator->preAuthenticate(

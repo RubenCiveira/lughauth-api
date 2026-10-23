@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 
 use Override;
 use Psr\Http\Message\ResponseInterface;
+use Civi\Lughauth\Shared\Security\Acr;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -160,14 +161,16 @@ class NewMfaForm implements StepForm
 
     /**
      * Enrolling stores the seed over any existing one, so it is only for an identified user who
-     * still has to set up MFA: never for a username that was only typed, nor for an account whose
+     * still has to set up MFA, because the user, the tenant or the client's acr_values (step-up,
+     * task 067) require it: never for a username that was only typed, nor for an account whose
      * MFA is already active (that would replace the second factor with the password alone).
      */
     private function assertEnrolmentPending(StepInput $input): void
     {
         $tenant = $input->context->tenant;
         $username = $input->challenges->username ?? '';
-        if (!$input->challenges->isIdentified() || !$this->authenticator->mfaEnrolmentPending($tenant, $username)) {
+        $mfaRequested = $input->authRequest->requiredAcr?->satisfies(Acr::MULTI_FACTOR) ?? false;
+        if (!$input->challenges->isIdentified() || !$this->authenticator->mfaEnrolmentPending($tenant, $username, $mfaRequested)) {
             throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant, $username));
         }
     }

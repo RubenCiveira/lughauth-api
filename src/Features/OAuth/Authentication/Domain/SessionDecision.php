@@ -16,4 +16,11 @@ enum SessionDecision
     case Authenticate;
     /** No usable session and prompt=none: fail with login_required without any UI. */
     case LoginRequired;
+    /**
+     * The session is fresh but below the acr the client asked for: keep the user and ask only for
+     * the second factor (task 067).
+     */
+    case StepUp;
+    /** Step-up needed with prompt=none: fail with interaction_required without any UI. */
+    case InteractionRequired;
 }

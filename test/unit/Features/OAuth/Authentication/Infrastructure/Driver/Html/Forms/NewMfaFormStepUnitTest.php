@@ -113,4 +113,29 @@ final class NewMfaFormStepUnitTest extends FormsTestCase
         $this->assertTrue($result->challenges->withMfa);
         $this->assertSame($input->challenges->session, $result->challenges->session);
     }
+
+    /**
+     * A client asking for MFA lets a user without a seed enrol one (step-up, task 067); whether it
+     * is allowed is still decided by the seed (mfaEnrolmentPending), never replaced.
+     */
+    public function testAStepUpRequestAllowsTheEnrolment(): void
+    {
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())->method('mfaEnrolmentPending')->with('tenant1', 'user-1', true)->willReturn(false);
+        $form = new NewMfaForm(
+            $this->createMock(MessageProvider::class),
+            $authenticator,
+            $this->createMock(PublicMfa::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(HtmlSecurer::class)
+        );
+
+        $this->expectException(\Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException::class);
+
+        $form->authenticate($this->buildInput(
+            ['mfa_code' => '123456'],
+            new ChallengesState(username: 'user-1', identifiedBy: IdentificationMethod::SESSION),
+            ['acr_values' => 'urn:lugh:acr:mfa']
+        ));
+    }
 }

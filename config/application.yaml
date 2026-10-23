@@ -17,3 +17,11 @@ app:
     interval: 1 minute
     bucket-resolver: Civi\Lughauth\Bootstrap\Middleware\Rate\BaseBucketResolver
     connection-resolver: Civi\Lughauth\Bootstrap\Middleware\Rate\IpGranularityResolver
+security:
+  # acr values naming each assurance level (task 067), shared by the OIDC server and the APIs.
+  # Comma or space separated: the first is issued, published and asked for in step-up
+  # challenges; the rest are aliases accepted from other identity providers and relying parties.
+  # Override with SECURITY_ACR_SINGLE_FACTOR and SECURITY_ACR_MULTI_FACTOR.
+  acr:
+    single-factor: urn:lugh:acr:1fa
+    multi-factor: urn:lugh:acr:mfa

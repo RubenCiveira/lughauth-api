@@ -15,6 +15,7 @@ use Slim\Psr7\Response;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Exception\HttpMethodNotAllowedException;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
+use Civi\Lughauth\Shared\Exception\InsufficientUserAuthenticationException;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
@@ -64,6 +65,26 @@ class ErrorsPlugin extends MicroPlugin
             return $response->withStatus(422)->withHeader("Content-Type", "application/problem+json");
         });
         $logger = $this->logger;
+        $errorHandler->setErrorHandler(InsufficientUserAuthenticationException::class, function (ServerRequestInterface $request, InsufficientUserAuthenticationException $exception) use ($logger): ResponseInterface {
+            $logger->info('401 InsufficientUserAuthenticationException', [
+                'message' => $exception->getMessage(),
+                'path' => $request->getUri()->getPath(),
+                'acr' => $exception->acrValues,
+                'maxAge' => $exception->maxAge,
+            ]);
+            $response = new Response();
+            $json = json_encode([
+                'error' => 'insufficient_user_authentication',
+                'message' => $exception->getMessage(),
+                'acr_values' => $exception->acrValues,
+                'max_age' => $exception->maxAge,
+            ]);
+            $response->getBody()->write($json !== false ? $json : '{}');
+            // RFC 9470 §3: the client asks the user to authenticate again with these values.
+            return $response->withStatus(401)
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('WWW-Authenticate', $exception->challenge());
+        });
         $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, UnauthorizedException $exception) use ($logger): ResponseInterface {
             $logger->warning('401 UnauthorizedException', [
                 'message' => $exception->getMessage(),

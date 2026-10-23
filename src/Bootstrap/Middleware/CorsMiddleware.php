@@ -70,7 +70,7 @@ class CorsMiddleware
                 ->withHeader('Access-Control-Allow-Methods', $this->config->get('app.http.cors.allow.methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'))
                 ->withHeader('Access-Control-Allow-Headers', $this->config->get('app.http.cors.allow.headers', 'Content-Type, Authorization, Accept-Language, traceparent, x-api-key'))
                 ->withHeader('Access-Control-Allow-Credentials', $this->config->get('app.http.cors.allow.credentials', 'true'))
-                ->withHeader('Access-Control-Expose-Headers', $this->config->get('app.http.cors.expose.headers', 'Content-Disposition'))
+                ->withHeader('Access-Control-Expose-Headers', $this->config->get('app.http.cors.expose.headers', 'Content-Disposition, WWW-Authenticate'))
                 ->withHeader('Access-Control-Max-Age', $this->config->get('app.http.cors.max-age.headers', '86400'));
         } else {
             return $response;

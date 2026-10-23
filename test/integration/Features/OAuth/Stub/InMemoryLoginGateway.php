@@ -26,9 +26,34 @@ class InMemoryLoginGateway implements LoginGateway
         ];
     }
 
-    public function mfaEnrolmentPending(string $tenant, string $username): bool
+    /** @var array<string, true> users (tenant:username) with an enrolled TOTP seed */
+    private array $seeds = [];
+
+    public function enrolSecondFactor(string $tenant, string $username): void
     {
-        return false;
+        $this->seeds[$tenant . ':' . $username] = true;
+    }
+
+    public function mfaEnrolmentPending(string $tenant, string $username, bool $mfaRequested = false): bool
+    {
+        return $mfaRequested && !isset($this->seeds[$tenant . ':' . $this->usernameOf($tenant, $username)]);
+    }
+
+    public function secondFactorChallenge(string $tenant, string $username): AuthenticationResult
+    {
+        return isset($this->seeds[$tenant . ':' . $this->usernameOf($tenant, $username)])
+            ? AuthenticationResult::mfaRequired()
+            : AuthenticationResult::newMfaRequired();
+    }
+
+    public function usernameOf(string $tenant, string $subject): string
+    {
+        foreach ($this->users as $key => $entry) {
+            if ($key === $tenant . ':' . $subject || $entry['id'] === $subject) {
+                return substr($key, strlen($tenant) + 1);
+            }
+        }
+        return $subject;
     }
 
     public function markSecondFactorFailed(string $tenant, string $username): void

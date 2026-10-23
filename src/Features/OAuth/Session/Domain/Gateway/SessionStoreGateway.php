@@ -40,6 +40,13 @@ interface SessionStoreGateway
     public function findActiveSessionBySid(string $sid, string $issuer): ?SessionInfo;
 
     /**
+     * State key of the active session with the given public sid, opened under the given issuer;
+     * null when it no longer exists, expired or belongs to another issuer. Lets a flow that only
+     * kept the public sid (a step-up) update that very session.
+     */
+    public function findActiveSessionIdBySid(string $sid, string $issuer): ?string;
+
+    /**
      * Finds the most recently active session identifier for the given cross-session identifier
      * among the sessions opened under the given issuer, so a session of another tenant is never reused.
      * Returns null when no unexpired session exists for the provided csid.

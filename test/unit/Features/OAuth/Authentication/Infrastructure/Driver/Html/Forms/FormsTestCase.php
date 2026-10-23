@@ -13,6 +13,7 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Shared\Security\AcrValues;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 
@@ -65,7 +66,8 @@ abstract class FormsTestCase extends TestCase
             scope: 'openid',
             redirect: 'https://client.example/callback',
             responseType: 'code',
-            audiences: ['client-123']
+            audiences: ['client-123'],
+            requiredAcr: AcrValues::defaults()->preferred($flow->requestedAcrValues)
         );
 
         return new StepInput(

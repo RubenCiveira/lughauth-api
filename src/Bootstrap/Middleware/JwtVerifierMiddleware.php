@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 use Slim\Interfaces\RouteInterface;
 use Slim\Routing\RouteContext;
 use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Security\AcrValues;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Connection;
@@ -399,35 +400,42 @@ class JwtVerifierMiddleware
 
     private function resolveAuthenticationContext(object $payload, Identity $identity, Connection $connection): AuthenticationContext
     {
-        $authenticatedAt = new \DateTimeImmutable();
+        $authTime = null;
         if (isset($payload->auth_time)) {
             try {
-                $authenticatedAt = is_numeric($payload->auth_time)
+                $authTime = is_numeric($payload->auth_time)
                     ? (new \DateTimeImmutable())->setTimestamp((int) $payload->auth_time)
                     : new \DateTimeImmutable((string) $payload->auth_time);
             } catch (\Throwable) {
             }
-        } elseif (isset($payload->iat) && is_numeric($payload->iat)) {
-            $authenticatedAt = (new \DateTimeImmutable())->setTimestamp((int) $payload->iat);
         }
+        $authenticatedAt = $authTime ?? (isset($payload->iat) && is_numeric($payload->iat)
+            ? (new \DateTimeImmutable())->setTimestamp((int) $payload->iat)
+            : new \DateTimeImmutable());
 
         $now = new \DateTimeImmutable();
         $ageSeconds = max(0, $now->getTimestamp() - $authenticatedAt->getTimestamp());
         $age = new \DateInterval('PT' . $ageSeconds . 'S');
-        $amr = isset($payload->amr) ? strtolower((string) $payload->amr) : null;
+        // RFC 8176 amr is a list; older tokens carried a single string.
+        $amrClaim = $payload->amr ?? null;
+        $amrText = is_array($amrClaim) ? implode(' ', array_filter($amrClaim, 'is_string')) : (is_string($amrClaim) ? $amrClaim : null);
+        $amr = $amrText !== null ? strtolower($amrText) : null;
 
         return new AuthenticationContext(
             level: $this->resolveAuthenticationLevel($amr, $identity),
             mfa: str_contains((string) $amr, 'mfa') || str_contains((string) $amr, 'otp') || str_contains((string) $amr, 'webauthn'),
-            rememberMe: str_contains((string) ($payload->typ ?? ''), 'remember-me') || str_contains((string) ($payload->amr ?? ''), 'remember'),
+            rememberMe: str_contains((string) ($payload->typ ?? ''), 'remember-me') || str_contains((string) $amr, 'remember'),
             impersonated: isset($payload->act),
             secureTransport: str_starts_with(strtolower($this->context->getBaseUrl()), 'https://'),
             authenticatedAt: $authenticatedAt,
             authenticationAge: $age,
-            authenticationMethod: is_string($payload->amr ?? null) ? $payload->amr : null,
+            authenticationMethod: $amrText,
             sessionId: isset($payload->sid) ? (string) $payload->sid : '',
             authenticatedActor: $identity,
             effectiveActor: $identity,
+            acr: is_string($payload->acr ?? null) ? $payload->acr : null,
+            authTime: $authTime,
+            acrValues: AcrValues::fromConfig($this->config),
         );
     }
 

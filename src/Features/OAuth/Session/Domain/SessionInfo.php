@@ -74,7 +74,7 @@ class SessionInfo
         public readonly ?\DateTimeImmutable $authTime = null,
         /** Authentication methods actually used (RFC 8176), only those with evidence. */
         public readonly array $amr = [],
-        /** Authentication context class reference; null until the login maps a configured value (task 067). */
+        /** Authentication context class reference (Acr), derived from amr by the store; null when unknown. */
         public readonly ?string $acr = null,
         /** Uid of the tenant the session was opened in, when recorded. */
         public readonly ?string $tenantId = null,

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
+use Civi\Lughauth\Shared\Security\Acr;
 
 /**
  * Captures the parameters of an incoming authorization request.
@@ -51,17 +52,25 @@ class AuthenticationRequest
      */
     public readonly array $audiences;
 
+    /**
+     * Level the user must reach before the flow issues anything (acr_values, task 067); null when
+     * the client asked for none. AuthenticateUser asks for the second factor until it is reached.
+     */
+    public readonly ?Acr $requiredAcr;
+
     public function __construct(
         ClientData $client,
         string $scope,
         string $redirect,
         ?string $responseType = null,
         array $audiences = [],
+        ?Acr $requiredAcr = null,
     ) {
         $this->client = $client;
         $this->scope = ScopeSet::fromString($scope)->toString();
         $this->redirect = $redirect;
         $this->responseType = $responseType;
         $this->audiences = $audiences;
+        $this->requiredAcr = $requiredAcr;
     }
 }

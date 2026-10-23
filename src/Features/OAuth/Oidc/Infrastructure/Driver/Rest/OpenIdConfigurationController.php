@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration;
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\TenantParPolicyGateway;
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 /**
  * REST controller that serves the OIDC Discovery Document endpoint (OpenID Connect Discovery 1.0 / RFC 8414).
@@ -31,6 +32,7 @@ class OpenIdConfigurationController
     public function __construct(
         private readonly Context $context,
         private readonly TenantParPolicyGateway $parPolicy,
+        private readonly AcrValues $acrValues,
         private readonly array $contributors = [],
     ) {
     }
@@ -56,7 +58,7 @@ class OpenIdConfigurationController
         $tenant = $args['tenant'];
         $config = OpenIdConfiguration::forIssuer(
             $this->context->getIssuer($tenant),
-            OidcCapabilities::implemented($this->parPolicy->requiresPar($tenant))
+            OidcCapabilities::implemented($this->parPolicy->requiresPar($tenant), $this->acrValues)
         );
 
         $document = $config->toArray();

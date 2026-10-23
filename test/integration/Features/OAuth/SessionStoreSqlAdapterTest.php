@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\SessionsAdapter;
 use Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
 use Civi\Lughauth\Shared\AppConfig;
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 final class SessionStoreSqlAdapterTest extends TestCase
 {
@@ -32,7 +33,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
             $pdo = new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
-            $store = new Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter($pdo);
+            $store = new Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven\SessionStoreSqlAdapter($pdo, \Civi\Lughauth\Shared\Security\AcrValues::defaults());
             time_sleep_until((float) $startAt);
             $store->addSessionClient($session, $issuer, $clientId);
             echo 'joined';
@@ -57,7 +58,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
 
     public function testConcurrentSsoJoinsAreAllRecorded(): void
     {
-        $store = new SessionStoreSqlAdapter($this->connect());
+        $store = new SessionStoreSqlAdapter($this->connect(), AcrValues::defaults());
         for ($round = 0; $round < self::ROUNDS; $round++) {
             $session = $this->openSession($store);
             $clients = array_map(static fn (int $i): string => 'rp-' . $i, range(1, self::CONTENDERS));
@@ -73,7 +74,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
 
     public function testConcurrentJoinsOfTheSameClientRecordItOnce(): void
     {
-        $store = new SessionStoreSqlAdapter($this->connect());
+        $store = new SessionStoreSqlAdapter($this->connect(), AcrValues::defaults());
         $session = $this->openSession($store);
 
         $this->race($session, array_fill(0, self::CONTENDERS, 'rp-same'));
@@ -84,7 +85,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
 
     public function testJoinIsIgnoredForAnotherIssuer(): void
     {
-        $store = new SessionStoreSqlAdapter($this->connect());
+        $store = new SessionStoreSqlAdapter($this->connect(), AcrValues::defaults());
         $session = $this->openSession($store);
 
         $store->addSessionClient($session, 'https://issuer.example/other-tenant', 'rp-foreign');
@@ -94,7 +95,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
 
     public function testSessionIsPublishedOnlyThroughARandomSid(): void
     {
-        $store = new SessionStoreSqlAdapter($this->connect());
+        $store = new SessionStoreSqlAdapter($this->connect(), AcrValues::defaults());
         $before = time();
         $session = $this->openSession($store, ['pwd', 'mfa'], 'tenant-uid');
 
@@ -104,7 +105,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
         $this->assertStringNotContainsString($session, $info->publicSid);
         $this->assertSame(['pwd', 'mfa'], $info->amr);
         $this->assertSame('tenant-uid', $info->tenantId);
-        $this->assertNull($info->acr);
+        $this->assertSame('urn:lugh:acr:mfa', $info->acr, 'derived from the amr recorded');
         $this->assertGreaterThanOrEqual($before, $info->authTime?->getTimestamp());
 
         $this->assertSame('csid-' . $session, $store->findActiveSessionBySid($info->publicSid, self::ISSUER)?->csid);
@@ -118,7 +119,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
     public function testRenewedAuthenticationMovesAuthTimeOnlyForItsIssuer(): void
     {
         $pdo = $this->connect();
-        $store = new SessionStoreSqlAdapter($pdo);
+        $store = new SessionStoreSqlAdapter($pdo, \Civi\Lughauth\Shared\Security\AcrValues::defaults());
         $session = $this->openSession($store, ['pwd']);
         $pdo->prepare('UPDATE _oauth_session SET auth_time = :old WHERE session = :session')
             ->execute(['old' => (new \DateTimeImmutable('-2 hours'))->format('Y-m-d H:i:s'), 'session' => $session]);
@@ -136,7 +137,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
 
     public function testSessionWithoutEvidenceHasNoAmr(): void
     {
-        $store = new SessionStoreSqlAdapter($this->connect());
+        $store = new SessionStoreSqlAdapter($this->connect(), AcrValues::defaults());
 
         $this->assertSame([], $store->loadSession($this->openSession($store))?->amr);
     }
@@ -144,7 +145,7 @@ final class SessionStoreSqlAdapterTest extends TestCase
     public function testProfileApiListsAndRevokesByPublicSidOnlyForTheOwner(): void
     {
         $pdo = $this->connect();
-        $store = new SessionStoreSqlAdapter($pdo);
+        $store = new SessionStoreSqlAdapter($pdo, \Civi\Lughauth\Shared\Security\AcrValues::defaults());
         $profile = new SessionsAdapter($pdo);
         $session = $this->openSession($store);
         $info = $store->loadSession($session);

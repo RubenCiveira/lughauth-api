@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Authentication\Application;
 
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\TokenGrant;
+use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 
 /**
  * Single place that decides the claims of each token type, shared by the token endpoint and the
  * authorization endpoint (and later UserInfo and the claim extensions).
  *
  * - Access token (RFC 9068 profile): iss, sub, aud (client and granted resource servers),
- *   client_id, scope, plus the tenant, roles and groups the resource servers authorise with.
+ *   client_id, scope, plus the tenant, roles and groups the resource servers authorise with, and
+ *   the auth_time, amr and acr of the browser session, so a resource server can ask for a step-up
+ *   (RFC 9470, task 067).
  *   iat, exp and jti are added by the signer, and the `at+jwt` header by its token type.
  * - ID token (OIDC Core §2): addressed only to the relying party (aud = azp = client). auth_time,
  *   amr, acr and sid come from the browser session and are left out when there is no evidence:
@@ -35,6 +38,7 @@ final class ClaimsMapper
             'client_id' => $grant->client->id,
             'azp' => $grant->client->id,
             'scope' => $grant->scope->toString(),
+            ...self::authenticationClaims($grant->session),
             ...$this->subjectClaims($grant),
         ];
         if ($grant->isClientCredentials()) {
@@ -57,9 +61,7 @@ final class ClaimsMapper
             'sub' => $grant->auth->id,
             'aud' => $grant->client->id,
             'azp' => $grant->client->id,
-            'auth_time' => $session?->authTime?->getTimestamp(),
-            'amr' => $session !== null && $session->amr !== [] ? $session->amr : null,
-            'acr' => $session?->acr,
+            ...self::authenticationClaims($session),
             'sid' => $session !== null && $session->publicSid !== '' ? $session->publicSid : null,
             'nonce' => $grant->nonce !== '' ? $grant->nonce : null,
             'at_hash' => $accessToken !== null ? self::hash($accessToken) : null,
@@ -107,6 +109,21 @@ final class ClaimsMapper
         $hashedValue = hash('sha256', $value, true);
         $halfHashedValue = substr($hashedValue, 0, intdiv(strlen($hashedValue), 2));
         return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
+    }
+
+    /**
+     * auth_time, amr and acr of the browser session, only those it has evidence of: auth_time is
+     * never the issuing instant.
+     *
+     * @return array<string, mixed>
+     */
+    private static function authenticationClaims(?SessionInfo $session): array
+    {
+        return array_filter([
+            'auth_time' => $session?->authTime?->getTimestamp(),
+            'amr' => $session !== null && $session->amr !== [] ? $session->amr : null,
+            'acr' => $session?->acr,
+        ], static fn (mixed $value): bool => $value !== null);
     }
 
     /** @return string|string[] the client alone as a string, or the client and resource servers */

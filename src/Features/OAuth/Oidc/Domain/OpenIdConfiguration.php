@@ -67,7 +67,7 @@ final class OpenIdConfiguration
             deviceAuthorizationEndpoint: "$issuer/device",
             pushedAuthorizationRequestEndpoint: "$issuer/par",
             scopesSupported: ['openid', 'profile', 'email'],
-            claimsSupported: ['sub', 'iss', 'aud', 'auth_time', 'amr', 'sid', 'name', 'email'],
+            claimsSupported: ['sub', 'iss', 'aud', 'auth_time', 'amr', 'acr', 'sid', 'name', 'email'],
             capabilities: $capabilities,
         );
     }
@@ -114,6 +114,7 @@ final class OpenIdConfiguration
             'backchannel_logout_supported' => $caps->backchannelLogout,
             'backchannel_logout_session_supported' => $caps->backchannelLogout,
             'claims_parameter_supported' => $caps->claimsParameter,
+            'acr_values_supported' => $caps->acrValues,
             'ui_locales_supported' => $caps->uiLocales,
             'request_parameter_supported' => $caps->requestParameter,
             'request_uri_parameter_supported' => false,

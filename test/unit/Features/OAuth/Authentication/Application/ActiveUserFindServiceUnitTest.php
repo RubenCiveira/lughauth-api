@@ -34,6 +34,10 @@ final class ActiveUserFindServiceUnitTest extends TestCase
             public function addSessionClient(string $state, string $issuer, string $clientId): void
             {
             }
+            public function findActiveSessionIdBySid(string $sid, string $issuer): ?string
+            {
+                return null;
+            }
             public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
             {
                 return $this->csidSessionId;

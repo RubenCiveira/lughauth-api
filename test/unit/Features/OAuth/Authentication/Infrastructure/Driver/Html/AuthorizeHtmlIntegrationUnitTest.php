@@ -18,6 +18,11 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionSufficiencyPolicy;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\IdTokenHintVerifier;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdTokenHint;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
+use Civi\Lughauth\Shared\Security\AcrValues;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\SessionSsoTtlGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
@@ -165,7 +170,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -233,7 +240,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -359,7 +368,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -451,7 +462,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         try {
@@ -539,7 +552,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $response = $authorize->refresh($request, new Response(), ['tenant' => 'tenant1']);
@@ -634,7 +649,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         // The verified request object is consumed: the browser continues with its reference only.
@@ -702,7 +719,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $this->expectException(UnauthorizedException::class);
@@ -780,7 +799,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $location = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1'])->getHeaderLine('Location');
@@ -901,7 +922,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         ))->authorize($request, new Response(), ['tenant' => 'tenant1']);
     }
 
@@ -976,7 +999,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
 
         $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -1003,6 +1028,66 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         yield 'none combined with login' => [['prompt' => 'none login'], 60, 'error=invalid_request'];
         yield 'max_age not a number' => [['max_age' => 'soon'], 60, 'error=invalid_request'];
         yield 'negative max_age' => [['max_age' => '-1'], 60, 'error=invalid_request'];
+        yield 'acr_values above the session steps up' => [['acr_values' => 'urn:lugh:acr:mfa'], 60, 'mfa'];
+        yield 'acr_values met by the session' => [['acr_values' => 'urn:lugh:acr:1fa'], 60, 'check-session'];
+        yield 'unknown acr_values are ignored' => [['acr_values' => 'urn:other:gold'], 60, 'check-session'];
+        yield 'prompt=none cannot step up' => [['prompt' => 'none', 'acr_values' => 'urn:lugh:acr:mfa'], 60, 'error=interaction_required'];
+        yield 'acr_values without session logs in' => [['acr_values' => 'urn:lugh:acr:mfa'], null, 'login'];
+        yield 'id_token_hint not issued here' => [['id_token_hint' => 'forged'], 60, 'error=invalid_request'];
+    }
+
+    /**
+     * A step-up keeps the user of the session, identified by it, and asks only for the second
+     * factor; the session's methods are completed once it is proven (task 067).
+     */
+    public function testStepUpAsksOnlyForTheSecondFactorOfTheSessionUser(): void
+    {
+        $response = $this->promptAuthorize($this->sessionAuthenticated(60))
+            ->authorize($this->promptRequest('GET', ['acr_values' => 'urn:lugh:acr:mfa']), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('mfa', (string) $response->getBody());
+        $this->assertSame(['alice', IdentificationMethod::SESSION, false, 'public-sid-1'], [
+            $this->stepChallenges?->username,
+            $this->stepChallenges?->identifiedBy,
+            $this->stepChallenges?->withMfa,
+            $this->stepChallenges?->extra[AuthenticateUser::STEP_UP_SID] ?? null,
+        ]);
+    }
+
+    public function testStepUpOffersTheEnrolmentToAUserWithoutSeed(): void
+    {
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->method('stepUpChallenge')->willReturn(['alice', AuthenticationResult::newMfaRequired()]);
+
+        $response = $this->promptAuthorize($this->sessionAuthenticated(60), $authenticator)
+            ->authorize($this->promptRequest('GET', ['acr_values' => 'urn:lugh:acr:mfa']), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('build-mfa', (string) $response->getBody());
+    }
+
+    public function testAMultiFactorSessionServesTheStepUpRequest(): void
+    {
+        $response = $this->promptAuthorize($this->sessionAuthenticated(60, ['pwd', 'otp', 'mfa']))
+            ->authorize($this->promptRequest('GET', ['acr_values' => 'urn:lugh:acr:mfa']), new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame('check-session', (string) $response->getBody());
+    }
+
+    /**
+     * An id_token_hint only orients the request: a session of another user is not reused, and
+     * the hint never signs anyone in (task 067).
+     */
+    public function testAnIdTokenHintOfAnotherUserLeadsToTheLogin(): void
+    {
+        $hints = $this->createMock(IdTokenHintVerifier::class);
+        $hints->method('verify')->willReturnCallback(static fn (string $tenant, string $hint): IdTokenHint => new IdTokenHint($hint, '', 'client-123'));
+
+        foreach (['user-1' => 'check-session', 'user-2' => 'login'] as $subject => $outcome) {
+            $response = $this->promptAuthorize($this->sessionAuthenticated(60), null, $hints)
+                ->authorize($this->promptRequest('GET', ['id_token_hint' => $subject]), new Response(), ['tenant' => 'tenant1']);
+
+            $this->assertSame($outcome, (string) $response->getBody(), $subject);
+        }
     }
 
     /**
@@ -1116,9 +1201,10 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $this->assertSame('completed', (string) $response->getBody());
     }
 
-    private function sessionAuthenticated(int $secondsAgo): SessionInfo
+    /** @param string[] $amr */
+    private function sessionAuthenticated(int $secondsAgo, array $amr = ['pwd']): SessionInfo
     {
-        return new SessionInfo('csid', false, 'https://example.com/oauth/openid/tenant1', 'user-1', 'client-123', authTime: new DateTimeImmutable("-{$secondsAgo} seconds"));
+        return new SessionInfo('csid', false, 'https://example.com/oauth/openid/tenant1', 'user-1', 'client-123', authTime: new DateTimeImmutable("-{$secondsAgo} seconds"), amr: $amr, publicSid: 'public-sid-1');
     }
 
     /**
@@ -1148,7 +1234,10 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
      * and the scope consent form accepts. A completed authorization writes "completed"; the
      * check-session page is titled "check-session".
      */
-    private function promptAuthorize(?SessionInfo $session, ?AuthenticateUser $authenticator = null): AuthorizeHtml
+    /** Challenges the last second factor step was rendered with. */
+    private ?ChallengesState $stepChallenges = null;
+
+    private function promptAuthorize(?SessionInfo $session, ?AuthenticateUser $authenticator = null, ?IdTokenHintVerifier $hints = null): AuthorizeHtml
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')->willReturn('https://example.com');
@@ -1173,6 +1262,19 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $consent = $this->createMock(ScopeConsentForm::class);
         $consent->method('render')->willReturn($page('consent'));
         $consent->method('authenticate')->willReturn(StepResult::proceed($auth, (new ChallengesState())->withUsername('user-1')));
+        $this->stepChallenges = null;
+        $mfaPage = fn (string $name) => function (StepInput $input) use ($page, $name): StepResult {
+            $this->stepChallenges = $input->challenges;
+            return $page($name);
+        };
+        $useMfa = $this->createMock(UseMfaForm::class);
+        $useMfa->method('render')->willReturnCallback($mfaPage('mfa'));
+        $newMfa = $this->createMock(NewMfaForm::class);
+        $newMfa->method('render')->willReturnCallback($mfaPage('build-mfa'));
+        if ($authenticator === null) {
+            $authenticator = $this->createMock(AuthenticateUser::class);
+            $authenticator->method('stepUpChallenge')->willReturn(['alice', AuthenticationResult::mfaRequired()]);
+        }
         $responses = $this->createMock(OidcResponseBuilder::class);
         $responses->method('buildSuccessRedirect')->willReturnCallback(static function ($flow, $auth, $client, $request, ResponseInterface $response): ResponseInterface {
             $response->getBody()->write('completed');
@@ -1183,7 +1285,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $context,
             $clients,
             $sessions,
-            $authenticator ?? $this->createMock(AuthenticateUser::class),
+            $authenticator,
             $securer,
             $decorator,
             $responses,
@@ -1193,9 +1295,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(TermsAndGdprConsentForm::class),
                 $consent,
                 $login,
-                $this->createMock(NewMfaForm::class),
+                $newMfa,
                 $this->createMock(NewPassForm::class),
-                $this->createMock(UseMfaForm::class),
+                $useMfa,
                 $this->createMock(RecoverPassForm::class),
                 $this->createMock(DelegateForm::class),
                 $this->createMock(RegisterUserForm::class),
@@ -1205,7 +1307,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->buildRequestResolver($clients),
             $this->messages(),
             new AuthorizationResponseWriter(),
-            $this->sessionPolicy()
+            $this->sessionPolicy(),
+            $hints ?? $this->createMock(IdTokenHintVerifier::class),
+            AcrValues::defaults()
         );
     }
 
@@ -1243,7 +1347,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
     {
         $ttl = $this->createStub(SessionSsoTtlGateway::class);
         $ttl->method('forTenant')->willReturn(3600);
-        return new SessionSufficiencyPolicy($ttl);
+        return new SessionSufficiencyPolicy($ttl, AcrValues::defaults());
     }
 
     private function messages(): MessageProvider

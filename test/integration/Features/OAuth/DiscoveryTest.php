@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\OAuth\Oidc\Domain\OidcCapabilities;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driven\MtlsDiscoveryContributor;
 use Civi\Lughauth\Features\OAuth\Oidc\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driver\Rest\JwksController;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 class DiscoveryTest extends OidcIntegrationTestCase
 {
@@ -172,7 +173,7 @@ class DiscoveryTest extends OidcIntegrationTestCase
 
     public function testContributorCannotOverrideBaseFields(): void
     {
-        $controller = new OpenIdConfigurationController($this->context, $this->parPolicy, [new class () implements \Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway {
+        $controller = new OpenIdConfigurationController($this->context, $this->parPolicy, AcrValues::defaults(), [new class () implements \Civi\Lughauth\Features\OAuth\Oidc\Domain\Gateway\DiscoveryContributorGateway {
             public function contribute(\Civi\Lughauth\Features\OAuth\Oidc\Domain\OpenIdConfiguration $base, string $tenant): array
             {
                 return ['issuer' => 'https://attacker.example'];
@@ -251,7 +252,7 @@ class DiscoveryTest extends OidcIntegrationTestCase
 
     private function controllerWithMtls(): OpenIdConfigurationController
     {
-        return new OpenIdConfigurationController($this->context, $this->parPolicy, [new MtlsDiscoveryContributor('https://mtls.example')]);
+        return new OpenIdConfigurationController($this->context, $this->parPolicy, AcrValues::defaults(), [new MtlsDiscoveryContributor('https://mtls.example')]);
     }
 
     /** @return string[] */

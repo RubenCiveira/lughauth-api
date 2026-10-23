@@ -50,6 +50,7 @@ use Tests\integration\Features\OAuth\Stub\InMemorySessionStore;
 use Tests\integration\Features\OAuth\Stub\InMemoryTemporalKeys;
 use Tests\integration\Features\OAuth\Stub\InMemoryTokenRevocation;
 use Tests\integration\Features\OAuth\Stub\InMemoryTokenStore;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 abstract class OidcIntegrationTestCase extends TestCase
 {
@@ -182,6 +183,7 @@ abstract class OidcIntegrationTestCase extends TestCase
             JoseTokenSigner::class => $signer,
             Context::class => $this->context,
             AppConfig::class => $config,
+            AcrValues::class => \DI\factory([AcrValues::class, 'fromConfig']),
             EventDispatcherInterface::class => new class () implements EventDispatcherInterface {
                 public function dispatch(object $event): object
                 {

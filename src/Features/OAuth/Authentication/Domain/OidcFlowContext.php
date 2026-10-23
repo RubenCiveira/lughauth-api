@@ -148,6 +148,28 @@ final class OidcFlowContext
      */
     public readonly ?string $requestedMaxAge;
 
+    /**
+     * The acr_values the client requested, as sent, or null when it requested none. The level it
+     * demands depends on the configured acr values (AcrValues::preferred). URLs back to /authorize
+     * must carry it.
+     */
+    public readonly ?string $requestedAcrValues;
+
+    /**
+     * The login_hint the client sent, at most HINT_MAX_LENGTH characters, or null. Only a
+     * suggestion to prefill the login form: it never authenticates anyone.
+     */
+    public readonly ?string $loginHint;
+
+    /**
+     * The id_token_hint the client sent, or null. It only counts once verified by the
+     * authorization endpoint (IdTokenHintVerifier); it never authenticates anyone either.
+     */
+    public readonly ?string $idTokenHint;
+
+    /** Longest login_hint kept: longer values are dropped, as no account name is that long. */
+    public const int HINT_MAX_LENGTH = 256;
+
     public function __construct(
         string $tenant,
         string $clientId,
@@ -169,6 +191,9 @@ final class OidcFlowContext
         ?string $uiLocales = null,
         ?string $requestedResponseMode = null,
         ?string $requestedMaxAge = null,
+        ?string $requestedAcrValues = null,
+        ?string $loginHint = null,
+        ?string $idTokenHint = null,
     ) {
         $this->tenant = $tenant;
         $this->clientId = $clientId;
@@ -190,7 +215,11 @@ final class OidcFlowContext
         $this->uiLocales = $uiLocales;
         $this->requestedResponseMode = $requestedResponseMode;
         $this->requestedMaxAge = $requestedMaxAge;
+        $this->requestedAcrValues = $requestedAcrValues;
+        $this->loginHint = $loginHint !== null && $loginHint !== '' && mb_strlen($loginHint) <= self::HINT_MAX_LENGTH ? $loginHint : null;
+        $this->idTokenHint = $idTokenHint;
     }
+
 
     public function prompts(): Prompt
     {
@@ -235,7 +264,8 @@ final class OidcFlowContext
 
     /**
      * Parameters every URL back to /authorize must carry so the next step continues this request:
-     * the reference of a PAR/JAR request, the requested UI language, response mode and max_age.
+     * the reference of a PAR/JAR request, the requested UI language, response mode, max_age,
+     * acr_values and the hints.
      *
      * @return array<string, string>
      */
@@ -246,6 +276,9 @@ final class OidcFlowContext
             'ui_locales' => $this->uiLocales,
             'response_mode' => $this->requestedResponseMode,
             'max_age' => $this->requestedMaxAge,
+            'acr_values' => $this->requestedAcrValues,
+            'login_hint' => $this->loginHint,
+            'id_token_hint' => $this->idTokenHint,
         ], static fn (?string $value): bool => $value !== null && $value !== '');
     }
 
@@ -284,7 +317,17 @@ final class OidcFlowContext
             uiLocales: isset($query['ui_locales']) && $query['ui_locales'] !== '' ? (string) $query['ui_locales'] : null,
             requestedResponseMode: isset($query['response_mode']) && $query['response_mode'] !== '' ? (string) $query['response_mode'] : null,
             requestedMaxAge: isset($query['max_age']) && $query['max_age'] !== '' ? (string) $query['max_age'] : null,
+            requestedAcrValues: self::stringParam($query, 'acr_values'),
+            loginHint: self::stringParam($query, 'login_hint'),
+            idTokenHint: self::stringParam($query, 'id_token_hint'),
         );
+    }
+
+    /** A non-empty string parameter, or null; arrays and other types are ignored. */
+    private static function stringParam(array $query, string $name): ?string
+    {
+        $value = $query[$name] ?? null;
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     /**

@@ -22,6 +22,10 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthorizationRequestResolver;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionSufficiencyPolicy;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\IdTokenHintVerifier;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdTokenHint;
+use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
+use Civi\Lughauth\Shared\Security\AcrValues;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\SessionDecision;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\Prompt;
@@ -70,6 +74,11 @@ use OpenApi\Attributes as OA;
  * screen again after the login or on top of the session, and prompt=none never shows any UI: it
  * fails with login_required, consent_required or interaction_required (task 031).
  *
+ * A fresh session below the acr_values the client asked for steps up: the user is asked only for
+ * the second factor, or interaction_required is returned for prompt=none. login_hint only prefills
+ * the login form, and a verified id_token_hint naming another user keeps the session from being
+ * reused; neither authenticates anyone (task 067).
+ *
  * Relationships: depends on AuthenticateUser (domain service), SessionManager, OidcStepRouter
  * (step dispatch), OidcResponseBuilder (successful response), AuthorizationResponseWriter (error
  * responses), HtmlSecurer (CSRF token verification), and DecorateHtml (themed page wrapping).
@@ -93,6 +102,8 @@ class AuthorizeHtml
         private readonly MessageProvider $messages,
         private readonly AuthorizationResponseWriter $responses,
         private readonly SessionSufficiencyPolicy $sessionPolicy,
+        private readonly IdTokenHintVerifier $hints,
+        private readonly AcrValues $acrValues,
     ) {
     }
 
@@ -117,6 +128,9 @@ class AuthorizeHtml
             new OA\Parameter(name: 'nonce', in: 'query', required: false, description: 'Required when the response type includes id_token', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'prompt', in: 'query', required: false, description: 'Space-separated; none must stand alone and select_account behaves as login', schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
             new OA\Parameter(name: 'max_age', in: 'query', required: false, description: 'Maximum seconds since the user authenticated for the session to be reused', schema: new OA\Schema(type: 'integer', minimum: 0)),
+            new OA\Parameter(name: 'acr_values', in: 'query', required: false, description: 'Space-separated, by preference; a session below the first known value steps up with the second factor', schema: new OA\Schema(type: 'string', example: 'urn:lugh:acr:mfa')),
+            new OA\Parameter(name: 'login_hint', in: 'query', required: false, description: 'Prefills the username of the login form; never authenticates', schema: new OA\Schema(type: 'string', maxLength: 256)),
+            new OA\Parameter(name: 'id_token_hint', in: 'query', required: false, description: 'ID token issued by this tenant to the client; a session of another user is not reused', schema: new OA\Schema(type: 'string')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'HTML login form'),
@@ -158,11 +172,15 @@ class AuthorizeHtml
             'sessionId' => (string) ($flow->sessionId ?? ''),
             'sessionFound' => $sess ? 'true' : 'false',
         ]);
-        $decision = $this->sessionPolicy->decide($flow, $sess);
+        $decision = $this->sessionPolicy->decide($flow, $sess, null, $this->verifiedHint($flow));
         if ($decision === SessionDecision::Reuse) {
             return $this->cisdPage($request, $response, $flow, $authRequest);
         } elseif ($decision === SessionDecision::LoginRequired) {
             return $this->silentError($flow, 'login_required', $response);
+        } elseif ($decision === SessionDecision::InteractionRequired) {
+            return $this->silentError($flow, 'interaction_required', $response);
+        } elseif ($decision === SessionDecision::StepUp && $sess !== null) {
+            return $this->stepUp($flow, $request, $authRequest, $sess, $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
             try {
@@ -222,7 +240,7 @@ class AuthorizeHtml
             return $this->redirectToLogin($response, $flow, $authRequest);
         }
         $sess = $this->sessions->findActiveSession($flow->sessionId ?? '', $flow->issuer);
-        if ($sess && $this->sessionPolicy->decide($flow, $sess) === SessionDecision::Reuse) {
+        if ($sess && $this->sessionPolicy->decide($flow, $sess, null, $this->verifiedHint($flow)) === SessionDecision::Reuse) {
             $this->logDebug('OIDC check-session session loaded', [
                 'tenant' => $tenant,
                 'sessionId' => (string) ($flow->sessionId ?? ''),
@@ -428,6 +446,8 @@ class AuthorizeHtml
      *   it to this request (invalid_request, task 070);
      * - prompt=none combined with other values, or a max_age that is not a non-negative integer
      *   (invalid_request, task 031);
+     * - an id_token_hint that is not an ID token of this tenant issued to the client (invalid_request,
+     *   task 067);
      * - an audience not registered for the client (invalid_target): only approved audiences reach
      *   the code;
      * - PKCE missing for a client that requires it (public or require-pkce), incomplete (a method
@@ -444,10 +464,49 @@ class AuthorizeHtml
             ResponseMode::resolve($responseType, $flow->requestedResponseMode) === null => 'invalid_request',
             $responseType->has('id_token') && (!ScopeSet::fromString($flow->scope)->has('openid') || $flow->nonce === '') => 'invalid_request',
             !$flow->prompts()->isValid() || !$flow->hasValidMaxAge() => 'invalid_request',
+            $flow->idTokenHint !== null && $this->verifiedHint($flow) === null => 'invalid_request',
             !$client->allowsAudiences($flow->audiences) => 'invalid_target',
             default => $this->pkceError($flow, $client),
         };
         return $error === null ? null : $this->redirectError($flow, $error, $response);
+    }
+
+    /**
+     * The id_token_hint of the request once verified (IdTokenHintVerifier): an ID token of this
+     * tenant issued to the client, expired or not. Null when there is none or it is not valid.
+     */
+    private function verifiedHint(OidcFlowContext $flow): ?IdTokenHint
+    {
+        return $flow->idTokenHint === null ? null : $this->hints->verify($flow->tenant, $flow->idTokenHint, $flow->clientId);
+    }
+
+    /**
+     * Starts a step-up (task 067): the session vouches for the user, so only the second factor is
+     * asked (or its enrolment). It continues as a login through the pre-session, which keeps the
+     * public sid of this session, and once the factor is proven AuthenticateUser adds it to the
+     * methods of this same session, if still active. A user who can no longer sign in gets the
+     * login form.
+     */
+    private function stepUp(
+        OidcFlowContext $flow,
+        ServerRequestInterface $request,
+        AuthenticationRequest $authRequest,
+        SessionInfo $session,
+        ResponseInterface $response
+    ): ResponseInterface {
+        try {
+            [$username, $challenge] = $this->authenticator->stepUpChallenge($flow->tenant, $session->userId);
+        } catch (LoginException) {
+            $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
+            return $this->renderStep(null, null, $input, $response, null, $input->challenges);
+        }
+        $this->logInfo('OIDC authorize step-up', ['tenant' => $flow->tenant, 'clientId' => $flow->clientId, 'acr' => $authRequest->requiredAcr?->name]);
+        $challenges = (new ChallengesState())
+            ->withUsername($username)
+            ->identifiedBy(IdentificationMethod::SESSION)
+            ->withExtra(AuthenticateUser::STEP_UP_SID, $session->publicSid);
+        $input = $this->buildStepInput($flow, $request, $authRequest, $challenges, []);
+        return $this->renderStep(null, $challenge, $input, $response, null, $challenges);
     }
 
     /**
@@ -544,7 +603,8 @@ class AuthorizeHtml
             scope: $flow->scope,
             redirect: $flow->redirect,
             responseType: $flow->responseType,
-            audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
+            audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences])),
+            requiredAcr: $this->acrValues->preferred($flow->requestedAcrValues)
         );
     }
 

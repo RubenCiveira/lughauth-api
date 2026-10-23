@@ -121,4 +121,49 @@ final class LoginFormStepUnitTest extends FormsTestCase
         $this->assertSame($input->challenges->withMfa, $result->challenges->withMfa);
         $this->assertSame($input->challenges->session, $result->challenges->session);
     }
+
+    /**
+     * login_hint only prefills the username, escaped: the user still proves who they are (task 067).
+     */
+    public function testTheLoginHintOnlyPrefillsTheUsername(): void
+    {
+        $page = $this->renderLogin(['login_hint' => 'a"<b>@example.com']);
+
+        $this->assertStringContainsString('name="username" value="a&quot;&lt;b&gt;@example.com"', $page);
+    }
+
+    /**
+     * The magic link gives no second factor, so it is not offered when acr_values asks for one.
+     */
+    public function testTheMagicLinkIsNotOfferedWhenMfaIsRequested(): void
+    {
+        $this->assertStringContainsString('value="magic-link"', $this->renderLogin([]));
+        $this->assertStringNotContainsString('value="magic-link"', $this->renderLogin(['acr_values' => 'urn:lugh:acr:mfa']));
+    }
+
+    private function renderLogin(array $query): string
+    {
+        $page = '';
+        $decorator = $this->createMock(DecorateHtml::class);
+        $decorator->method('getFullPage')->willReturnCallback(function ($request, string $title, string $content) use (&$page): string {
+            $page = $content;
+            return $content;
+        });
+        $magicLink = $this->createMock(RequestMagicLinkUsecase::class);
+        $magicLink->method('isEnabled')->willReturn(true);
+        $form = new LoginForm(
+            $this->createMock(MessageProvider::class),
+            $this->createMock(AuthenticateUser::class),
+            $decorator,
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DelegateLogin::class),
+            $this->createMock(ChangePasswordUsecase::class),
+            $this->createMock(RegisterUserUsecase::class),
+            $magicLink,
+        );
+
+        $form->render($this->buildInput([], new ChallengesState(), $query), new Slim\Psr7\Response(), null);
+
+        return $page;
+    }
 }

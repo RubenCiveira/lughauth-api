@@ -48,10 +48,23 @@ interface LoginGateway
 
     /**
      * True when the user must enrol a second factor before signing in: no TOTP seed yet, and MFA
-     * switched on for the user or forced by the tenant. Enrolment replaces any stored seed, so it
-     * is only allowed while this holds.
+     * switched on for the user, forced by the tenant or, with $mfaRequested, asked for by the
+     * client (acr_values, task 067). Enrolment replaces any stored seed, so it is only allowed
+     * while this holds.
      */
-    public function mfaEnrolmentPending(string $tenant, string $username): bool;
+    public function mfaEnrolmentPending(string $tenant, string $username, bool $mfaRequested = false): bool;
+
+    /**
+     * The step that proves a second factor for a user who must step up (task 067): the TOTP
+     * challenge when a seed is enrolled, otherwise its enrolment.
+     */
+    public function secondFactorChallenge(string $tenant, string $username): AuthenticationResult;
+
+    /**
+     * Username of the active user named by $subject (username or subject uid), as the second
+     * factor steps look it up. Throws LoginException when there is no such active user.
+     */
+    public function usernameOf(string $tenant, string $subject): string;
 
     /**
      * Counts a wrong second factor as a failed sign-in attempt of the user, blocking the

@@ -1004,7 +1004,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame('nonce-1', $id['nonce']);
         $this->assertSame(ClaimsMapper::hash($body['access_token']), $id['at_hash']);
         $this->assertArrayNotHasKey('amr', $id, 'no amr without evidence');
-        $this->assertArrayNotHasKey('acr', $id);
+        $this->assertSame('urn:lugh:acr:1fa', $id['acr'], 'any session proves at least one factor');
         $this->assertArrayNotHasKey('c_hash', $id);
         $this->assertArrayNotHasKey('scope', $id);
     }
@@ -1041,9 +1041,12 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertSame(self::CLIENT_ID, $access['client_id']);
         $this->assertSame('openid', $access['scope']);
         $this->assertSame('openid', $body['scope']);
-        foreach (['nonce', 'sid', 'auth_time', 'at_hash'] as $claim) {
+        foreach (['nonce', 'sid', 'at_hash'] as $claim) {
             $this->assertArrayNotHasKey($claim, $access, $claim);
         }
+        // What a resource server needs to ask for a step-up (RFC 9470).
+        $this->assertSame('urn:lugh:acr:1fa', $access['acr']);
+        $this->assertIsInt($access['auth_time']);
     }
 
     public function testProfileClaimsNeedTheExactScopeValue(): void

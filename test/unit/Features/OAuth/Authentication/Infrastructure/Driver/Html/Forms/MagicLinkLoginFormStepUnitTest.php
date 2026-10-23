@@ -29,6 +29,9 @@ final class MagicLinkLoginFormStepUnitTest extends FormsTestCase
             'code by fragment' => [['response_type' => 'code', 'response_mode' => 'fragment'], false],
             'code by form_post' => [['response_type' => 'code', 'response_mode' => 'form_post'], false],
             'hybrid' => [['response_type' => 'code id_token'], false],
+            // Posted directly: the login form hides the link, the step refuses it too (task 067).
+            'MFA requested' => [['response_type' => 'code', 'acr_values' => 'urn:lugh:acr:mfa'], false],
+            'single factor requested' => [['response_type' => 'code', 'acr_values' => 'urn:lugh:acr:1fa'], true],
         ];
     }
 

@@ -8,6 +8,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
 use Civi\Lughauth\Features\OAuth\Client\Domain\JwtAssertionVerifier;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 /**
  * Immutable set of protocol capabilities the authorization server actually implements.
@@ -56,6 +57,8 @@ final class OidcCapabilities
         public readonly bool $frontchannelLogout,
         /** Languages the login UI can be shown in through ui_locales (UiLocale, 068). */
         public readonly array $uiLocales = [],
+        /** acr values AuthorizeHtml steps up to and ClaimsMapper issues: the configured ones (AcrValues, 067). */
+        public readonly array $acrValues = [],
     ) {
     }
 
@@ -64,7 +67,7 @@ final class OidcCapabilities
      * PAR is announced as required only when the tenant's configuration requires it for every
      * client; a single client requiring it does not change discovery.
      */
-    public static function implemented(bool $requirePushedAuthorizationRequests = false): self
+    public static function implemented(bool $requirePushedAuthorizationRequests = false, ?AcrValues $acrValues = null): self
     {
         return new self(
             grantTypes: [
@@ -93,6 +96,7 @@ final class OidcCapabilities
             backchannelLogout: true,
             frontchannelLogout: true,
             uiLocales: UiLocale::SUPPORTED,
+            acrValues: ($acrValues ?? AcrValues::defaults())->supported(),
         );
     }
 }

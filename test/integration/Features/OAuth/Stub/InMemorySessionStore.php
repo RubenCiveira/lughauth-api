@@ -10,6 +10,8 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
+use Civi\Lughauth\Shared\Security\Acr;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 class InMemorySessionStore implements SessionStoreGateway
 {
@@ -31,6 +33,12 @@ class InMemorySessionStore implements SessionStoreGateway
     {
         $state = $this->stateOf($sid);
         return $state !== null ? $this->findActiveSession($state, $issuer) : null;
+    }
+
+    public function findActiveSessionIdBySid(string $sid, string $issuer): ?string
+    {
+        $state = $this->stateOf($sid);
+        return $state !== null && $this->findActiveSession($state, $issuer) !== null ? $state : null;
     }
 
     public function findActiveSessionIdByCsid(string $csid, string $issuer): ?string
@@ -82,6 +90,7 @@ class InMemorySessionStore implements SessionStoreGateway
             publicSid: bin2hex(random_bytes(16)),
             authTime: new \DateTimeImmutable('@' . time()),
             amr: $amr,
+            acr: AcrValues::defaults()->valueOf(Acr::fromAmr($amr)),
             tenantId: $validationData->tenant,
         );
     }
@@ -100,7 +109,7 @@ class InMemorySessionStore implements SessionStoreGateway
                 publicSid: $session->publicSid,
                 authTime: new \DateTimeImmutable('@' . time()),
                 amr: $amr !== [] ? $amr : $session->amr,
-                acr: $session->acr,
+                acr: AcrValues::defaults()->valueOf(Acr::fromAmr($amr !== [] ? $amr : $session->amr)),
                 tenantId: $session->tenantId,
             );
         }

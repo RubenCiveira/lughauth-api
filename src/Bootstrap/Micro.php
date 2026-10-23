@@ -78,6 +78,7 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Bootstrap\Plugin\ErrorsPlugin;
 use Civi\Lughauth\Bootstrap\Plugin\ManagementPlugin;
 use Civi\Lughauth\Bootstrap\Telemetry\InjectResourceAttrsProcessor;
+use Civi\Lughauth\Shared\Security\AcrValues;
 
 /**
  * Core microservice application container and bootstrap orchestrator.
@@ -156,6 +157,8 @@ class Micro
             $defs = [];
         }
         $defs[AppConfig::class] = $this->config;
+        // acr values agreed with other identity providers and relying parties (task 067).
+        $defs[AcrValues::class] = \DI\factory([AcrValues::class, 'fromConfig']);
         $defs[MicroConfig::class] = $this->definition;
         if ($this->definition->withAudit) {
             $this->withAudit($defs);

@@ -62,7 +62,7 @@ Leyenda de la columna **Estado:**
 | 060 | `userinfo-signed-response-alg` | Condicional | UserInfo como JWT firmado | `<property name="userinfo-signed-response-alg" type="xs:string" />` |
 | 063 | `secret-oauth` | Existe; cambia el almacenamiento | HMAC con *pepper* en lugar de AES reversible. **Requiere soporte en el generador** de un nuevo valor de `private-content` | `<property name="secret-oauth" type="xs:string" private-content="hash" input-type="password" />` |
 | 063 | `registration-access` | Existe; cambia el almacenamiento | Registration access token de DCR (RFC 7592): guardar hash, no el valor | `<property name="registration-access" type="xs:string" private-content="hash" />` |
-| 067 | `default-acr-values`, `default-max-age` | Condicional | Metadatos de registro OIDC para step-up por defecto | `<property name="default-acr-values" type="xs:string" />` `<property name="default-max-age" type="xs:integer" />` |
+| 067 | `default-acr-values`, `default-max-age` | Condicional (pendiente: 067 no los aplica todavía) | Metadatos de registro OIDC para step-up por defecto | `<property name="default-acr-values" type="xs:string" />` `<property name="default-max-age" type="xs:integer" />` |
 
 > **Al generar `token-endpoint-auth-method`:** el enum resultante usa valores con guiones (`client-secret-basic`), y los nombres del protocolo (RFC 7591) son con guion bajo. `ClientStoreAdapter` y `DynamicClientAdapter` hacen la traducción; cualquier consumidor nuevo debe pasar por ellos.
 
@@ -77,7 +77,7 @@ Leyenda de la columna **Estado:**
 | 024 | `dcr-allowed-auth-methods` | Nuevo | Métodos de autenticación admitidos en DCR | `<property name="dcr-allowed-auth-methods" type="xs:blob" default='["client_secret_basic","private_key_jwt","none"]' />` |
 | 024 | `allow-password-grant` | Nuevo | Permiso explícito de ROPC a nivel de tenant | `<property name="allow-password-grant" type="xs:boolean" required="true" default="false" />` |
 | 046 | `require-pushed-authorization-requests` | Nuevo | PAR obligatorio para todo el tenant (si es `true`, se anuncia en discovery) | `<property name="require-pushed-authorization-requests" type="xs:boolean" required="true" default="false" />` |
-| 067 | `acr-values-supported` | Condicional | Niveles ACR publicables y su correspondencia con el `acr` numérico de la sesión | `<property name="acr-values-supported" type="xs:blob" description="JSON map of published ACR values to session level, e.g. {&quot;urn:lugh:acr:pwd&quot;:1,&quot;urn:lugh:acr:mfa&quot;:2}" />` |
+| 067 | `acr-values-supported` | Condicional (no usado: 067 toma los valores de `SECURITY_ACR_*`, globales) | Niveles ACR publicables y su correspondencia con el `acr` numérico de la sesión | `<property name="acr-values-supported" type="xs:blob" description="JSON map of published ACR values to session level, e.g. {&quot;urn:lugh:acr:pwd&quot;:1,&quot;urn:lugh:acr:mfa&quot;:2}" />` |
 
 ### A.3 `tenant-login-provider` (051, condicional)
 
@@ -151,7 +151,7 @@ Todos los `INSERT` actuales sobre estas tablas listan sus columnas explícitamen
 | 019, 021, 032 | `_oauth_session` | `sid` | `VARCHAR(64) NULL` + `UNIQUE` (pasa a `NOT NULL` cuando el código lo escriba) | Nuevo | Identificador público y estable de la sesión para los claims `sid` y el logout. **No** reutilizar `session`, que es el valor de la cookie |
 | 019, 041 | `_oauth_session` | `tenant_id` | `VARCHAR(36) NULL` + índice `(user_uid, tenant_id)` (rellenable desde `issuer`) | Nuevo | Filtrar sesiones por tenant; hoy solo existe `issuer` |
 | 032, 067 | `_oauth_session` | `amr` | `VARCHAR(128) NULL` (lista separada por espacios) | Nuevo | Métodos de autenticación reales (`pwd`, `otp`, `hwk`…) |
-| 067 | `_oauth_session` | `acr` | `TINYINT` → mantener, mapeado por `tenant-config.acr-values-supported`; o pasar a `VARCHAR(64)` | Existe; revisar | El ACR publicado es una URI o un literal, no un número |
+| 067 | `_oauth_session` | `acr` | `TINYINT`, sin uso | Existe; sin uso tras 067 | 067 deriva el nivel ACR del `amr` de la sesión y lo nombra con los valores configurados (`SECURITY_ACR_*`), sin migración; la columna puede retirarse más adelante |
 | 031, 032 | `_oauth_session` | `auth_time` | — | Existe; hay que leerlo | Ya se escribe; `loadSession` no lo selecciona |
 | 021 | `_oauth_session` | `sso_clients_json` | — | Existe, sin usar → **eliminar** | Se sustituye por las filas de `_oauth_session_grant` |
 | 018, 020, 021 | `_oauth_session_grant` | (tabla) | — | Existe, sin usar | Una fila por sesión y cliente = **familia de refresh** con las audiencias y el scope concedidos; también sirve como lista de RP participantes para el logout |

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Shared\Security;
 
 use DateInterval;
 use DateTimeImmutable;
+use Civi\Lughauth\Shared\Exception\InsufficientUserAuthenticationException;
 
 class AuthenticationContext implements \JsonSerializable
 {
@@ -18,6 +19,8 @@ class AuthenticationContext implements \JsonSerializable
 
     private readonly DateTimeImmutable $authenticatedAt;
     private readonly DateInterval $authenticationAge;
+    /** How the configured acr values name each level (AcrValues). */
+    private readonly AcrValues $acrValues;
 
     public function __construct(
         private readonly string $level = self::LEVEL_ANONYMOUS,
@@ -31,9 +34,15 @@ class AuthenticationContext implements \JsonSerializable
         private readonly string $sessionId = '',
         private readonly ?Identity $authenticatedActor = null,
         private readonly ?Identity $effectiveActor = null,
+        /** The acr claim of the token, as issued; null when it carries none. */
+        private readonly ?string $acr = null,
+        /** The auth_time claim of the token; null when it carries none (never the issue time). */
+        private readonly ?DateTimeImmutable $authTime = null,
+        ?AcrValues $acrValues = null,
     ) {
         $this->authenticatedAt = $authenticatedAt ?? new DateTimeImmutable();
         $this->authenticationAge = $authenticationAge ?? new DateInterval('PT0S');
+        $this->acrValues = $acrValues ?? AcrValues::defaults();
     }
 
     public static function anonymous(): self
@@ -85,6 +94,59 @@ class AuthenticationContext implements \JsonSerializable
     {
         return $this->effectiveActor;
     }
+    public function getAcr(): ?string
+    {
+        return $this->acr;
+    }
+
+    /** Level named by the acr of the token in the configured values, or null when it names none. */
+    public function getAcrLevel(): ?Acr
+    {
+        return $this->acrValues->levelOf($this->acr);
+    }
+
+    /**
+     * True when the token proves an authentication at $required or above and, when $maxAge is
+     * given, no older than $maxAge seconds counted from its auth_time. A token whose acr is not one
+     * of the configured values (AcrValues), or without auth_time when $maxAge is given, never
+     * satisfies it.
+     */
+    public function satisfies(Acr $required, ?int $maxAge = null, ?DateTimeImmutable $now = null): bool
+    {
+        $acr = $this->getAcrLevel();
+        if ($acr === null || !$acr->satisfies($required)) {
+            return false;
+        }
+        $now ??= new DateTimeImmutable();
+        return $maxAge === null
+            || ($this->authTime !== null && $now->getTimestamp() - $this->authTime->getTimestamp() <= $maxAge);
+    }
+
+    /**
+     * Requires the level an operation needs (see satisfies()); otherwise the client gets a step-up
+     * challenge (RFC 9470) asking for $required and $maxAge.
+     *
+     * @throws InsufficientUserAuthenticationException
+     */
+    public function requireAcr(Acr $required, ?int $maxAge = null): void
+    {
+        if (!$this->satisfies($required, $maxAge)) {
+            throw $this->stepUp($required, $maxAge);
+        }
+    }
+
+    /**
+     * The step-up challenge for logic that decides by itself that the authentication is not
+     * enough: `throw $context->stepUp(Acr::MULTI_FACTOR, 300, 'Confirm the transfer')`. It asks
+     * for the acr value configured for $required.
+     */
+    public function stepUp(?Acr $required, ?int $maxAge = null, ?string $message = null): InsufficientUserAuthenticationException
+    {
+        $acrValues = $required !== null ? $this->acrValues->valueOf($required) : null;
+        return $message !== null
+            ? new InsufficientUserAuthenticationException($acrValues, $maxAge, $message)
+            : new InsufficientUserAuthenticationException($acrValues, $maxAge);
+    }
 
     public function jsonSerialize(): array
     {
@@ -100,6 +162,7 @@ class AuthenticationContext implements \JsonSerializable
             'authenticationAge' => $ageMillis,
             'authenticationMethod' => $this->authenticationMethod ?? '',
             'sessionId' => $this->sessionId,
+            'acr' => $this->acr ?? '',
         ];
     }
 }

@@ -51,8 +51,9 @@ GET /oauth/openid/{tenant}/authorize
 | `prompt` | OPTIONAL | `"none"` \| `"login"` \| `"consent"` \| `"select_account"` |
 | `max_age` | OPTIONAL | Maximum Authentication Age (seconds); triggers `auth_time` in ID Token |
 | `ui_locales` | OPTIONAL | Preferred display languages (BCP47) |
-| `login_hint` | OPTIONAL | Hint about preferred login identifier |
-| `acr_values` | OPTIONAL | Requested Authentication Context Class Reference values |
+| `login_hint` | OPTIONAL | Prefills the username of the login form (max 256 chars); never authenticates |
+| `id_token_hint` | OPTIONAL | ID token issued by this tenant to the client (expired accepted); a session of another user is not reused, an invalid one is `invalid_request` |
+| `acr_values` | OPTIONAL | Configured values (`SECURITY_ACR_SINGLE_FACTOR`, `SECURITY_ACR_MULTI_FACTOR`; default `urn:lugh:acr:1fa` \| `urn:lugh:acr:mfa`) and their aliases, by preference; a session below the first known value steps up with the TOTP (or its enrolment), `interaction_required` with `prompt=none`. See [067](../TODD/done/067-hints-y-acr-step-up.md) |
 | `request` | OPTIONAL (JAR/RFC 9101) | Signed JWT containing authorization parameters; overrides query params |
 | `request_uri` | OPTIONAL (PAR/RFC 9126) | Reference URI from a prior PAR request |
 

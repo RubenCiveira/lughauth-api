@@ -13,6 +13,7 @@ namespace {
     use Civi\Lughauth\Bootstrap\Plugin\ErrorsPlugin;
     use Civi\Lughauth\Shared\Exception\ConstraintException;
     use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+    use Civi\Lughauth\Shared\Exception\InsufficientUserAuthenticationException;
 
     /**
      * Unit tests for {@see ErrorsPlugin}.
@@ -58,6 +59,36 @@ namespace {
             $this->assertConstraintResponse($constraintResponse);
             $this->assertJsonMessageResponse($unauthorizedResponse, 401, 'nope');
             $this->assertJsonMessageResponse($methodNotAllowedResponse, 404, $methodNotAllowed->getMessage());
+        }
+
+        /**
+         * A step-up shortfall is answered with the RFC 9470 challenge a client reacts to, also when
+         * the logic throws it directly; no other 401 carries it.
+         */
+        public function testInsufficientUserAuthenticationIsAStepUpChallenge(): void
+        {
+            $handlers = [];
+            $errorMiddleware = $this->createMock(ErrorMiddleware::class);
+            $errorMiddleware->method('setErrorHandler')
+                ->willReturnCallback(function (string $type, callable $handler) use (&$handlers, $errorMiddleware) {
+                    $handlers[$type] = $handler;
+                    return $errorMiddleware;
+                });
+            (new ErrorsPlugin())->registerErrorHandler($errorMiddleware);
+            $request = $this->createMock(ServerRequestInterface::class);
+            $request->method('getUri')->willReturn(new \Slim\Psr7\Uri('https', 'api.example', null, '/transfers'));
+
+            $response = $handlers[InsufficientUserAuthenticationException::class]($request, new InsufficientUserAuthenticationException('urn:lugh:acr:mfa', 300));
+            $payload = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
+            $this->assertSame(401, $response->getStatusCode());
+            $this->assertStringStartsWith('Bearer error="insufficient_user_authentication"', $response->getHeaderLine('WWW-Authenticate'));
+            $this->assertStringContainsString('acr_values="urn:lugh:acr:mfa", max_age=300', $response->getHeaderLine('WWW-Authenticate'));
+            $this->assertSame(['insufficient_user_authentication', 'urn:lugh:acr:mfa', 300], [$payload['error'], $payload['acr_values'], $payload['max_age']]);
+            $this->assertStringNotContainsString(
+                'insufficient_user_authentication',
+                $handlers[UnauthorizedException::class]($request, new UnauthorizedException('nope'))->getHeaderLine('WWW-Authenticate')
+            );
         }
 
         private function assertConstraintResponse(ResponseInterface $response): void

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 
 use Override;
 use Psr\Http\Message\ResponseInterface;
+use Civi\Lughauth\Shared\Security\Acr;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\IdentificationMethod;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
@@ -129,8 +130,10 @@ class LoginForm implements StepForm
                 HTML;
         }
         $magicLinkButton = "";
-        // The magic link can only answer with a code in the query (OidcFlowContext::isCodeInQuery).
-        if ($input->context->isCodeInQuery() && $this->magicLink->isEnabled($tenant)) {
+        // The magic link can only answer with a code in the query (OidcFlowContext::isCodeInQuery),
+        // and gives no second factor, so it is not offered when acr_values asks for one.
+        $mfaRequested = $input->authRequest->requiredAcr?->satisfies(Acr::MULTI_FACTOR) ?? false;
+        if ($input->context->isCodeInQuery() && !$mfaRequested && $this->magicLink->isEnabled($tenant)) {
             $magicLinkStep = StepName::MAGIC_LINK->value;
             $magicLinkButton .= <<<HTML
                 <form method="POST">
@@ -141,6 +144,8 @@ class LoginForm implements StepForm
         }
 
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
+        // login_hint only suggests the account: the user still proves it (task 067).
+        $hint = htmlspecialchars($input->context->loginHint ?? '', ENT_QUOTES);
         $delegatedLogins = $delegatedLogins !== '' ? "<div class=\"social-login-buttons\">{$delegatedLogins}</div>" : '';
 
         $response->getBody()->write(
@@ -155,7 +160,7 @@ class LoginForm implements StepForm
                         <input type="hidden" name="csid" id="sign" />
                         <input type="hidden" id="password" name="password" value="" />
                         <label> {$username}
-                            <input type="text" id="username" name="username" value="" />
+                            <input type="text" id="username" name="username" value="{$hint}" />
                         </label>
                         <label> {$password}
                             <input type="password" id="type_password" value="" />
