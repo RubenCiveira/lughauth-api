@@ -12,7 +12,6 @@ use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationReques
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest\PushAuthorizationUsecase;
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
-use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 
 final class ParUnitTest extends TestCase
 {
@@ -90,10 +89,10 @@ final class ParUnitTest extends TestCase
 
     public function test_push_params_stores_fields(): void
     {
-        $p = new PushAuthorizationParams('t', 'c', 'secret', ['response_type' => 'code']);
+        $client = new ClientData('c', ['authorization_code'], false);
+        $p = new PushAuthorizationParams('t', $client, ['response_type' => 'code']);
         $this->assertSame('t', $p->tenant);
-        $this->assertSame('c', $p->clientId);
-        $this->assertSame('secret', $p->clientSecret);
+        $this->assertSame($client, $p->client);
         $this->assertSame(['response_type' => 'code'], $p->authParams);
     }
 
@@ -106,32 +105,15 @@ final class ParUnitTest extends TestCase
 
     // --- PushAuthorizationUsecase ---
 
-    public function test_push_throws_invalid_client_when_not_found(): void
-    {
-        $this->expectException(ParException::class);
-
-        $clients = $this->makeClientStore(null);
-        $gateway = $this->makeParGateway();
-        $usecase = new PushAuthorizationUsecase($clients, $gateway);
-
-        $usecase->push(new PushAuthorizationParams('t', 'c', 'bad', [
-            'response_type' => 'code',
-            'redirect_uri' => 'https://app/cb',
-            'client_id' => 'c',
-        ]));
-    }
-
     public function test_push_throws_invalid_request_when_response_type_missing(): void
     {
         $this->expectException(ParException::class);
 
-        $client = new ClientData('c', ['authorization_code'], false);
-        $clients = $this->makeClientStore($client);
         $gateway = $this->makeParGateway();
-        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+        $usecase = new PushAuthorizationUsecase($gateway);
 
         try {
-            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+            $usecase->push(new PushAuthorizationParams('t', new ClientData('c', ['authorization_code'], false), [
                 'redirect_uri' => 'https://app/cb',
                 'client_id' => 'c',
             ]));
@@ -145,13 +127,11 @@ final class ParUnitTest extends TestCase
     {
         $this->expectException(ParException::class);
 
-        $client = new ClientData('c', ['authorization_code'], false);
-        $clients = $this->makeClientStore($client);
         $gateway = $this->makeParGateway();
-        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+        $usecase = new PushAuthorizationUsecase($gateway);
 
         try {
-            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+            $usecase->push(new PushAuthorizationParams('t', new ClientData('c', ['authorization_code'], false), [
                 'response_type' => 'code',
                 'client_id' => 'c',
             ]));
@@ -165,13 +145,11 @@ final class ParUnitTest extends TestCase
     {
         $this->expectException(ParException::class);
 
-        $client = new ClientData('c', ['authorization_code'], false);
-        $clients = $this->makeClientStore($client);
         $gateway = $this->makeParGateway();
-        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+        $usecase = new PushAuthorizationUsecase($gateway);
 
         try {
-            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+            $usecase->push(new PushAuthorizationParams('t', new ClientData('c', ['authorization_code'], false), [
                 'response_type' => 'code',
                 'redirect_uri' => 'https://app/cb',
             ]));
@@ -184,14 +162,12 @@ final class ParUnitTest extends TestCase
     public function test_push_stores_request_and_returns_result(): void
     {
         $stored = null;
-        $client = new ClientData('c', ['authorization_code'], false);
-        $clients = $this->makeClientStore($client);
         $gateway = $this->makeParGateway(onStore: function (ParRequest $r) use (&$stored) {
             $stored = $r;
         });
-        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+        $usecase = new PushAuthorizationUsecase($gateway);
 
-        $result = $usecase->push(new PushAuthorizationParams('tenant', 'c', 'secret', [
+        $result = $usecase->push(new PushAuthorizationParams('tenant', new ClientData('c', ['authorization_code'], false), [
             'response_type' => 'code',
             'redirect_uri' => 'https://app/cb',
             'client_id' => 'c',
@@ -277,10 +253,10 @@ final class ParUnitTest extends TestCase
 
     public function test_push_throws_when_client_id_is_not_the_authenticated_client(): void
     {
-        $usecase = new PushAuthorizationUsecase($this->makeClientStore(new ClientData('c', ['authorization_code'], false)), $this->makeParGateway());
+        $usecase = new PushAuthorizationUsecase($this->makeParGateway());
 
         try {
-            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+            $usecase->push(new PushAuthorizationParams('t', new ClientData('c', ['authorization_code'], false), [
                 'response_type' => 'code',
                 'redirect_uri' => 'https://app/cb',
                 'client_id' => 'other-client',
@@ -293,10 +269,10 @@ final class ParUnitTest extends TestCase
 
     public function test_push_throws_when_request_uri_is_nested(): void
     {
-        $usecase = new PushAuthorizationUsecase($this->makeClientStore(new ClientData('c', ['authorization_code'], false)), $this->makeParGateway());
+        $usecase = new PushAuthorizationUsecase($this->makeParGateway());
 
         try {
-            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+            $usecase->push(new PushAuthorizationParams('t', new ClientData('c', ['authorization_code'], false), [
                 'response_type' => 'code',
                 'redirect_uri' => 'https://app/cb',
                 'client_id' => 'c',
@@ -309,39 +285,6 @@ final class ParUnitTest extends TestCase
     }
 
     // --- helpers ---
-
-    private function makeClientStore(?ClientData $client): ClientStoreGateway
-    {
-        return new class ($client) implements ClientStoreGateway {
-            public function __construct(private ?ClientData $client)
-            {
-            }
-            public function clientData(string $tenant, string $clientId, string $clientSecret): ?ClientData
-            {
-                return $this->client;
-            }
-            public function findEnabledClient(string $tenant, string $clientId): ?ClientData
-            {
-                return null;
-            }
-            public function preValidatedClient(string $tenant, string $clientId): ?ClientData
-            {
-                return null;
-            }
-            public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
-            {
-                return null;
-            }
-            public function defaultRedirectUri(string $tenant, string $clientId): ?string
-            {
-                return null;
-            }
-            public function allowsPostLogoutRedirect(string $tenant, string $clientId, string $redirectUri): bool
-            {
-                return false;
-            }
-        };
-    }
 
     private function makeParGateway(?ParRequest $byUri = null, ?callable $onStore = null, ?callable $onConsume = null): ParRequestGateway
     {

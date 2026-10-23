@@ -1,7 +1,7 @@
 # 044 — Añadir autenticación de cliente JWT
 
-- **Estado:** pendiente, extensión opcional. **Prioridad:** media.
-- **Evidencia:** [ClientStoreAdapter](../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) verifica secreto en claro; [RequestObjectValidator](../../src/Features/OAuth/Authentication/Domain/RequestObjectValidator.php) ya obtiene JWKS de cliente para JAR, pero `/token` solo acepta Basic/body.
+- **Estado:** hecho en [EP-11](EP-11-aserciones-jwt-cliente.md) (solo `private_key_jwt`; `client_secret_jwt` descartado por la opción A de 063). **Prioridad:** media.
+- **Evidencia:** [ClientStoreAdapter](../../../src/Features/OAuth/Client/Infrastructure/Driven/ClientStoreAdapter.php) verifica secreto en claro; [RequestObjectValidator](../../../src/Features/OAuth/Authentication/Domain/RequestObjectValidator.php) ya obtiene JWKS de cliente para JAR, pero `/token` solo acepta Basic/body.
 - **Impacto:** clientes sin secreto compartido no pueden usar `private_key_jwt`/`client_secret_jwt`.
 - **Por hacer:** validar assertion firmada, `iss=sub=client_id`, audiencia exacta de token endpoint, `exp`/`jti` anti-replay y método registrado; aplicar también a PAR/introspection/revocation cuando se anuncie.
 - **Aceptación:** assertion válida autentica al cliente; replay o firma ajena falla; discovery coincide.

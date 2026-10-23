@@ -157,7 +157,8 @@ class ParTest extends OidcIntegrationTestCase
         $this->assertSame('invalid_request', $body['error']);
     }
 
-    public function testMissingClientIdReturns400(): void
+    /** Without client_id nor credentials the client is not authenticated (RFC 6749 §5.2). */
+    public function testMissingClientIdReturns401(): void
     {
         $request = $this->makeRequest('POST', '/oauth/openid/tenant1/par', [
             'response_type' => 'code',
@@ -166,9 +167,9 @@ class ParTest extends OidcIntegrationTestCase
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
 
-        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame(401, $response->getStatusCode());
         $body = $this->decodeJson($response);
-        $this->assertSame('invalid_request', $body['error']);
+        $this->assertSame('invalid_client', $body['error']);
     }
 
     public function testEachParRequestProducesUniqueUri(): void

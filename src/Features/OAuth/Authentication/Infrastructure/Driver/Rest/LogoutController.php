@@ -12,7 +12,9 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\BackChannelLogoutDis
 use Civi\Lughauth\Features\OAuth\Authentication\Application\IdTokenHintVerifier;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
-use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
+use Civi\Lughauth\Features\OAuth\Client\Application\ClientAuthenticator;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientAuthPolicy;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientCredentials;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven\TrustedClientFinder;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
@@ -44,12 +46,13 @@ use OpenApi\Attributes as OA;
  * party cannot log the user out.
  *
  * The revoke action (POST /revoke) implements RFC 7009 token revocation. It authenticates the
- * calling client (HTTP Basic or body credentials), then delegates to RevokeTokenUsecase. Per
+ * calling client through ClientAuthenticator (HTTP Basic or body secret, a private_key_jwt client
+ * assertion, or the client_id alone of a public client), then delegates to RevokeTokenUsecase. Per
  * the specification, the endpoint always returns HTTP 200 regardless of whether the token was
  * known or had already been revoked, to avoid leaking revocation state.
  *
  * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
- * removal, ClientStoreGateway for client validation, IdTokenHintVerifier for the id_token_hint,
+ * removal, ClientStoreGateway for the post-logout redirect URIs, ClientAuthenticator for revocation, IdTokenHintVerifier for the id_token_hint,
  * RevokeTokenUsecase for revocation, TrustedClientFinder for the participants' logout URIs, and
  * BackChannelLogoutDispatcher for back-channel notifications.
  */
@@ -63,6 +66,7 @@ class LogoutController
         private readonly SessionManager $sessionManager,
         private readonly SessionStoreGateway $sessionStore,
         private readonly ClientStoreGateway $clients,
+        private readonly ClientAuthenticator $authenticator,
         private readonly IdTokenHintVerifier $hints,
         private readonly RevokeTokenUsecase $revokeTokenUsecase,
         private readonly TrustedClientFinder $trustedClients,
@@ -217,6 +221,8 @@ class LogoutController
                     new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token or refresh_token'),
                     new OA\Property(property: 'client_id', type: 'string'),
                     new OA\Property(property: 'client_secret', type: 'string'),
+                    new OA\Property(property: 'client_assertion_type', type: 'string', example: ClientCredentials::ASSERTION_TYPE),
+                    new OA\Property(property: 'client_assertion', type: 'string', description: 'private_key_jwt client assertion (RFC 7523)'),
                 ])
             )
         ),
@@ -244,7 +250,15 @@ class LogoutController
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $client = $this->authenticateClient($tenant, $body);
+        // A public client (SPA) sends its client_id alone: RevokeTokenUsecase only revokes its own tokens.
+        $issuer = $this->context->getIssuer($tenant);
+        $client = $this->authenticator->authenticate(
+            $tenant,
+            ClientCredentials::fromHttp($request->getHeaderLine('Authorization'), $request->getServerParams(), $body),
+            ClientAuthPolicy::SecretOrPublic,
+            $issuer,
+            "{$issuer}/revoke",
+        );
         if ($client === null) {
             $response->getBody()->write('{"error":"invalid_client","error_description":"client authentication required"}');
             return $response->withStatus(401)
@@ -379,27 +393,5 @@ class LogoutController
 
         $response->getBody()->write($html);
         return $response->withStatus(200)->withHeader('Content-Type', 'text/html; charset=UTF-8');
-    }
-
-    private function authenticateClient(string $tenant, array $body): ?ClientData
-    {
-        // Confidential client: Basic auth
-        if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
-            return $this->clients->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
-        }
-
-        $clientId = (string) ($body['client_id'] ?? '');
-        if ($clientId === '') {
-            return null;
-        }
-
-        // Confidential client: client_id + client_secret in body
-        $clientSecret = (string) ($body['client_secret'] ?? '');
-        if ($clientSecret !== '') {
-            return $this->clients->clientData($tenant, $clientId, $clientSecret);
-        }
-
-        // Public client (SPA): client_id only — security relies on azp claim validation in the usecase
-        return $this->clients->preValidatedClient($tenant, $clientId);
     }
 }

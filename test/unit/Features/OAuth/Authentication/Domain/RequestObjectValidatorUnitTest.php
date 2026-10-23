@@ -6,6 +6,7 @@ declare(strict_types=1);
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
+use Civi\Lughauth\Features\OAuth\Client\Domain\JwtAssertionVerifier;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
@@ -84,6 +85,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
             'not yet valid' => [['nbf' => time() + 600]],
             'issued in the future' => [['iat' => time() + 600]],
             'without jti' => [['jti' => null]],
+            'without response_type, as a client assertion' => [['response_type' => null]],
         ];
     }
 
@@ -118,25 +120,31 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $validator->validate($jwt, $this->client($publicJwkJson), self::TENANT, self::ISSUER);
     }
 
-    public function testJtiIsKeptWhileTheObjectIsStillAcceptedWithinTheLeeway(): void
+    /**
+     * The jti is kept while the object is still accepted, within the leeway, first as a request
+     * object and also as a client assertion, so the same JWT cannot authenticate the client later.
+     */
+    public function testJtiIsKeptForEveryClientSignedUseWhileTheObjectIsStillAccepted(): void
     {
         [$privateJwk, $publicJwkJson] = $this->buildRsaJwks();
         $exp = time() + 300;
         $jwt = $this->buildJwt($privateJwk, $this->claims(['exp' => $exp]), 'RS256');
+        $recorded = [];
         $replays = $this->createMock(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway::class);
-        $replays->expects($this->once())
+        $replays->expects($this->exactly(2))
             ->method('consume')
-            ->with(
-                self::TENANT,
-                'client-123',
-                \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose::RequestObject,
-                $this->isString(),
-                $this->callback(static fn (DateTimeImmutable $keptUntil): bool => $keptUntil->getTimestamp() === $exp + 30)
-            )
-            ->willReturn(true);
+            ->willReturnCallback(function (string $tenant, string $client, \Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose $purpose, string $jti, DateTimeImmutable $keptUntil) use (&$recorded): bool {
+                $recorded[] = [$tenant, $client, $purpose->value, $keptUntil->getTimestamp()];
+                return true;
+            });
 
-        (new RequestObjectValidator($this->createMock(RemoteJwksFetcher::class), $replays))
+        (new RequestObjectValidator(new JwtAssertionVerifier($this->createMock(RemoteJwksFetcher::class), $replays)))
             ->validate($jwt, $this->client($publicJwkJson), self::TENANT, self::ISSUER);
+
+        $this->assertSame([
+            [self::TENANT, 'client-123', 'request_object', $exp + 30],
+            [self::TENANT, 'client-123', 'client_assertion', $exp + 30],
+        ], $recorded);
     }
 
     public function testValidateFetchesJwksFromUriWhenInlineMissing(): void
@@ -174,6 +182,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
             'client_id' => 'client-123',
             'iss' => 'client-123',
             'aud' => self::ISSUER,
+            'response_type' => 'code',
             'iat' => time(),
             'exp' => time() + 300,
             'jti' => bin2hex(random_bytes(8)),
@@ -239,6 +248,6 @@ final class RequestObjectValidatorUnitTest extends TestCase
 
     private function buildValidator(?RemoteJwksFetcher $jwks = null): RequestObjectValidator
     {
-        return new RequestObjectValidator($jwks ?? $this->createMock(RemoteJwksFetcher::class), new InMemoryReplayJti());
+        return new RequestObjectValidator(new JwtAssertionVerifier($jwks ?? $this->createMock(RemoteJwksFetcher::class), new InMemoryReplayJti()));
     }
 }

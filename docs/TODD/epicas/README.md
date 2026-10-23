@@ -9,6 +9,8 @@ Agrupación de las 50 tareas pendientes de `docs/TODD/` (sin `done/` ni `review/
 Las fichas originales siguen siendo la referencia de evidencias y criterios de aceptación. Cada épica indica el orden interno, el componente común y lo que deja preparado para las siguientes. Los cambios de datos remiten a [MODELO_Y_ESQUEMA_018-071.md](../MODELO_Y_ESQUEMA_018-071.md).
 
 > Los enlaces apuntan a `docs/TODD/<nnn>-*.md`. Al mover una tarea a `done/` hay que actualizar el enlace en su épica.
+>
+> Las tareas opcionales que una épica cerrada no implementó pasan a [`pospuestos/`](../pospuestos/README.md), con el motivo y la condición para reabrirlas. Las descartadas siguen en `done/`.
 
 ## Resumen
 
@@ -22,9 +24,9 @@ Las fichas originales siguen siendo la referencia de evidencias y criterios de a
 | [EP-06 Validación de bearer en consumidores](../done/EP-06-validacion-bearer.md) (hecha) | [026](../done/026-validar-issuer-audience-bearer.md), [028](../done/028-revocacion-en-bearer.md), [035](../done/035-userinfo-conforme.md) | crítica | M | EP-04 |
 | [EP-07 Autorización: origen y política de la solicitud](../done/EP-07-autorizacion-solicitud.md) (hecha) | [046](../done/046-par-no-sobrescribible.md), [047](../done/047-jar-claims-y-jwks-uri.md), [034](../done/034-pkce-s256-y-politica.md), [068](../done/068-ui-locales.md) (opc.) | alta | L | EP-03 |
 | [EP-08 Autorización: construcción de la respuesta](../done/EP-08-autorizacion-respuesta.md) (hecha) | [027](../done/027-respuestas-autorizacion-seguras.md), [037](../done/037-iss-respuesta-autorizacion.md), [033](../done/033-hybrid-y-response-types.md), [070](../done/070-validacion-nonce.md), [045](../done/045-response-mode-form-post.md) (opc., aprobada) | alta | M | EP-03, EP-05 (hashes) |
-| [EP-09 Sesión SSO y logout](../done/EP-09-sesion-sso-y-logout.md) (hecha) | [031](../done/031-prompt-max-age-sso.md), [036](../done/036-logout-validado-y-post.md), 067 (opc.), 041 (opc.), 062 (opc.) | alta | M | EP-04, EP-05 |
+| [EP-09 Sesión SSO y logout](../done/EP-09-sesion-sso-y-logout.md) (hecha) | [031](../done/031-prompt-max-age-sso.md), [036](../done/036-logout-validado-y-post.md), [067](../pospuestos/067-hints-y-acr-step-up.md), [041](../pospuestos/041-admin-sesiones-usuario.md) y [062](../pospuestos/062-session-management-iframe.md) (opc., pospuestas) | alta | M | EP-04, EP-05 |
 | [EP-10 Login de usuario: MFA y federación](../done/EP-10-login-mfa-y-federacion.md) (hecha) | [039](../done/039-consumir-recovery-mfa.md), [040](../done/040-grant-mfa-no-interactivo.md) (descartada), [051](../done/051-federacion-oidc-generica.md) (descartada) | media | S + opc. | EP-03 (040), EP-07 (051) |
-| [EP-11 Aserciones JWT de cliente](EP-11-aserciones-jwt-cliente.md) | 044, 069 (opc.) | media | M | EP-02 (decisión), EP-03, EP-07 |
+| [EP-11 Aserciones JWT de cliente](../done/EP-11-aserciones-jwt-cliente.md) (hecha) | [044](../done/044-client-auth-jwt.md), [069](../pospuestos/069-grant-jwt-bearer.md) (opc., pospuesta) | media | M | EP-02 (decisión), EP-03, EP-07 |
 | [EP-12 Grants por decisión de producto](EP-12-grants-decision-producto.md) | 043, 052, 055 | baja | decisión + M/L | EP-05, EP-06 |
 | [EP-13 Tokens ligados a clave o certificado](EP-13-tokens-ligados.md) | 048, 053 | baja | L | EP-05, EP-06, EP-07 |
 | [EP-14 Algoritmos, firma y cifrado avanzados](EP-14-algoritmos-firma-cifrado.md) | 050, 054, 057, 060 | baja | L | EP-04, EP-06, EP-08 |
@@ -76,7 +78,7 @@ graph LR
 | 3 — authorize | EP-07, EP-08 | Ambas tocan `AuthorizeHtml`: secuenciales o con el mismo responsable |
 | 4 — sesión y login | EP-09, EP-10 (039) | Necesitan `auth_time`/`amr`/`sid` expuestos por EP-05 |
 | 5 — cierre | EP-16 fases 1–2 | Escenarios encadenados, OpenID Conformance Suite, documentación |
-| Bajo demanda | EP-11 a EP-15 y opcionales de EP-08/09/10 | Solo con caso de uso aprobado; EP-01 ya retiró sus anuncios |
+| Bajo demanda | EP-12 a EP-15 y las [pospuestas](../pospuestos/README.md) (041, 062, 067, 069) | Solo con caso de uso aprobado; EP-01 ya retiró sus anuncios |
 
 Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusionada), EP-06 ‖ EP-05 (tras EP-04), EP-07 ‖ EP-09.
 
@@ -114,7 +116,7 @@ Paralelizable sin conflicto: EP-04 ‖ EP-03 ‖ EP-02 (si fase A ya está fusio
 | Re-hash de contraseñas en bloque o perezoso | EP-02 | En bloque |
 | ~~Grant MFA no interactivo (040)~~ | EP-10 | Decidido: descartado; code + PKCE o device |
 | ~~Proveedor OIDC genérico (051)~~ | EP-10 | Decidido: descartado; SAML para SSO corporativo |
-| Aprobar cada opcional (041, 043, 044, 048, 050–062, 067–069; 045 aprobada) | varias | Ver ficha |
+| Aprobar cada opcional (043, 048, 050–061; 045, 068 y 044 aprobadas; 041, 062, 067 y 069 [pospuestas](../pospuestos/README.md)) | varias | Ver ficha |
 
 ## Mapa tarea → épica
 

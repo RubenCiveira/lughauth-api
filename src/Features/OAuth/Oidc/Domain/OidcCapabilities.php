@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Oidc\Domain;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseMode;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ResponseType;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\UiLocale;
+use Civi\Lughauth\Features\OAuth\Client\Domain\JwtAssertionVerifier;
 
 /**
  * Immutable set of protocol capabilities the authorization server actually implements.
@@ -29,15 +30,17 @@ final class OidcCapabilities
         public readonly array $subjectTypes,
         /** PKCE methods accepted at /authorize and /token: only S256 (034). */
         public readonly array $codeChallengeMethods,
-        /** Client authentication methods accepted by TokenController. */
+        /** Client authentication methods accepted by TokenController (ClientAuthenticator). */
         public readonly array $tokenEndpointAuthMethods,
         /** Client authentication methods accepted by IntrospectionController. */
         public readonly array $introspectionEndpointAuthMethods,
         /** Client authentication methods accepted by LogoutController::revoke. */
         public readonly array $revocationEndpointAuthMethods,
+        /** Algorithms accepted for private_key_jwt client assertions at every endpoint (044). */
+        public readonly array $endpointAuthSigningAlgs,
         /** Algorithms used by TokenSigner to sign ID tokens. */
         public readonly array $idTokenSigningAlgs,
-        /** Algorithms accepted by RequestObjectValidator for signed request objects. */
+        /** Algorithms accepted by RequestObjectValidator (JwtAssertionVerifier) for signed request objects. */
         public readonly array $requestObjectSigningAlgs,
         /** Whether request objects passed by value ("request") are validated. */
         public readonly bool $requestParameter,
@@ -77,11 +80,12 @@ final class OidcCapabilities
             responseModes: array_map(static fn (ResponseMode $mode): string => $mode->value, ResponseMode::cases()),
             subjectTypes: ['public'],
             codeChallengeMethods: ['S256'],
-            tokenEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'none'],
-            introspectionEndpointAuthMethods: ['client_secret_basic', 'client_secret_post'],
-            revocationEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'none'],
+            tokenEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'],
+            introspectionEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'private_key_jwt'],
+            revocationEndpointAuthMethods: ['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'],
+            endpointAuthSigningAlgs: JwtAssertionVerifier::ALGORITHMS,
             idTokenSigningAlgs: ['RS256'],
-            requestObjectSigningAlgs: ['RS256', 'ES256', 'PS256'],
+            requestObjectSigningAlgs: JwtAssertionVerifier::ALGORITHMS,
             requestParameter: true,
             claimsParameter: false,
             authorizationResponseIssParameter: true,

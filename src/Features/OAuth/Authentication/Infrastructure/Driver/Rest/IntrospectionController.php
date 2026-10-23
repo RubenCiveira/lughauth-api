@@ -7,8 +7,11 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
-use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\OAuth\Client\Application\ClientAuthenticator;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientAuthPolicy;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientCredentials;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Application\AccessTokenPolicy;
 use OpenApi\Attributes as OA;
 
@@ -17,8 +20,9 @@ use OpenApi\Attributes as OA;
  *
  * This controller exposes a POST endpoint at /oauth/openid/{tenant}/introspect that allows
  * resource servers to query whether a given access token is currently active. The
- * caller must authenticate as a registered confidential client, either via HTTP Basic
- * Authorization or by supplying client_id and client_secret in the request body.
+ * caller must authenticate as a registered confidential client through ClientAuthenticator: with
+ * its secret (HTTP Basic or client_id and client_secret in the body) or, when registered for
+ * private_key_jwt, with a client assertion.
  *
  * The token is judged by AccessTokenPolicy, the same verifier as UserInfo and the bearer
  * middleware: when it is an access token of this tenant and issuer, unexpired and not revoked,
@@ -27,21 +31,22 @@ use OpenApi\Attributes as OA;
  * another tenant, or an ID or refresh token) only {"active": false} is returned — no additional
  * information is disclosed to avoid leaking token metadata.
  *
- * Relationships: depends on AccessTokenPolicy for verification and ClientStoreGateway for client
+ * Relationships: depends on AccessTokenPolicy for verification and ClientAuthenticator for client
  * authentication.
  */
 class IntrospectionController
 {
     public function __construct(
         private readonly AccessTokenPolicy $policy,
-        private readonly ClientStoreGateway $clients,
+        private readonly ClientAuthenticator $clients,
+        private readonly Context $context,
     ) {
     }
 
     #[OA\Post(
         path: '/oauth/openid/{tenant}/introspect',
         summary: 'Token Introspection (RFC 7662)',
-        description: 'Returns metadata about an access token; ID, refresh, revoked and foreign tokens are inactive. Requires client authentication via HTTP Basic or client_id/client_secret in the body.',
+        description: 'Returns metadata about an access token; ID, refresh, revoked and foreign tokens are inactive. Requires client authentication via HTTP Basic, client_id/client_secret in the body or a private_key_jwt client assertion.',
         tags: ['OIDC'],
         security: [['basicAuth' => []]],
         parameters: [
@@ -56,6 +61,8 @@ class IntrospectionController
                     new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token (other token types are inactive)'),
                     new OA\Property(property: 'client_id', type: 'string'),
                     new OA\Property(property: 'client_secret', type: 'string'),
+                    new OA\Property(property: 'client_assertion_type', type: 'string', example: ClientCredentials::ASSERTION_TYPE),
+                    new OA\Property(property: 'client_assertion', type: 'string', description: 'private_key_jwt client assertion (RFC 7523)'),
                 ])
             )
         ),
@@ -99,7 +106,9 @@ class IntrospectionController
         }
 
         $tenant = (string) ($args['tenant'] ?? '');
-        if (!$this->authenticateClient($tenant, $params)) {
+        $issuer = $this->context->getIssuer($tenant);
+        $credentials = ClientCredentials::fromHttp($request->getHeaderLine('Authorization'), $request->getServerParams(), $params);
+        if ($this->clients->authenticate($tenant, $credentials, ClientAuthPolicy::Secret, $issuer, "{$issuer}/introspect") === null) {
             return $this->jsonError(
                 $response,
                 401,
@@ -115,21 +124,6 @@ class IntrospectionController
         }
 
         return $this->jsonResponse($response, $this->buildResponse($payload));
-    }
-
-    private function authenticateClient(string $tenant, array $params): bool
-    {
-        if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
-            return $this->clients->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) !== null;
-        }
-
-        $clientId = (string) ($params['client_id'] ?? '');
-        $clientSecret = (string) ($params['client_secret'] ?? '');
-        if ($clientId === '' || $clientSecret === '') {
-            return false;
-        }
-
-        return $this->clients->clientData($tenant, $clientId, $clientSecret) !== null;
     }
 
     /** @param array<string, mixed> $payload */

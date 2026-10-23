@@ -24,7 +24,10 @@ final class DcrMetadataPolicy
 {
     /** URI schemes that are explicitly forbidden as redirect URIs for security reasons. */
     private const array FORBIDDEN_URI_SCHEMES = ['javascript', 'data', 'vbscript'];
-    /** Token endpoint auth methods the token endpoint can verify (private_key_jwt waits for task 044). */
+    /**
+     * Token endpoint auth methods a dynamic client can use. private_key_jwt also needs the client
+     * keys (jwks or jwks_uri), which dynamic registration does not accept yet.
+     */
     private const array SUPPORTED_AUTH_METHODS = ['client_secret_basic', 'client_secret_post', 'none'];
     /** Grant type that each response type part needs. */
     private const array RESPONSE_TYPE_GRANTS = [

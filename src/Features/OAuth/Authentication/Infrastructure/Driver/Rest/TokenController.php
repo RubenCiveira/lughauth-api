@@ -15,7 +15,9 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\TokenGrant;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject\ScopeSet;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter\TokenGranterMediator;
-use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\OAuth\Client\Application\ClientAuthenticator;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientAuthPolicy;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientCredentials;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\TokenType;
@@ -51,8 +53,12 @@ use OpenApi\Attributes as OA;
  * - urn:ietf:params:oauth:grant-type:device_code: polls the device authorization grant, returns
  *   tokens when the device code has been approved by the user.
  * - password / client_credentials and other confidential-client grants: authenticate the client
- *   via HTTP Basic or body credentials, verify the grant is registered for that client, and
- *   call TokenGranterMediator.
+ *   with a secret (HTTP Basic or body) or a client assertion, verify the grant is registered for
+ *   that client, and call TokenGranterMediator.
+ *
+ * Every grant authenticates the client through ClientAuthenticator: authorization_code and
+ * refresh_token with the client's registered method only, the device grant also as a public client,
+ * and a client registered for private_key_jwt only with a client assertion (task 044).
  *
  * Every response, success or error, carries Cache-Control: no-store and Pragma: no-cache
  * (RFC 6749 §5.1). Any OAuthTokenException (or DeviceAuthorizationException) thrown during
@@ -60,8 +66,8 @@ use OpenApi\Attributes as OA;
  * a failed client authentication is invalid_client, an unusable code, refresh token or resource
  * owner credential is invalid_grant.
  *
- * Relationships: depends on TokenGranterMediator for grant logic, ClientStoreGateway for client
- * lookup, TemporalKeysGateway for auth-code redemption, SessionStoreGateway for the session
+ * Relationships: depends on TokenGranterMediator for grant logic, ClientAuthenticator for client
+ * authentication, TemporalKeysGateway for auth-code redemption, SessionStoreGateway for the session
  * behind a grant, TokenSigner to verify refresh tokens and TokenFactory to issue tokens.
  */
 class TokenController
@@ -72,7 +78,7 @@ class TokenController
     public function __construct(
         private readonly Context $context,
         private readonly TokenGranterMediator $granter,
-        private readonly ClientStoreGateway $clientDataGateway,
+        private readonly ClientAuthenticator $clientAuthenticator,
         private readonly TemporalKeysGateway $temporals,
         private readonly TokenSigner $manager,
         private readonly SessionStoreGateway $sessions,
@@ -98,6 +104,8 @@ class TokenController
                     new OA\Property(property: 'redirect_uri', type: 'string'),
                     new OA\Property(property: 'client_id', type: 'string'),
                     new OA\Property(property: 'client_secret', type: 'string'),
+                    new OA\Property(property: 'client_assertion_type', type: 'string', example: ClientCredentials::ASSERTION_TYPE),
+                    new OA\Property(property: 'client_assertion', type: 'string', description: 'private_key_jwt client assertion (RFC 7523)'),
                     new OA\Property(property: 'code_verifier', type: 'string', description: 'PKCE verifier'),
                     new OA\Property(property: 'refresh_token', type: 'string'),
                 ])
@@ -148,14 +156,14 @@ class TokenController
         return match ($grant) {
             'authorization_code' => $this->codeGrant($request, $tenant, $params),
             'refresh_token' => $this->refreshGrant($request, $tenant, $params),
-            DeviceAuthorizationService::grantType() => $this->deviceGrant($tenant, $grant, $params),
-            default => $this->clientGrant($tenant, $grant, $params),
+            DeviceAuthorizationService::grantType() => $this->deviceGrant($request, $tenant, $grant, $params),
+            default => $this->clientGrant($request, $tenant, $grant, $params),
         };
     }
 
     private function codeGrant(ServerRequestInterface $request, string $tenant, array $params): TokenGrant
     {
-        $client = $this->authenticateClient($request, $tenant, $params);
+        $client = $this->authenticateClient($request, $tenant, $params, ClientAuthPolicy::RegisteredMethod);
         if (!$client->allowsGrant('authorization_code')) {
             throw OAuthTokenException::unauthorizedClient();
         }
@@ -231,7 +239,7 @@ class TokenController
         if ($refreshPayload === null) {
             throw OAuthTokenException::invalidGrant('Invalid refresh token');
         }
-        $client = $this->authenticateClient($request, $tenant, $params);
+        $client = $this->authenticateClient($request, $tenant, $params, ClientAuthPolicy::RegisteredMethod);
         if (!$client->allowsGrant('refresh_token')) {
             throw OAuthTokenException::unauthorizedClient();
         }
@@ -274,18 +282,11 @@ class TokenController
         );
     }
 
-    private function deviceGrant(string $tenant, string $grant, array $params): TokenGrant
+    private function deviceGrant(ServerRequestInterface $request, string $tenant, string $grant, array $params): TokenGrant
     {
-        $client = null;
-        if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
-            $client = $this->clientDataGateway->clientData($tenant, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
-        } else {
-            $clientId = (string) ($params['client_id'] ?? '');
-            if ($clientId !== '') {
-                $client = $this->clientDataGateway->preValidatedClient($tenant, $clientId);
-            }
-        }
-        if (!$client) {
+        try {
+            $client = $this->authenticateClient($request, $tenant, $params, ClientAuthPolicy::SecretOrPublic);
+        } catch (OAuthTokenException) {
             throw DeviceAuthorizationException::invalidClient();
         }
         if (!$client->allowsGrant($grant)) {
@@ -309,22 +310,9 @@ class TokenController
         );
     }
 
-    private function clientGrant(string $tenant, string $grant, array $params): TokenGrant
+    private function clientGrant(ServerRequestInterface $request, string $tenant, string $grant, array $params): TokenGrant
     {
-        $headerClientId = isset($_SERVER['PHP_AUTH_USER']) ? (string) $_SERVER['PHP_AUTH_USER'] : '';
-        $headerClientSecret = isset($_SERVER['PHP_AUTH_PW']) ? (string) $_SERVER['PHP_AUTH_PW'] : '';
-        $bodyClientId = (string) ($params['client_id'] ?? '');
-        $bodyClientSecret = (string) ($params['client_secret'] ?? '');
-        $clientId = $headerClientId !== '' ? $headerClientId : $bodyClientId;
-        $clientSecret = $headerClientSecret !== '' ? $headerClientSecret : $bodyClientSecret;
-        if ($clientId === '' || $clientSecret === '') {
-            throw OAuthTokenException::invalidClient();
-        }
-
-        $client = $this->clientDataGateway->clientData($tenant, $clientId, $clientSecret);
-        if (!$client) {
-            throw OAuthTokenException::invalidClient();
-        }
+        $client = $this->authenticateClient($request, $tenant, $params, ClientAuthPolicy::Secret);
         if (!$client->allowsGrant($grant)) {
             throw OAuthTokenException::unauthorizedClient();
         }
@@ -384,60 +372,22 @@ class TokenController
     }
 
     /**
-     * Authenticates the client of the tenant with its registered token endpoint auth method.
+     * Authenticates the client of the tenant with the methods the policy accepts; invalid_client otherwise.
      */
-    private function authenticateClient(ServerRequestInterface $request, string $tenant, array $params): ClientData
+    private function authenticateClient(ServerRequestInterface $request, string $tenant, array $params, ClientAuthPolicy $policy): ClientData
     {
-        $basic = $this->basicCredentials($request);
-        $bodyClientId = $params['client_id'] ?? null;
-        $clientId = is_string($bodyClientId) && $bodyClientId !== '' ? $bodyClientId : ($basic[0] ?? '');
-        if ($clientId === '' || ($basic !== null && $bodyClientId !== null && $bodyClientId !== $basic[0])) {
-            throw OAuthTokenException::invalidClient();
-        }
-
-        $registered = $this->clientDataGateway->findEnabledClient($tenant, $clientId);
-        if ($registered === null) {
-            throw OAuthTokenException::invalidClient();
-        }
-
-        $secret = $params['client_secret'] ?? null;
-        $client = match ($registered->tokenEndpointAuthMethod) {
-            'none' => $basic === null && ($secret === null || $secret === '') && $bodyClientId !== null
-                ? $this->clientDataGateway->preValidatedClient($tenant, $clientId)
-                : null,
-            'client_secret_basic' => $basic !== null && ($secret === null || $secret === '')
-                ? $this->clientDataGateway->clientData($tenant, $clientId, $basic[1])
-                : null,
-            'client_secret_post' => $basic === null && is_string($secret) && $secret !== '' && $bodyClientId !== null
-                ? $this->clientDataGateway->clientData($tenant, $clientId, $secret)
-                : null,
-            default => null,
-        };
-        if ($client === null || $client->id !== $clientId) {
+        $issuer = $this->context->getIssuer($tenant);
+        $client = $this->clientAuthenticator->authenticate(
+            $tenant,
+            ClientCredentials::fromHttp($request->getHeaderLine('Authorization'), $request->getServerParams(), $params),
+            $policy,
+            $issuer,
+            "{$issuer}/token",
+        );
+        if ($client === null) {
             throw OAuthTokenException::invalidClient();
         }
         return $client;
-    }
-
-    /** @return array{string, string}|null */
-    private function basicCredentials(ServerRequestInterface $request): ?array
-    {
-        $authorization = $request->getHeaderLine('Authorization');
-        if ($authorization !== '') {
-            if (!preg_match('/^Basic ([A-Za-z0-9+\/=]+)$/i', $authorization, $matches)) {
-                throw OAuthTokenException::invalidClient();
-            }
-            $decoded = base64_decode($matches[1], true);
-            if ($decoded === false || !str_contains($decoded, ':')) {
-                throw OAuthTokenException::invalidClient();
-            }
-            [$clientId, $secret] = explode(':', $decoded, 2);
-            return [urldecode($clientId), urldecode($secret)];
-        }
-        if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
-            return [(string) $_SERVER['PHP_AUTH_USER'], (string) $_SERVER['PHP_AUTH_PW']];
-        }
-        return null;
     }
 
     private function json(ResponseInterface $response, array $payload, int $status = 200): ResponseInterface

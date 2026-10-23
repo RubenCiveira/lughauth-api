@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest;
 
-use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
@@ -13,7 +12,7 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
 /**
  * Application use case implementing the Pushed Authorization Request endpoint (RFC 9126).
  *
- * Authenticates the OAuth client using its credentials, validates that the submitted
+ * Receives the client authenticated by the endpoint (ClientAuthenticator), validates that the submitted
  * authorization parameters include the minimum required fields and name that same client
  * (and no nested request_uri, RFC 9126 §2.1), creates a ParRequest
  * aggregate with a cryptographically random request_uri and a 60-second TTL, and persists
@@ -31,29 +30,24 @@ final class PushAuthorizationUsecase
     private const int EXPIRES_IN = 60;
 
     public function __construct(
-        private readonly ClientStoreGateway $clients,
         private readonly ParRequestGateway $gateway,
     ) {
     }
 
     /**
-     * Validates the client credentials and authorization parameters, then stores and returns a new PAR request.
-     * Throws ParException with 'invalid_client' (401) on bad credentials or 'invalid_request' (400) on missing params.
+     * Validates the authorization parameters, then stores and returns a new PAR request.
+     * Throws ParException with 'invalid_request' (400) on missing or foreign params.
      */
     public function push(PushAuthorizationParams $params): PushAuthorizationResult
     {
-        $client = $this->clients->clientData($params->tenant, $params->clientId, $params->clientSecret);
-        if ($client === null) {
-            throw ParException::invalidClient();
-        }
-
+        $clientId = $params->client->id;
         $this->validateAuthParams($params->authParams);
         // The request is stored for the authenticated client: it cannot speak for another one.
-        if ($params->authParams['client_id'] !== $params->clientId) {
+        if ($params->authParams['client_id'] !== $clientId) {
             throw ParException::invalidRequest('client_id does not match the authenticated client');
         }
 
-        $parRequest = ParRequest::create($params->tenant, $params->clientId, $params->authParams);
+        $parRequest = ParRequest::create($params->tenant, $clientId, $params->authParams);
         $this->gateway->store($parRequest);
 
         return new PushAuthorizationResult(

@@ -1257,7 +1257,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $clients,
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
             $this->createMock(TenantParPolicyGateway::class),
-            new RequestObjectValidator($this->createMock(RemoteJwksFetcher::class), new InMemoryReplayJti()),
+            new RequestObjectValidator(new \Civi\Lughauth\Features\OAuth\Client\Domain\JwtAssertionVerifier($this->createMock(RemoteJwksFetcher::class), new InMemoryReplayJti())),
             $this->referenceSigner(),
             $this->replays ??= new InMemoryReplayJti(),
         );

@@ -14,6 +14,9 @@ This context owns the **client identity model**: what grant types a client suppo
 | `DcrRegistrationRules` | ValueObject | Tenant DCR rules: policy, allowed grant types and auth methods, password permission |
 | `DcrInitialAccess` | ValueObject | A verified initial access token being consumed, with its optional grant types |
 | `DcrMetadataPolicy` | Domain service | Validates DCR metadata (redirect URIs, grants, response types, auth method) against the rules |
+| `ClientCredentials` | ValueObject | Client credentials of a request (Basic, `client_secret`, `client_assertion` or `client_id` alone) and the single method they use |
+| `ClientAuthPolicy` | Enum | Secret-based methods an endpoint accepts: the registered one, any secret, or also public |
+| `JwtAssertionVerifier` | Domain service | Verifies a JWT signed with the client keys (signature, `iss`/`sub`, `aud`, times, single-use `jti` per purpose); shared by client assertions and JAR |
 | `ApiKeyData` | ValueObject | M2M credentials (client_id + secret) used for `client_credentials` grant |
 | `DynamicClientData` | ValueObject | Mutable client attributes managed via DCR |
 | `DynamicClientRequest` | ValueObject | Validated input for DCR create/update operations |
@@ -36,6 +39,7 @@ This context owns the **client identity model**: what grant types a client suppo
 | `UpdateDynamicClientUsecase` | Updates a dynamic client's metadata |
 | `DeleteDynamicClientUsecase` | Removes a dynamic client registration |
 | `IssueInitialAccessTokenUsecase` | Issues a DCR initial access token and returns it once |
+| `ClientAuthenticator` | Authenticates the client at the token, PAR, introspection and revocation endpoints: secrets, `private_key_jwt` (task 044) and public clients, per `ClientAuthPolicy` |
 
 ## Infrastructure
 

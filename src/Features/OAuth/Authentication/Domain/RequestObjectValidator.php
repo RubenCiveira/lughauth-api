@@ -5,44 +5,29 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
-use Civi\Lughauth\Features\OAuth\Authentication\Domain\Gateway\RemoteJwksFetcher;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
-use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\ReplayJtiGateway;
+use Civi\Lughauth\Features\OAuth\Client\Domain\JwtAssertionVerifier;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\ReplayPurpose;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\Core\JWK;
-use Jose\Component\Core\JWKSet;
-use Jose\Component\Signature\Algorithm\ES256;
-use Jose\Component\Signature\Algorithm\PS256;
-use Jose\Component\Signature\Algorithm\RS256;
-use Jose\Component\Signature\JWSVerifier;
-use Jose\Component\Signature\Serializer\CompactSerializer;
 
 /**
  * Validates a JAR (JWT-Secured Authorization Request) object per RFC 9101.
  *
- * Verifies the signature of the request JWT using the client's public keys, which are
- * either embedded directly as a JSON Web Key Set in the client configuration or downloaded
- * from the client's registered jwks_uri through RemoteJwksFetcher. Supported signing algorithms
- * are RS256, ES256, and PS256; unsigned ("alg":"none") request objects are rejected unconditionally.
+ * The signature and the common claims are checked by JwtAssertionVerifier, the same verifier as
+ * the private_key_jwt client assertions: signed with RS256, ES256 or PS256 (the client's
+ * request_object_signing_alg when registered, never "none") by a key of the client's inline JWKS
+ * or jwks_uri; iss equal to the client; aud naming the tenant issuer; exp required and at most
+ * one hour away, nbf and iat not in the future; and its jti consumed in the replay store with the
+ * request_object purpose, so the same object cannot be presented twice nor reused as a client
+ * assertion. On top of that, the client_id claim must be the client and response_type is
+ * required, which a client assertion never carries (ClientAuthenticator rejects it).
  *
- * After successful signature verification the claims must bind the object to this client and
- * this tenant (client_id and iss equal to the client, aud naming the tenant issuer) and to a
- * short time window (exp required, nbf and iat not in the future). Finally its jti is consumed
- * in the replay store, so the same object cannot be presented twice. Throws
- * InvalidArgumentException with the error code "invalid_request_object" for any validation
+ * Throws InvalidArgumentException with the error code "invalid_request_object" for any validation
  * failure, which the authorization endpoint maps to an OAuth error response.
  */
 final class RequestObjectValidator
 {
-    /** Clock skew tolerated between the client and this server. */
-    private const int LEEWAY_SECONDS = 30;
-    /** Longest lifetime accepted, which also bounds how long a jti is kept. */
-    private const int MAX_LIFETIME_SECONDS = 3600;
-
     public function __construct(
-        private readonly RemoteJwksFetcher $jwks,
-        private readonly ReplayJtiGateway $replays,
+        private readonly JwtAssertionVerifier $verifier,
     ) {
     }
 
@@ -53,154 +38,22 @@ final class RequestObjectValidator
      */
     public function validate(string $requestJwt, ClientData $client, string $tenant, string $issuer): array
     {
-        $header = $this->parseHeader($requestJwt);
-        $alg = (string) ($header['alg'] ?? '');
-        if ($alg === '' || strtolower($alg) === 'none') {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        if ($client->requestObjectSigningAlg !== null && $client->requestObjectSigningAlg !== '' && $client->requestObjectSigningAlg !== $alg) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        $payload = $this->verifySignature($requestJwt, $this->clientJwks($client, $tenant), $alg);
-        if (($payload['client_id'] ?? null) !== $client->id || ($payload['iss'] ?? null) !== $client->id) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-        $audiences = (array) ($payload['aud'] ?? []);
-        if (!in_array($issuer, $audiences, true)) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-        $expiresAt = $this->checkTimes($payload);
-
-        $jti = $payload['jti'] ?? null;
-        if (!is_string($jti) || $jti === ''
-            || !$this->replays->consume($tenant, $client->id, ReplayPurpose::RequestObject, $jti, $expiresAt)
-        ) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        return $payload;
-    }
-
-    /**
-     * Requires exp within the accepted lifetime and nbf/iat not in the future. Returns how long the
-     * jti must be kept: while the object is still accepted, that is exp plus the leeway.
-     */
-    private function checkTimes(array $payload): \DateTimeImmutable
-    {
-        $now = time();
-        $exp = $payload['exp'] ?? null;
-        if (!is_int($exp) || $exp <= $now - self::LEEWAY_SECONDS || $exp > $now + self::MAX_LIFETIME_SECONDS) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-        foreach (['nbf', 'iat'] as $claim) {
-            $value = $payload[$claim] ?? null;
-            if ($value !== null && (!is_int($value) || $value > $now + self::LEEWAY_SECONDS)) {
-                throw new \InvalidArgumentException('invalid_request_object');
-            }
-        }
-        return (new \DateTimeImmutable())->setTimestamp($exp + self::LEEWAY_SECONDS);
-    }
-
-    private function clientJwks(ClientData $client, string $tenant): JWKSet
-    {
-        if ($client->jwksJson !== null && $client->jwksJson !== '') {
-            $decoded = json_decode($client->jwksJson, true);
-            if (!is_array($decoded)) {
-                throw new \InvalidArgumentException('invalid_request_object');
-            }
-            return $this->jwkSetFromArray($decoded);
-        }
-
-        if ($client->jwksUri === null || $client->jwksUri === '') {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
         try {
-            return $this->jwkSetFromArray($this->jwks->fetch($tenant, $client->id, $client->jwksUri));
+            $payload = $this->verifier->verify(
+                $requestJwt,
+                $client,
+                $tenant,
+                ReplayPurpose::RequestObject,
+                algorithm: $client->requestObjectSigningAlg,
+                audiences: [$issuer],
+                subjectIsClient: false,
+            );
         } catch (\InvalidArgumentException) {
             throw new \InvalidArgumentException('invalid_request_object');
         }
-    }
-
-    private function verifySignature(string $jwt, JWKSet $jwks, string $alg): array
-    {
-        $serializer = new CompactSerializer();
-        try {
-            $jws = $serializer->unserialize($jwt);
-        } catch (\InvalidArgumentException) {
+        if (($payload['client_id'] ?? null) !== $client->id || !is_string($payload['response_type'] ?? null)) {
             throw new \InvalidArgumentException('invalid_request_object');
         }
-
-        $algorithmManager = new AlgorithmManager([$this->algorithmByName($alg)]);
-        $verifier = new JWSVerifier($algorithmManager);
-        if (!$verifier->verifyWithKeySet($jws, $jwks, 0)) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        $payload = json_decode($jws->getPayload() ?? '{}', true);
-        if (!is_array($payload)) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
         return $payload;
-    }
-
-    private function parseHeader(string $jwt): array
-    {
-        $parts = explode('.', $jwt);
-        if (count($parts) !== 3) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        $decodedHeader = $this->base64UrlDecode($parts[0]);
-        $header = json_decode($decodedHeader, true);
-        if (!is_array($header)) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        return $header;
-    }
-
-    private function algorithmByName(string $alg): RS256|ES256|PS256
-    {
-        return match ($alg) {
-            'RS256' => new RS256(),
-            'ES256' => new ES256(),
-            'PS256' => new PS256(),
-            default => throw new \InvalidArgumentException('invalid_request_object'),
-        };
-    }
-
-    private function jwkSetFromArray(array $decoded): JWKSet
-    {
-        $keys = $decoded['keys'] ?? null;
-        if (!is_array($keys) || $keys === []) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-
-        $result = [];
-        foreach ($keys as $key) {
-            if (!is_array($key)) {
-                throw new \InvalidArgumentException('invalid_request_object');
-            }
-            $result[] = new JWK($key);
-        }
-
-        return new JWKSet($result);
-    }
-
-    private function base64UrlDecode(string $value): string
-    {
-        $remainder = strlen($value) % 4;
-        if ($remainder > 0) {
-            $value .= str_repeat('=', 4 - $remainder);
-        }
-        $decoded = base64_decode(strtr($value, '-_', '+/'), true);
-        if ($decoded === false) {
-            throw new \InvalidArgumentException('invalid_request_object');
-        }
-        return $decoded;
     }
 }

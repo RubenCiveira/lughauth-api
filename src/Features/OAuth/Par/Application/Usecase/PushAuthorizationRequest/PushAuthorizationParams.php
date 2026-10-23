@@ -5,11 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest;
 
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
+
 /**
  * Input value object for the PushAuthorizationUsecase carrying all parameters needed to
  * register a Pushed Authorization Request (RFC 9126).
  *
- * Bundles the tenant context, client credentials, and the raw authorization parameters
+ * Bundles the tenant context, the client already authenticated by the endpoint (ClientAuthenticator)
+ * and the raw authorization parameters
  * submitted by the relying party. The authParams array contains the standard OAuth fields
  * (response_type, redirect_uri, scope, state, nonce, code_challenge, etc.) exactly as
  * received from the client, allowing the use case to validate and forward them without
@@ -24,16 +27,9 @@ final class PushAuthorizationParams
     public readonly string $tenant;
 
     /**
-     * OAuth client identifier submitted by the relying party.
-     * Must correspond to a registered client within the specified tenant.
+     * The client authenticated by the endpoint, for which the request is stored.
      */
-    public readonly string $clientId;
-
-    /**
-     * Client secret used to authenticate the relying party before accepting the request.
-     * May be an empty string for public clients that authenticate via other means.
-     */
-    public readonly string $clientSecret;
+    public readonly ClientData $client;
 
     /**
      * Raw map of OAuth authorization parameters to be stored and later resolved by the authorization endpoint.
@@ -43,13 +39,11 @@ final class PushAuthorizationParams
 
     public function __construct(
         string $tenant,
-        string $clientId,
-        string $clientSecret,
+        ClientData $client,
         array $authParams,
     ) {
         $this->tenant = $tenant;
-        $this->clientId = $clientId;
-        $this->clientSecret = $clientSecret;
+        $this->client = $client;
         $this->authParams = $authParams;
     }
 }

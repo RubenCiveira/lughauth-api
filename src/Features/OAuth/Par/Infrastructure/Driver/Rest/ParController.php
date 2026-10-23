@@ -8,6 +8,10 @@ namespace Civi\Lughauth\Features\OAuth\Par\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\OAuth\Client\Application\ClientAuthenticator;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientAuthPolicy;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientCredentials;
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest\PushAuthorizationParams;
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest\PushAuthorizationUsecase;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
@@ -16,9 +20,10 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
  * REST driver controller that exposes the Pushed Authorization Request endpoint (RFC 9126).
  *
  * Accepts application/x-www-form-urlencoded POST requests from confidential clients and
- * delegates to PushAuthorizationUsecase. Client credentials are resolved from HTTP Basic Auth
- * first, falling back to form-body client_id and client_secret fields. Authorization parameters
- * are extracted from the body with client_secret stripped out before forwarding. Any ParException
+ * delegates to PushAuthorizationUsecase. The client is authenticated by ClientAuthenticator with
+ * its secret (HTTP Basic or client_secret in the body) or, when registered for private_key_jwt,
+ * a client assertion. Authorization parameters are extracted from the body without the client
+ * credentials (ClientCredentials::BODY_PARAMS) before forwarding. Any ParException
  * thrown by the use case is caught and serialised as a JSON error body with the appropriate HTTP
  * status, producing an RFC 9126-compliant error response. Successful responses return HTTP 201
  * with request_uri and expires_in fields in the JSON body.
@@ -27,6 +32,8 @@ class ParController
 {
     public function __construct(
         private readonly PushAuthorizationUsecase $usecase,
+        private readonly ClientAuthenticator $clients,
+        private readonly Context $context,
     ) {
     }
 
@@ -43,10 +50,12 @@ class ParController
             content: new OA\MediaType(
                 mediaType: 'application/x-www-form-urlencoded',
                 schema: new OA\Schema(
-                    required: ['client_id', 'response_type', 'redirect_uri'],
+                    required: ['response_type', 'redirect_uri'],
                     properties: [
                         new OA\Property(property: 'client_id', type: 'string'),
                         new OA\Property(property: 'client_secret', type: 'string'),
+                        new OA\Property(property: 'client_assertion_type', type: 'string', example: ClientCredentials::ASSERTION_TYPE),
+                        new OA\Property(property: 'client_assertion', type: 'string', description: 'private_key_jwt client assertion (RFC 7523)'),
                         new OA\Property(property: 'response_type', type: 'string', example: 'code'),
                         new OA\Property(property: 'redirect_uri', type: 'string'),
                         new OA\Property(property: 'scope', type: 'string', example: 'openid email'),
@@ -92,14 +101,27 @@ class ParController
         $tenant = $args['tenant'];
         $params = (array) ($request->getParsedBody() ?? []);
 
-        [$clientId, $clientSecret] = $this->resolveClientCredentials($request, $params);
+        $issuer = $this->context->getIssuer($tenant);
+        $client = $this->clients->authenticate(
+            $tenant,
+            ClientCredentials::fromHttp($request->getHeaderLine('Authorization'), $request->getServerParams(), $params),
+            ClientAuthPolicy::Secret,
+            $issuer,
+            "{$issuer}/par",
+        );
+        if ($client === null) {
+            throw ParException::invalidClient();
+        }
 
-        $authParams = $this->extractAuthParams($params, $clientId);
+        $authParams = array_diff_key($params, array_flip(ClientCredentials::BODY_PARAMS));
+        // The client_id may be left to the Basic header or the client assertion.
+        if (empty($authParams['client_id'])) {
+            $authParams['client_id'] = $client->id;
+        }
 
         $pushParams = new PushAuthorizationParams(
             tenant: $tenant,
-            clientId: $clientId,
-            clientSecret: $clientSecret,
+            client: $client,
             authParams: $authParams,
         );
 
@@ -112,34 +134,5 @@ class ParController
         $encoded = json_encode($payload);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
-    }
-
-    private function resolveClientCredentials(ServerRequestInterface $request, array $params): array
-    {
-        $serverParams = $request->getServerParams();
-        if (isset($serverParams['PHP_AUTH_USER']) && isset($serverParams['PHP_AUTH_PW'])) {
-            return [(string) $serverParams['PHP_AUTH_USER'], (string) $serverParams['PHP_AUTH_PW']];
-        }
-
-        $clientId = (string) ($params['client_id'] ?? '');
-        $clientSecret = (string) ($params['client_secret'] ?? '');
-
-        if ($clientId === '') {
-            throw ParException::invalidRequest('client_id is required');
-        }
-
-        return [$clientId, $clientSecret];
-    }
-
-    private function extractAuthParams(array $params, string $clientId): array
-    {
-        $authParams = $params;
-        unset($authParams['client_secret']);
-
-        if (empty($authParams['client_id'])) {
-            $authParams['client_id'] = $clientId;
-        }
-
-        return $authParams;
     }
 }

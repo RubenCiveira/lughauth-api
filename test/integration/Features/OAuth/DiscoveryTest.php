@@ -226,6 +226,19 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->assertSame($caps->uiLocales, $doc['ui_locales_supported']);
     }
 
+    /** EP-11: every endpoint that authenticates clients through ClientAuthenticator accepts private_key_jwt. */
+    public function testClientAuthenticationMethodsIncludePrivateKeyJwtWithItsAlgorithms(): void
+    {
+        $doc = $this->discover();
+
+        foreach (['token_endpoint', 'introspection_endpoint', 'revocation_endpoint'] as $endpoint) {
+            $this->assertContains('private_key_jwt', $doc["{$endpoint}_auth_methods_supported"], $endpoint);
+            $this->assertNotContains('client_secret_jwt', $doc["{$endpoint}_auth_methods_supported"], $endpoint);
+            $this->assertSame(['RS256', 'ES256', 'PS256'], $doc["{$endpoint}_auth_signing_alg_values_supported"], $endpoint);
+        }
+        $this->assertNotContains('urn:ietf:params:oauth:grant-type:jwt-bearer', $doc['grant_types_supported']);
+    }
+
     public function testEveryAnnouncedUiLocaleHasALoginCatalogue(): void
     {
         $translations = dirname(__DIR__, 4) . '/src/Features/OAuth/Authentication/Infrastructure/Driver/Translations';
